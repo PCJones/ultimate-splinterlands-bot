@@ -11,6 +11,7 @@ Feel free to give suggestions for features/code refurbishing via pull requests o
 
 ## New Features
 - Multiple accounts with only one instance
+- Login via Email
 - Faster Login & Fighting:
 - The bot no longer refreshes the page all the time (which often got you blocked from splinterlands for a few minutes)
 - The bot clicks away popups
