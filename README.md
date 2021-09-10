@@ -86,4 +86,5 @@ PASSWORD=password1,password2,POST_KEY3
 
 **How to extend the newHistory.json without deleting existing data?**
 
-Run `node combine.js` in the data folder to add the data from history.json to the newHistory.json file
+1. Backup newHistory.json in case something goes wrong
+2. Run `node combine.js` in the data folder to add the data from history.json to the newHistory.json file
