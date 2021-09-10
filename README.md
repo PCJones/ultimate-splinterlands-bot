@@ -21,6 +21,7 @@ Feel free to give suggestions for features/code refurbishing via pull requests o
 - **Coming Soon**: Individual wait time for each account (right now it will battle with all accounts and wait after that)
 - **Coming Soon**: Minimum Energy Capture Rate - the bot will pause automatically if the energy capture rate is below a specified percentage
 - **Coming Soon**: Option to disable automatic quest reward chest opening
+- **Coming Soon**: Statistics on how each account is performing
 - Any suggestions?
 
 # Support / Community
