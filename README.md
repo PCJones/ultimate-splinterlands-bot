@@ -3,13 +3,20 @@ A fast, multi-account splinderlands bot
 
 Based on https://github.com/alfficcadenti/splinterlands-bot
 
+## Preamble 
+Right now the code is a mess - I just hacked something together so I can release this asap. I'm planning on updating the code soon. Feel free to give suggestions for features/code refurbishing via pull requests or on discord/telegram.
+
 ## New Features
 - Multiple accounts with only one instance
 - Faster Login & Fighting:
--- The bot no longer refreshes the page all the time (which often got you blocked from splinterlands for a few minutes)
--- The bot clicks away popups
--- The bot waits if there is a loading circle from splinterlands
+- The bot no longer refreshes the page all the time (which often got you blocked from splinterlands for a few minutes)
+- The bot clicks away popups
+- The bot waits if there is a loading circle from splinterlands
+- Disabled requesting the free api because it is always overloaded and slows down the bot
 - **Coming Soon**: Better Team Selection - the bot will chose cards with best win rate, not the ones that are most used
+- **Coming Soon**: Individual wait time for each account (right now it will battle with all accounts and wait after that)
+- **Coming Soon**: Minimum Energy Capture Rate - the bot will pause automatically if the energy capture rate is below a specified percentage
+- Any suggestions?
 
 # Support / Community
 
