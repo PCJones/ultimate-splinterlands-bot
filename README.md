@@ -75,7 +75,7 @@ In case you want to donate to me for updating this bot, I would be very happy! P
 
 # FAQ
 1. Can I have some accounts that login via email and some via username?
-2. 
+
 Yes! Config Example:
 ```
 LOGIN_VIA_EMAIL=true
