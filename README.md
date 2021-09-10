@@ -6,9 +6,9 @@ Based on https://github.com/alfficcadenti/splinterlands-bot
 ## New Features
 - Multiple accounts with only one instance
 - Faster Login & Fighting:
-- The bot no longer refreshes the page all the time (which often got you blocked from splinterlands for a few minutes)
-- The bot clicks away popups
-- The bot waits if there is a loading circle from splinterlands
+-- The bot no longer refreshes the page all the time (which often got you blocked from splinterlands for a few minutes)
+-- The bot clicks away popups
+-- The bot waits if there is a loading circle from splinterlands
 - **Coming Soon**: Better Team Selection - the bot will chose cards with best win rate, not the ones that are most used
 
 # Support / Community
