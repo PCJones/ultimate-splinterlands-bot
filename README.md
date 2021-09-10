@@ -48,7 +48,7 @@ Configuration with default values:
 
 - `QUEST_PRIORITY=true` Disable/Enable quest priority
 
-- `MINUTES_BATTLES_INTERVAL=30` Sleep time before the bot will fight with all accounts again
+- `MINUTES_BATTLES_INTERVAL=30` Sleep time before the bot will fight with all accounts again. Subtract 2-3 minutes per account
 
 - `CLAIM_SEASON_REWARD=false` Disable/Enable season reward claiming
 
