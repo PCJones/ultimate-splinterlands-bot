@@ -42,8 +42,6 @@ https://discord.gg/hwSr7KNGs9)
 
 ## Bot configuration:
 
-The BOT will make a battle every 30 minutes by default, you can change the custom value specifying in the .env the variable `MINUTES_BATTLES_INTERVAL`.
-
 Configuration with default values:
 
 - `QUEST_PRIORITY=true` Disable/Enable quest priority
