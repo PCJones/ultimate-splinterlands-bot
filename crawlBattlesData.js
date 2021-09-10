@@ -11,7 +11,7 @@ async function login(page) {
         await page.waitForSelector('#account')
             .then(() => page.waitForTimeout(1000))
             .then(() => page.focus('#account'))
-            .then(() => page.type('#account', process.env.ACCOUNT.split('@')[0], {delay: 100}))
+            .then(() => page.type('#account', process.env.EMAIL.split('@')[0], {delay: 100}))
             .then(() => page.focus('#key'))
             .then(() => page.type('#key', process.env.PASSWORD, {delay: 100}))
             .then(() => page.click('#btn_login'))

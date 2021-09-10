@@ -51,12 +51,12 @@ async function waitUntilLoaded(page) {
 
 // LOAD MY CARDS
 async function getCards() {
-    const myCards = await user.getPlayerCards(process.env.ACCOUNTUSER.split('@')[0]) //split to prevent email use
+    const myCards = await user.getPlayerCards(process.env.USERNAME.split('@')[0]) //split to prevent email use
     return myCards;
 } 
 
 async function getQuest() {
-    return quests.getPlayerQuest(process.env.ACCOUNTUSER.split('@')[0])
+    return quests.getPlayerQuest(process.env.USERNAME.split('@')[0])
         .then(x=>x)
         .catch(e=>console.log('No quest data, splinterlands API didnt respond, or you are wrongly using the email and password instead of username and posting key'))
 }
@@ -65,9 +65,9 @@ async function startBotPlayMatch(page, myCards, quest) {
     
     console.log( new Date().toLocaleString())
     if(myCards) {
-        console.log(process.env.ACCOUNTUSER, ' deck size: '+myCards.length)
+        console.log(process.env.USERNAME, ' deck size: '+myCards.length)
     } else {
-        console.log(process.env.ACCOUNT, ' playing only basic cards')
+        console.log(process.env.EMAIL, ' playing only basic cards')
     }
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36');
     await page.setViewport({
@@ -114,12 +114,12 @@ async function startBotPlayMatch(page, myCards, quest) {
             await page.waitForSelector('#claim-btn', { visible:true, timeout: 3000 })
             .then(async (button) => {
                 button.click();
-                console.log(`claiming the season reward. you can check them here https://peakmonsters.com/@${process.env.ACCOUNTUSER}/explorer`);
+                console.log(`claiming the season reward. you can check them here https://peakmonsters.com/@${process.env.USERNAME}/explorer`);
                 await page.waitForTimeout(20000);
                 await page.reload();
 
             })
-            .catch(()=>console.log('no season reward to be claimed, but you can still check your data here https://peakmonsters.com/@${process.env.ACCOUNTUSER}/explorer'));
+            .catch(()=>console.log('no season reward to be claimed, but you can still check your data here https://peakmonsters.com/@${process.env.USERNAME}/explorer'));
             await page.waitForTimeout(3000);
             await page.reload();
         }
@@ -258,12 +258,12 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 (async () => {
     while (true) {
         try {
-			const accounts = process.env.ACCOUNT.split(',');
+			const accounts = process.env.EMAIL.split(',');
 			const passwords = process.env.PASSWORD.split(',');
-			const accountusers = process.env.ACCOUNTUSER.split(',');
+			const accountusers = process.env.USERNAME.split(',');
 			const pages = [];
 			console.log('Loaded', accounts.length, ' Accounts')
-            console.log('START ', process.env.ACCOUNT, new Date().toLocaleString())
+            console.log('START ', process.env.EMAIL, new Date().toLocaleString())
 			for (let i = 0; i < accounts.length; i++) {
 				const browser = await puppeteer.launch({
 					headless: false,
@@ -311,7 +311,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
         } catch (e) {
             console.log('Routine error at: ', new Date().toLocaleString(), e)
         }
-        //await console.log(process.env.ACCOUNT,'waiting for the next battle in', sleepingTime / 1000 / 60 , ' minutes at ', new Date(Date.now() +sleepingTime).toLocaleString() )
+        //await console.log(process.env.EMAIL,'waiting for the next battle in', sleepingTime / 1000 / 60 , ' minutes at ', new Date(Date.now() +sleepingTime).toLocaleString() )
         //await console.log('If you need support for the bot, join the telegram group https://t.me/splinterlandsbot and discord https://discord.gg/bR6cZDsFSX,  dont pay scammers')
         //await new Promise(r => setTimeout(r, sleepingTime));
     }
