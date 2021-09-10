@@ -1,0 +1,21 @@
+{
+  "name": "splinter-scraper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dimas-kmeans": "^1.0.3",
+    "dotenv": "^8.2.0",
+    "hierarchical-clustering": "^1.1.0",
+    "minimist": ">=1.2.3",
+    "node-fetch": "^2.6.1",
+    "pg": "^8.0.3",
+    "puppeteer": "^10.1.0"
+  }
+}
