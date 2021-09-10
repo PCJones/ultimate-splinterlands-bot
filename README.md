@@ -20,6 +20,7 @@ Feel free to give suggestions for features/code refurbishing via pull requests o
 - **Coming Soon**: Better Team Selection - the bot will chose cards with best win rate, not the ones that are most used
 - **Coming Soon**: Individual wait time for each account (right now it will battle with all accounts and wait after that)
 - **Coming Soon**: Minimum Energy Capture Rate - the bot will pause automatically if the energy capture rate is below a specified percentage
+- **Coming Soon**: Option to disable automatic quest reward chest opening
 - Any suggestions?
 
 # Support / Community
