@@ -40,7 +40,7 @@ https://discord.gg/hwSr7KNGs9)
 - On windows: Execute `start.bat` in bot folder
 - On MacOS/Linux: open terminal in bot folder and execute command `npm start`
 
-### Bot configuration:
+## Bot configuration:
 
 The BOT will make a battle every 30 minutes by default, you can change the custom value specifying in the .env the variable `MINUTES_BATTLES_INTERVAL`.
 
