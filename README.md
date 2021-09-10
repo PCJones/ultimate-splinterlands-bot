@@ -30,7 +30,7 @@ https://discord.gg/hwSr7KNGs9)
 
 ## How to install
 - Download and install [NodeJs](https://nodejs.org/it/download/)
-- Download the bot (extract if its .zip)
+- Download the [bot](https://github.com/PCJones/ultimate-splinterlands-bot/archive/refs/heads/master.zip) (extract if its .zip)
 - Create .env file (see .env-example)
 - On windows: Execute `install.bat` in bot folder
 - On MacOS/Linux: open terminal in bot folder and execute command `npm install`
