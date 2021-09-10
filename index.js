@@ -90,7 +90,7 @@ async function getQuest() {
 }
 
 async function createBrowsers(count, headless) {
-	let pages = [];
+	let browsers = [];
 	for (let i = 0; i < count; i++) {
 		const browser = await puppeteer.launch({
 			headless: headless,
@@ -100,10 +100,11 @@ async function createBrowsers(count, headless) {
 		await page.on('dialog', async dialog => {
 			await dialog.accept();
 		});
-		pages[i] = page;
+		
+		browsers[i] = browser;
 	}
 	
-	return pages;
+	return browsers;
 }
 
 async function startBotPlayMatch(page, myCards, quest) {
@@ -178,7 +179,7 @@ async function startBotPlayMatch(page, myCards, quest) {
 
     await page.waitForTimeout(5000);
 
-	if (!page.url.includes("battle_history")) {
+	if (!page.url().includes("battle_history")) {
 		console.log("Seems like battle button menu didn't get clicked correctly - try again");
 		console.log('Clicking fight menu button again');
 		await clickMenuFightButton(page);
@@ -314,7 +315,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 		const passwords = process.env.PASSWORD.split(',');
 		const headless = JSON.parse(process.env.HEADLESS.toLowerCase());
 		const keepBrowserOpen = JSON.parse(process.env.KEEP_BROWSER_OPEN.toLowerCase());
-		let pages = [];
+		let browsers = [];
 		console.log('Headless', headless);
 		console.log('Keep Browser Open', keepBrowserOpen);
 		console.log('Login via Email', loginViaEmail);
@@ -328,17 +329,16 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 				process.env['PASSWORD'] = passwords[i];
 				process.env['ACCUSERNAME'] = accountusers[i];
 				
-				if (keepBrowserOpen && pages.length == 0) {
+				if (keepBrowserOpen && browsers.length == 0) {
 					console.log('Opening browsers');
-					pages = await createBrowsers(accounts.length, headless);
+					browsers = await createBrowsers(accounts.length, headless);
 				} else if (!keepBrowserOpen) { // close browser, only have 1 instance at a time
 					console.log('Opening browser');
-					pages = await createBrowsers(1, headless);
+					browsers = await createBrowsers(1, headless);
 				}
+							
+				const page = (await (keepBrowserOpen ? browsers[i] : browsers[0]).pages())[1];
 				
-				console.log('done');
-				
-				let page = keepBrowserOpen ? pages[i] : pages[0];
 				//page.goto('https://splinterlands.io/');
 				console.log('getting user cards collection from splinterlands API...')
 				const myCards = await getCards()
@@ -362,7 +362,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 					await page.waitForTimeout(5000);
 					await page.goto('about:blank');	
 				} else {
-					await browser.close();
+					await browsers[0].close();
 				}
 			}
 			await console.log('Waiting for the next battle in', sleepingTime / 1000 / 60 , ' minutes at ', new Date(Date.now() +sleepingTime).toLocaleString() );
