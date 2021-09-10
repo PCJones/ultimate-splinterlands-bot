@@ -4,9 +4,7 @@ A fast, multi-account splinderlands bot
 Based on https://github.com/alfficcadenti/splinterlands-bot
 
 ## Preamble 
-Right now the code is a mess - I just hacked something together so I can release this asap. 
-
-I'm planning on updating the code soon. 
+Right now the code is a mess - I just hacked something together so I can release this asap. I'm planning on updating the code soon. 
 
 Feel free to give suggestions for features/code refurbishing via pull requests or on discord/telegram.
 
