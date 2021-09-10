@@ -74,7 +74,7 @@ In case you want to donate to me for updating this bot, I would be very happy! P
 - Text me on Discord or Telegram for anything other
 
 # FAQ
-1. Can I have some accounts that login via email and some via username?
+**Can I have some accounts that login via email and some via username?**
 
 Yes! Config Example:
 ```
@@ -83,3 +83,6 @@ EMAIL=account1@email.com,account2@email.com,username3
 ACCUSERNAME=username1,username2,username3
 PASSWORD=password1,password2,POST_KEY3
 ```
+
+**How to extend the newHistory.json without deleting existing data?**
+Run `node combine.js` in the data folder to add the data from history.json to the newHistory.json file
