@@ -54,7 +54,7 @@ Configuration with default values:
 
 - `HEADLESS=true` Disable/Enable headless("visible") browser (e.g. to see where the bot fails)
 
-- `KEEP_BROWSER_OPEN=true` Disable/Enable keeping the browser instance open after fighting. Recommended to have it on true to avoid having each account to login for each fight. Disable if CPU/Ram usage is too high (check in task manager)
+- `KEEP_BROWSER_OPEN=true` Disable/Enable keeping the browser instances open after fighting. Recommended to have it on true to avoid having each account to login for each fight. Disable if CPU/Ram usage is too high (check in task manager)
 
 - `LOGIN_VIA_EMAIL=false` Disable/Enable login via e-mail adress. See below for further explanation
 
