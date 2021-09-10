@@ -1,6 +1,7 @@
 //'use strict';
 require('dotenv').config()
 const puppeteer = require('puppeteer');
+const fetch = require("node-fetch");
 
 const splinterlandsPage = require('./splinterlandsPage');
 const user = require('./user');
@@ -8,6 +9,23 @@ const card = require('./cards');
 const helper = require('./helper');
 const quests = require('./quests');
 const ask = require('./possibleTeams');
+const version = 0.1;
+
+async function checkForUpdate() {
+	console.log('-----------------------------------------------------------------------------------------------------');
+	await fetch('http://jofri.pf-control.de/prgrms/splnterlnds/version.txt')
+	.then(response=>response.json())
+	.then(newestVersion=>{ 
+		if (newestVersion > version) {
+			console.log('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot');
+			console.log('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot');
+			console.log('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot');
+		} else {
+			console.log('No update available');
+		}
+	})
+	console.log('-----------------------------------------------------------------------------------------------------');
+}
 
 // Close popups by Jones
 async function closePopups(page) {
@@ -49,23 +67,50 @@ async function waitUntilLoaded(page) {
 	await page.waitForFunction(() => !document.querySelector('.loading'), { timeout: 120000 });
 }
 
+async function clickMenuFightButton(page) {
+	try {
+        await page.waitForSelector('#menu_item_battle', { timeout: 6000 })
+            .then(button => button.click());
+    } catch (e) {
+        console.info('fight button not found')
+    }
+	
+}
+
 // LOAD MY CARDS
 async function getCards() {
-    const myCards = await user.getPlayerCards(process.env.USERNAME.split('@')[0]) //split to prevent email use
+    const myCards = await user.getPlayerCards(process.env.ACCUSERNAME.split('@')[0]) //split to prevent email use
     return myCards;
 } 
 
 async function getQuest() {
-    return quests.getPlayerQuest(process.env.USERNAME.split('@')[0])
+    return quests.getPlayerQuest(process.env.ACCUSERNAME.split('@')[0])
         .then(x=>x)
         .catch(e=>console.log('No quest data, splinterlands API didnt respond, or you are wrongly using the email and password instead of username and posting key'))
+}
+
+async function createBrowsers(count, headless) {
+	let pages = [];
+	for (let i = 0; i < count; i++) {
+		const browser = await puppeteer.launch({
+			headless: headless,
+		});
+		const page = await browser.newPage();
+		await page.setDefaultNavigationTimeout(500000);
+		await page.on('dialog', async dialog => {
+			await dialog.accept();
+		});
+		pages[i] = page;
+	}
+	
+	return pages;
 }
 
 async function startBotPlayMatch(page, myCards, quest) {
     
     console.log( new Date().toLocaleString())
     if(myCards) {
-        console.log(process.env.USERNAME, ' deck size: '+myCards.length)
+        console.log(process.env.ACCUSERNAME, ' deck size: '+myCards.length)
     } else {
         console.log(process.env.EMAIL, ' playing only basic cards')
     }
@@ -98,13 +143,7 @@ async function startBotPlayMatch(page, myCards, quest) {
 	await page.waitForTimeout(1000);
     await closePopups(page);
 	await page.waitForTimeout(2000);
-	try {
-        await page.waitForSelector('#menu_item_battle', { timeout: 6000 })
-            .then(button => button.click());
-    } catch (e) {
-        console.info('fight button not found')
-    }
-	
+	await clickMenuFightButton(page);
     await page.waitForTimeout(3000);
 
     //check if season reward is available
@@ -114,12 +153,12 @@ async function startBotPlayMatch(page, myCards, quest) {
             await page.waitForSelector('#claim-btn', { visible:true, timeout: 3000 })
             .then(async (button) => {
                 button.click();
-                console.log(`claiming the season reward. you can check them here https://peakmonsters.com/@${process.env.USERNAME}/explorer`);
+                console.log(`claiming the season reward. you can check them here https://peakmonsters.com/@${process.env.ACCUSERNAME}/explorer`);
                 await page.waitForTimeout(20000);
                 await page.reload();
 
             })
-            .catch(()=>console.log('no season reward to be claimed, but you can still check your data here https://peakmonsters.com/@${process.env.USERNAME}/explorer'));
+            .catch(()=>console.log('no season reward to be claimed, but you can still check your data here https://peakmonsters.com/@${process.env.ACCUSERNAME}/explorer'));
             await page.waitForTimeout(3000);
             await page.reload();
         }
@@ -139,11 +178,20 @@ async function startBotPlayMatch(page, myCards, quest) {
 
     await page.waitForTimeout(5000);
 
+	if (!page.url.includes("battle_history")) {
+		console.log("Seems like battle button menu didn't get clicked correctly - try again");
+		console.log('Clicking fight menu button again');
+		await clickMenuFightButton(page);
+		await page.waitForTimeout(5000);
+	}
+
     // LAUNCH the battle
     try {
         console.log('waiting for battle button...')
         await page.waitForXPath("//button[contains(., 'BATTLE')]", { timeout: 20000 })
-            .then(button => {console.log('Battle button clicked'); button.click()})
+            .then(button => {
+				console.log('Battle button clicked'); button.click()
+				})
             .catch(e=>console.error('[ERROR] waiting for Battle button. is Splinterlands in maintenance?'));
         await page.waitForTimeout(5000);
 
@@ -152,6 +200,8 @@ async function startBotPlayMatch(page, myCards, quest) {
             .then(()=>console.log('start the match'))
             .catch(async (e)=> {
             console.error('[Error while waiting for battle]');
+			console.log('Clicking fight menu button again');
+			await clickMenuFightButton(page);
             console.error('Refreshing the page and retrying to retrieve a battle');
             await page.waitForTimeout(5000);
             await page.reload();
@@ -256,63 +306,70 @@ const sleepingTimeInMinutes = process.env.MINUTES_BATTLES_INTERVAL || 30;
 const sleepingTime = sleepingTimeInMinutes * 60000;
 
 (async () => {
-    while (true) {
-        try {
-			const accounts = process.env.EMAIL.split(',');
-			const passwords = process.env.PASSWORD.split(',');
-			const accountusers = process.env.USERNAME.split(',');
-			const pages = [];
-			console.log('Loaded', accounts.length, ' Accounts')
-            console.log('START ', process.env.EMAIL, new Date().toLocaleString())
+	try {
+		await checkForUpdate();
+		const loginViaEmail = JSON.parse(process.env.LOGIN_VIA_EMAIL.toLowerCase());
+		const accountusers = process.env.ACCUSERNAME.split(',');
+		const accounts = loginViaEmail ? process.env.EMAIL.split(',') : accountusers;
+		const passwords = process.env.PASSWORD.split(',');
+		const headless = JSON.parse(process.env.HEADLESS.toLowerCase());
+		const keepBrowserOpen = JSON.parse(process.env.KEEP_BROWSER_OPEN.toLowerCase());
+		let pages = [];
+		console.log('Headless', headless);
+		console.log('Keep Browser Open', keepBrowserOpen);
+		console.log('Login via Email', loginViaEmail);
+		console.log('Loaded', accounts.length, ' Accounts')
+		console.log('START ', accounts, new Date().toLocaleString())
+
+		// edit by jones, neues while true
+		while (true) {
 			for (let i = 0; i < accounts.length; i++) {
-				const browser = await puppeteer.launch({
-					headless: false,
-					//args: ['--no-sandbox']
-				}); // default is true
-				const page = await browser.newPage();
-				await page.setDefaultNavigationTimeout(500000);
-				await page.on('dialog', async dialog => {
-					await dialog.accept();
-				});
-				pages[i] = page;
-			}			
-			// edit by jones, neues while true
-			while (true) {
-				for (let i = 0; i < accounts.length; i++) {
-					process.env['ACCOUNT'] = accounts[i];
-					process.env['PASSWORD'] = passwords[i];
-					process.env['ACCOUNTUSER'] = accountusers[i];
-					let page = pages[i];
-					//page.goto('https://splinterlands.io/');
-					console.log('getting user cards collection from splinterlands API...')
-					const myCards = await getCards()
-						.then((x)=>{console.log('cards retrieved'); return x})
-						.catch(()=>console.log('cards collection api didnt respond. Did you use username? avoid email!')); 
-					console.log('getting user quest info from splinterlands API...')
-					const quest = await getQuest();
-					if(!quest) {
-						console.log('Error for quest details. Splinterlands API didnt work or you used incorrect username, remove @ and dont use email')
-					}
-					await startBotPlayMatch(page, myCards, quest)
-						.then(() => {
-							console.log('Closing battle', new Date().toLocaleString());        
-						})
-						.catch((e) => {
-							console.log(e)
-						})
-					await page.waitForTimeout(5000);
-					await page.goto('about:blank');
+				process.env['EMAIL'] = accounts[i];
+				process.env['PASSWORD'] = passwords[i];
+				process.env['ACCUSERNAME'] = accountusers[i];
+				
+				if (keepBrowserOpen && pages.length == 0) {
+					console.log('Opening browsers');
+					pages = await createBrowsers(accounts.length, headless);
+				} else if (!keepBrowserOpen) { // close browser, only have 1 instance at a time
+					console.log('Opening browser');
+					pages = await createBrowsers(1, headless);
 				}
-				await console.log('Waiting for the next battle in', sleepingTime / 1000 / 60 , ' minutes at ', new Date(Date.now() +sleepingTime).toLocaleString() )
-				//await console.log('If you need support for the bot, join the telegram group https://t.me/splinterlandsbot and discord https://discord.gg/bR6cZDsFSX,  dont pay scammers')
-				await new Promise(r => setTimeout(r, sleepingTime));
+				
+				console.log('done');
+				
+				let page = keepBrowserOpen ? pages[i] : pages[0];
+				//page.goto('https://splinterlands.io/');
+				console.log('getting user cards collection from splinterlands API...')
+				const myCards = await getCards()
+					.then((x)=>{console.log('cards retrieved'); return x})
+					.catch(()=>console.log('cards collection api didnt respond. Did you use username? avoid email!'));
+				console.log('getting user quest info from splinterlands API...');
+				const quest = await getQuest();
+				if(!quest) {
+					console.log('Error for quest details. Splinterlands API didnt work or you used incorrect username, remove @ and dont use email')
+				}
+				await startBotPlayMatch(page, myCards, quest)
+					.then(() => {
+						console.log('Closing battle', new Date().toLocaleString());        
+					})
+					.catch((e) => {
+						console.log(e)
+					})
+				
+				await page.waitForTimeout(5000);
+				if (keepBrowserOpen) {
+					await page.waitForTimeout(5000);
+					await page.goto('about:blank');	
+				} else {
+					await browser.close();
+				}
 			}
-			//await browser.close();
-        } catch (e) {
-            console.log('Routine error at: ', new Date().toLocaleString(), e)
-        }
-        //await console.log(process.env.EMAIL,'waiting for the next battle in', sleepingTime / 1000 / 60 , ' minutes at ', new Date(Date.now() +sleepingTime).toLocaleString() )
-        //await console.log('If you need support for the bot, join the telegram group https://t.me/splinterlandsbot and discord https://discord.gg/bR6cZDsFSX,  dont pay scammers')
-        //await new Promise(r => setTimeout(r, sleepingTime));
-    }
+			await console.log('Waiting for the next battle in', sleepingTime / 1000 / 60 , ' minutes at ', new Date(Date.now() +sleepingTime).toLocaleString() );
+			await console.log('Join the telegram group https://t.me/ultimatesplinterlandsbot and discord https://discord.gg/hwSr7KNGs9');
+			await new Promise(r => setTimeout(r, sleepingTime));
+		}
+	} catch (e) {
+		console.log('Routine error at: ', new Date().toLocaleString(), e)
+	}
 })();

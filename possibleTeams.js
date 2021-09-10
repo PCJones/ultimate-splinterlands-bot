@@ -63,7 +63,6 @@ const summonerColor = (id) => {
     return summonerDetails ? summonerDetails[id] : '';
 }
 
-const historyLosses = require("./data/historyLosses.json");
 const historyBackup = require("./data/newHistory.json");
 const basicCards = require('./data/basicCards.js');
 const { filter } = require('./data/basicCards.js');
@@ -78,9 +77,9 @@ const getBattlesWithRuleset = (ruleset, mana, summoners) => {
 //    const host = 'http://localhost:3000/'
     let url = ''
     if (process.env.API_VERSION == 2) {
-        url = `V2/battlesruleset?ruleset=${rulesetEncoded}&mana=${mana}&player=${process.env.USERNAME}&summoners=${summoners ? JSON.stringify(summoners) : ''}`;
+        url = `V2/battlesruleset?ruleset=${rulesetEncoded}&mana=${mana}&player=${process.env.ACCOUNT}&summoners=${summoners ? JSON.stringify(summoners) : ''}`;
     } else {
-        url = `battlesruleset?ruleset=${rulesetEncoded}&mana=${mana}&player=${process.env.USERNAME}&summoners=${summoners ? JSON.stringify(summoners) : ''}`;
+        url = `battlesruleset?ruleset=${rulesetEncoded}&mana=${mana}&player=${process.env.ACCOUNT}&summoners=${summoners ? JSON.stringify(summoners) : ''}`;
     }
     console.log('API call: ', host+url)
     return fetch(host+url)
@@ -103,26 +102,21 @@ const battlesFilterByManacap = async (mana, ruleset, summoners) => {
     //const backupLength = historyBackup && historyBackup.length
     console.log('API battles did not return ', history)*/
 	const backupLength = historyBackup && historyBackup.length
+    //console.log('API battles did not return ', history)
     console.log('Using Backup ', backupLength)
     
-	let arrWins = historyBackup.filter(
+    return historyBackup.filter(
         battle =>
             battle.mana_cap == mana &&
             (ruleset ? battle.ruleset === ruleset : true)
-    );
-	let arrLosses = historyLosses.filter(
-        battle =>
-            battle.mana_cap == mana &&
-            (ruleset ? battle.ruleset === ruleset : true)
-    );
-	let combinedArray = arrWins.concat(arrLosses);
-    return combinedArray;
+    )
 }
 
 function compare(a, b) {
     // Use toUpperCase() to ignore character casing
-    const totA = a[8];
-    const totB = b[8];
+    const totA = a[9];
+    const totB = b[9];
+  
     let comparison = 0;
     if (totA < totB) {
       comparison = 1;
@@ -146,7 +140,7 @@ const cardsIdsforSelectedBattles = (mana, ruleset, splinters, summoners) => batt
                     x.monster_6_id ? parseInt(x.monster_6_id) : '',
                     summonerColor(x.summoner_id) ? summonerColor(x.summoner_id) : '',
                     x.tot ? parseInt(x.tot) : '',
-                    x.type ? x.type : '',
+                    x.ratio ? parseInt(x.ratio) : '',
                 ]
             }
         ).filter(
@@ -222,25 +216,23 @@ const mostWinningSummonerTankCombo = async (possibleTeams, matchDetails) => {
 
 const teamSelection = async (possibleTeams, matchDetails, quest) => {
 
-    // //TEST
-    // if (process.env.API_VERSION == 2 && possibleTeams[0][8]) {
-    //     console.log('play the most winning: ', possibleTeams[0])
-    //     return { summoner: possibleTeams[0][0], cards: possibleTeams[0] };
-    // }
-    // //
+    //TEST V2 Strategy ONLY FOR PRIVATE API
+    if (process.env.API_VERSION == 2 && possibleTeams[0][8]) {
+        console.log('play the most winning: ', possibleTeams[0])
+        return { summoner: possibleTeams[0][0], cards: possibleTeams[0] };
+    }
+    
 
     //check if daily quest is not completed
     console.log('quest custom option set as:', process.env.QUEST_PRIORITY, typeof process.env.QUEST_PRIORITY)
     let priorityToTheQuest = process.env.QUEST_PRIORITY === 'false' ? false : true;
-    if(priorityToTheQuest && possibleTeams.length > 50 && quest && quest.total) { // EDIT BY JONES; von 25 auf 50 verdoppelt wg doppelten teams wegen wins/losses
+    if(priorityToTheQuest && possibleTeams.length > 25 && quest && quest.total) {
         const left = quest.total - quest.completed;
         const questCheck = matchDetails.splinters.includes(quest.splinter) && left > 0;
         const filteredTeams = possibleTeams.filter(team=>team[7]===quest.splinter)
         console.log(left + ' battles left for the '+quest.splinter+' quest')
         console.log('play for the quest ',quest.splinter,'? ',questCheck)
-		console.log(filteredTeams);
-		console.log(filteredTeams.length);
-        if(left > 0 && filteredTeams && filteredTeams.length > 20 && splinters.includes(quest.splinter)) {// EDIT BY JONES; von 10 auf 20 verdoppelt wg doppelten teams wegen wins/losses
+        if(left > 0 && filteredTeams && filteredTeams.length > 10 && splinters.includes(quest.splinter)) {
             console.log('PLAY for the quest with Teams: ',filteredTeams.length , filteredTeams)
             const res = await mostWinningSummonerTankCombo(filteredTeams, matchDetails);
             console.log('Play this for the quest:', res)
