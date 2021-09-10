@@ -3,6 +3,21 @@ A fast, multi-account splinderlands bot
 
 Based on https://github.com/alfficcadenti/splinterlands-bot
 
+## New Features
+- Multiple accounts with only one instance
+- Faster Login & Fighting:
+- The bot no longer refreshes the page all the time (which often got you blocked from splinterlands for a few minutes)
+- The bot clicks away popups
+- The bot waits if there is a loading circle from splinterlands
+- **Coming Soon**: Better Team Selection - the bot will chose cards with best win rate, not the ones that are most used
+
+# Support / Community
+
+[Discord](
+https://discord.gg/hwSr7KNGs9)
+
+[Telegram](https://t.me/ultimatesplinterlandsbot) 
+
 ## How to install
 - Download and install [NodeJs](https://nodejs.org/it/download/)
 - Download the bot (extract if its .zip)
@@ -37,14 +52,6 @@ Configuration with default values:
 - `USERNAME=username1,username2,username3` Your login usernames, each account seperated by comma. **Even if you login via email you have to also set the usernames!**
 
 - `PASSWORD=password1,password2,password3` Your login passwords/posting keys. Use password if you login via email, **use the posting key if you login via username**
-
-
-# Support / Community
-
-[Discord](
-https://discord.gg/hwSr7KNGs9)
-
-[Telegram](https://t.me/ultimatesplinterlandsbot) 
 
 # Donations
 
