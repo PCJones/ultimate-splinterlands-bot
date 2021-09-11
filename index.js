@@ -30,7 +30,7 @@ async function checkForUpdate() {
 // Close popups by Jones
 async function closePopups(page) {
 	try {
-        await page.waitForSelector('.close', { timeout: 6000 })
+        await page.waitForSelector('.close', { timeout: 4000 })
             .then(button => {
 				console.log('Closing popup 1');
 				button.click();
@@ -177,7 +177,7 @@ async function startBotPlayMatch(page, myCards, quest) {
         console.info('no quest reward to be claimed waiting for the battle...')
     }
 
-    await page.waitForTimeout(5000);
+    await page.waitForTimeout(1000);
 
 	if (!page.url().includes("battle_history")) {
 		console.log("Seems like battle button menu didn't get clicked correctly - try again");
@@ -188,6 +188,7 @@ async function startBotPlayMatch(page, myCards, quest) {
 
     // LAUNCH the battle
     try {
+		await closePopups(page);
         console.log('waiting for battle button...')
         await page.waitForXPath("//button[contains(., 'BATTLE')]", { timeout: 20000 })
             .then(button => {
@@ -359,7 +360,6 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 				
 				await page.waitForTimeout(5000);
 				if (keepBrowserOpen) {
-					await page.waitForTimeout(5000);
 					await page.goto('about:blank');	
 				} else {
 					await browsers[0].close();
