@@ -72,14 +72,14 @@ let availabilityCheck = (base, toCheck) => toCheck.slice(0, 7).every(v => base.i
 
 const getBattlesWithRuleset = (ruleset, mana, summoners) => {
     const rulesetEncoded = encodeURIComponent(ruleset);
-    console.log(process.env.API)
-    const host = process.env.API || 'https://splinterlands-data-service.herokuapp.com/'
+    const host = process.env.API_URL || 'https://splinterlands-data-service.herokuapp.com/'
 //    const host = 'http://localhost:3000/'
     let url = ''
-    if (process.env.API_VERSION == 2) {
-        url = `V2/battlesruleset?ruleset=${rulesetEncoded}&mana=${mana}&player=${process.env.ACCOUNT}&summoners=${summoners ? JSON.stringify(summoners) : ''}`;
+	const useClassicPrivateAPI = JSON.parse(process.env.USE_CLASSIC_BOT_PRIVATE_API.toLowerCase());
+    if (useClassicPrivateAPI) {
+        url = `V2/battlesruleset?ruleset=${rulesetEncoded}&mana=${mana}&player=${process.env.ACCUSERNAME}&summoners=${summoners ? JSON.stringify(summoners) : ''}`;
     } else {
-        url = `battlesruleset?ruleset=${rulesetEncoded}&mana=${mana}&player=${process.env.ACCOUNT}&summoners=${summoners ? JSON.stringify(summoners) : ''}`;
+        url = `battlesruleset?ruleset=${rulesetEncoded}&mana=${mana}&player=${process.env.ACCUSERNAME}&summoners=${summoners ? JSON.stringify(summoners) : ''}`;
     }
     console.log('API call: ', host+url)
     return fetch(host+url)
@@ -90,18 +90,20 @@ const getBattlesWithRuleset = (ruleset, mana, summoners) => {
 
 const battlesFilterByManacap = async (mana, ruleset, summoners) => {
 	//edit by jones
-    /*const history = await getBattlesWithRuleset(ruleset, mana, summoners);
-    if (history) {
-        console.log('API battles returned ', history.length)
-        return history.filter(
-            battle =>
-                battle.mana_cap == mana &&
-                (ruleset ? battle.ruleset === ruleset : true)
-        )
-    }
-    //const backupLength = historyBackup && historyBackup.length
-    console.log('API battles did not return ', history)*/
 	const backupLength = historyBackup && historyBackup.length
+	const useClassicPrivateAPI = JSON.parse(process.env.USE_CLASSIC_BOT_PRIVATE_API.toLowerCase());
+	if (useClassicPrivateAPI) {
+		const history = await getBattlesWithRuleset(ruleset, mana, summoners);
+		if (history) {
+			console.log('API battles returned ', history.length)
+			return history.filter(
+				battle =>
+					battle.mana_cap == mana &&
+					(ruleset ? battle.ruleset === ruleset : true)
+			)
+		}
+	}
+	
     //console.log('API battles did not return ', history)
     console.log('Using Backup ', backupLength)
     
@@ -216,8 +218,9 @@ const mostWinningSummonerTankCombo = async (possibleTeams, matchDetails) => {
 
 const teamSelection = async (possibleTeams, matchDetails, quest) => {
 
+	const useClassicPrivateAPI = JSON.parse(process.env.USE_CLASSIC_BOT_PRIVATE_API.toLowerCase());
     //TEST V2 Strategy ONLY FOR PRIVATE API
-    if (process.env.API_VERSION == 2 && possibleTeams[0][8]) {
+    if (useClassicPrivateAPI && possibleTeams[0][8]) {
         console.log('play the most winning: ', possibleTeams[0])
         return { summoner: possibleTeams[0][0], cards: possibleTeams[0] };
     }
