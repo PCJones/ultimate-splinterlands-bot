@@ -52,7 +52,7 @@ Configuration with default values:
 - `MINUTES_BATTLES_INTERVAL=30` Sleep time before the bot will fight with all accounts again. Subtract 2-3 minutes per account
 
 - `CLAIM_SEASON_REWARD=false` Disable/Enable season reward claiming
-- 
+
 - `CLAIM_QUEST_REWARD=true` Disable/Enable quest reward claiming
 
 - `HEADLESS=true` Disable/Enable headless("visible") browser (e.g. to see where the bot fails)
