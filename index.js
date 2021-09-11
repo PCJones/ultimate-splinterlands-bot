@@ -107,7 +107,7 @@ async function createBrowsers(count, headless) {
 	return browsers;
 }
 
-async function startBotPlayMatch(page, myCards, quest) {
+async function startBotPlayMatch(page, myCards, quest, claimQuestReward) {
     
     console.log( new Date().toLocaleString())
     if(myCards) {
@@ -170,14 +170,16 @@ async function startBotPlayMatch(page, myCards, quest) {
 
     //if quest done claim reward
     console.log('Quest details: ', quest);
-    try {
-        await page.waitForSelector('#quest_claim_btn', { timeout: 5000 })
-            .then(button => button.click());
-    } catch (e) {
-        console.info('no quest reward to be claimed waiting for the battle...')
-    }
+	if (claimQuestReward) {
+		try {
+			await page.waitForSelector('#quest_claim_btn', { timeout: 5000 })
+				.then(button => button.click());
+		} catch (e) {
+			console.info('no quest reward to be claimed waiting for the battle...')
+		}
 
-    await page.waitForTimeout(1000);
+		await page.waitForTimeout(1000);
+	}
 
 	if (!page.url().includes("battle_history")) {
 		console.log("Seems like battle button menu didn't get clicked correctly - try again");
@@ -318,10 +320,12 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 		const passwords = process.env.PASSWORD.split(',');
 		const headless = JSON.parse(process.env.HEADLESS.toLowerCase());
 		const keepBrowserOpen = JSON.parse(process.env.KEEP_BROWSER_OPEN.toLowerCase());
+		const claimQuestReward = JSON.parse(process.env.CLAIM_QUEST_REWARD.toLowerCase());
 		let browsers = [];
 		console.log('Headless', headless);
 		console.log('Keep Browser Open', keepBrowserOpen);
 		console.log('Login via Email', loginViaEmail);
+		console.log('Claim Quest Reward', claimQuestReward);
 		console.log('Loaded', accounts.length, ' Accounts')
 		console.log('START ', accounts, new Date().toLocaleString())
 
@@ -352,7 +356,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 				if(!quest) {
 					console.log('Error for quest details. Splinterlands API didnt work or you used incorrect username, remove @ and dont use email')
 				}
-				await startBotPlayMatch(page, myCards, quest)
+				await startBotPlayMatch(page, myCards, quest, claimQuestReward)
 					.then(() => {
 						console.log('Closing battle', new Date().toLocaleString());        
 					})
