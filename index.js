@@ -9,7 +9,7 @@ const card = require('./cards');
 const helper = require('./helper');
 const quests = require('./quests');
 const ask = require('./possibleTeams');
-const version = 0.1;
+const version = 0.2;
 
 async function checkForUpdate() {
 	console.log('-----------------------------------------------------------------------------------------------------');
