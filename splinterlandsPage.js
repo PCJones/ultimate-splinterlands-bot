@@ -27,7 +27,7 @@ async function login(page) {
                         throw new Error('Didnt login');
                     })
                 })
-            .then(() => page.waitForTimeout(2000))
+            .then(() => page.waitForTimeout(500))
             //.then(() => page.reload()) edited by jones
     } catch (e) {
         throw new Error('Check that you used correctly username and posting key. (dont use email and password)');

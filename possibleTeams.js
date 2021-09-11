@@ -153,7 +153,7 @@ const cardsIdsforSelectedBattles = (mana, ruleset, splinters, summoners) => batt
 const askFormation = function (matchDetails) {
     const cards = matchDetails.myCards || basicCards;
     const mySummoners = getSummoners(cards);
-    console.log('INPUT: ', matchDetails.mana, matchDetails.rules, matchDetails.splinters, cards.length)
+    console.log('INPUT: ', matchDetails.mana, matchDetails.rules, matchDetails.splinters, cards.length);
     return cardsIdsforSelectedBattles(matchDetails.mana, matchDetails.rules, matchDetails.splinters, mySummoners)
         .then(x => x.filter(
             x => availabilityCheck(cards, x))

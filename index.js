@@ -27,6 +27,43 @@ async function checkForUpdate() {
 	console.log('-----------------------------------------------------------------------------------------------------');
 }
 
+async function checkForMissingConfigs() {
+	if (!process.env.LOGIN_VIA_EMAIL) {
+		console.log("Missing LOGIN_VIA_EMAIL parameter in .env - see updated .env-example!");
+		await sleep(60000);
+	}
+	if (!process.env.HEADLESS) {
+		console.log("Missing HEADLESS parameter in .env - see updated .env-example!");
+		await sleep(60000);
+	}
+	if (!process.env.KEEP_BROWSER_OPEN) {
+		console.log("Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!");
+		await sleep(60000);
+	}
+	if (!process.env.CLAIM_QUEST_REWARD) {
+		console.log("Missing CLAIM_QUEST_REWARD parameter in .env - see updated .env-example!");
+		await sleep(60000);
+	}
+	if (!process.env.USE_CLASSIC_BOT_PRIVATE_API) {
+		console.log("Missing USE_CLASSIC_BOT_PRIVATE_API parameter in .env - see updated .env-example!");
+		await sleep(60000);
+	}
+	if (!process.env.LOGIN_VIA_EMAIL) {
+		console.log("Missing LOGIN_VIA_EMAIL parameter in .env - see updated .env-example!");
+		await sleep(60000);
+	}
+	if (!process.env.LOGIN_VIA_EMAIL) {
+		console.log("Missing LOGIN_VIA_EMAIL parameter in .env - see updated .env-example!");
+		await sleep(60000);
+	}
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 // Close popups by Jones
 async function closePopups(page) {
 	try {
@@ -107,6 +144,26 @@ async function createBrowsers(count, headless) {
 	return browsers;
 }
 
+async function selectCorrectBattleType(page) {
+	try {
+		await page.waitForSelector("#battle_category_type", { timeout: 20000 })
+		let battleType = (await page.$eval('#battle_category_type', el => el.innerText)).trim();
+		while (battleType !== "RANKED") {
+			console.log("Wrong battleType! battleType is", battleType, "Trying to change it");
+			try {
+				await page.waitForSelector('#right_slider_btn', { timeout: 500 })
+					.then(button => button.click());
+			} catch (e) {
+				console.info('Slider button not found', e)
+			}
+			await page.waitForTimeout(1000);
+			battleType = (await page.$eval('#battle_category_type', el => el.innerText)).trim();
+		}
+	} catch (error) {
+		console.log("Error: couldn't find battle category type", error);
+	}
+}
+
 async function startBotPlayMatch(page, myCards, quest, claimQuestReward) {
     
     console.log( new Date().toLocaleString())
@@ -139,7 +196,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward) {
         });
     }
 	
-    await page.waitForTimeout(6000);
+    await page.waitForTimeout(2000);
 	await waitUntilLoaded(page);
 	await page.waitForTimeout(1000);
     await closePopups(page);
@@ -192,7 +249,9 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward) {
     try {
 		await closePopups(page);
         console.log('waiting for battle button...')
-        await page.waitForXPath("//button[contains(., 'BATTLE')]", { timeout: 20000 })
+		await selectCorrectBattleType(page);
+		
+        await page.waitForXPath("//button[contains(., 'BATTLE')]", { timeout: 1000 })
             .then(button => {
 				console.log('Battle button clicked'); button.click()
 				})
@@ -249,7 +308,8 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward) {
     const possibleTeams = await ask.possibleTeams(matchDetails).catch(e=>console.log('Error from possible team API call: ',e));
 
     if (possibleTeams && possibleTeams.length) {
-        console.log('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
+        //console.log('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
+        console.log('Possible Teams based on your cards: ', possibleTeams.length);
     } else {
         console.log('Error:', matchDetails, possibleTeams)
         throw new Error('NO TEAMS available to be played');
@@ -314,6 +374,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 (async () => {
 	try {
 		await checkForUpdate();
+		await checkForMissingConfigs();
 		const loginViaEmail = JSON.parse(process.env.LOGIN_VIA_EMAIL.toLowerCase());
 		const accountusers = process.env.ACCUSERNAME.split(',');
 		const accounts = loginViaEmail ? process.env.EMAIL.split(',') : accountusers;
