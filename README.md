@@ -91,6 +91,12 @@ ACCUSERNAME=username1,username2,username3
 PASSWORD=password1,password2,POST_KEY3
 ```
 
+**How to get history data from users of my choice?**
+
+1. Open battlesGetData.js in notepad and change the usersToGrab on line 70 to the users of your choice
+2. Run `node battlesGetData.js` in the bot folder
+3. File history.json is created, rename it to newHistory.json to replace the existing history data OR extend the newHistory.json file (see below)
+
 **How to extend the newHistory.json without deleting existing data?**
 
 1. Backup newHistory.json in case something goes wrong
