@@ -77,10 +77,9 @@ const getBattlesWithRuleset = (ruleset, mana, summoners) => {
     let url = ''
 	const useClassicPrivateAPI = JSON.parse(process.env.USE_CLASSIC_BOT_PRIVATE_API.toLowerCase());
     if (useClassicPrivateAPI) {
-        url = `V2/battlesruleset?ruleset=${rulesetEncoded}&mana=${mana}&player=${process.env.ACCUSERNAME}&summoners=${summoners ? JSON.stringify(summoners) : ''}`;
-    } else {
-        url = `battlesruleset?ruleset=${rulesetEncoded}&mana=${mana}&player=${process.env.ACCUSERNAME}&summoners=${summoners ? JSON.stringify(summoners) : ''}`;
-    }
+		url = `battlesruleset?ruleset=${rulesetEncoded}&mana=${mana}&player=${process.env.ACCUSERNAME}&summoners=${summoners ? JSON.stringify(summoners) : ''}`;
+        //url = `V2/battlesruleset?ruleset=${rulesetEncoded}&mana=${mana}&player=${process.env.ACCUSERNAME}&summoners=${summoners ? JSON.stringify(summoners) : ''}`;
+	}
     console.log('API call: ', host+url)
     return fetch(host+url)
         .then(x => x && x.json())
@@ -159,7 +158,6 @@ const askFormation = function (matchDetails) {
             x => availabilityCheck(cards, x))
             .map(element => element)//cards.cardByIds(element)
         )
-
 }
 
 const possibleTeams = async (matchDetails) => {
