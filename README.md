@@ -18,10 +18,11 @@ Feel free to give suggestions for features/code refurbishing via github or on di
 - The bot waits if there is a loading circle from splinterlands
 - Disabled requesting the free api because it is always overloaded and slows down the bot (I've supplied a very large history file)
 - **Coming Soon**: Better Team Selection - the bot will chose cards with best win rate, not the ones that are most used
-- **Coming Soon**: Individual wait time for each account (right now it will battle with all accounts and wait after that)
+- **Coming Soon**: Individual wait time for each account (right now it will battle with all accounts and wait after that) (aka **Multithreading**)
 - **Coming Soon**: Minimum Energy Capture Rate - the bot will pause automatically if the energy capture rate is below a specified percentage
 - **Coming Soon**: Option to disable automatic quest reward chest opening
 - **Coming Soon**: Statistics on how each account is performing
+- **Coming Soon**: Support for the private API of the original bot
 - Any suggestions?
 
 # Support / Community
@@ -74,7 +75,7 @@ In case you want to donate to me for updating this bot, I would be very happy! P
 - Text me on Discord or Telegram for anything other
 
 # FAQ
-1. Can I have some accounts that login via email and some via username?
+**Can I have some accounts that login via email and some via username?**
 
 Yes! Config Example:
 ```
@@ -83,3 +84,8 @@ EMAIL=account1@email.com,account2@email.com,username3
 ACCUSERNAME=username1,username2,username3
 PASSWORD=password1,password2,POST_KEY3
 ```
+
+**How to extend the newHistory.json without deleting existing data?**
+
+1. Backup newHistory.json in case something goes wrong
+2. Run `node combine.js` in the data folder to add the data from history.json to the newHistory.json file
