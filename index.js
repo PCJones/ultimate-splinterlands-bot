@@ -217,8 +217,6 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward) {
 
             })
             .catch(()=>console.log('no season reward to be claimed, but you can still check your data here https://peakmonsters.com/@${process.env.ACCUSERNAME}/explorer'));
-            await page.waitForTimeout(3000);
-            await page.reload();
         }
         catch (e) {
             console.info('no season reward to be claimed')
