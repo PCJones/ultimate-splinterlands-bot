@@ -299,9 +299,6 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward) {
         splinters: splinters,
         myCards: myCards
     }
-	console.log('--------');
-	console.log(matchDetails);
-	console.log('--------');
 	
     await page.waitForTimeout(2000);
     const possibleTeams = await ask.possibleTeams(matchDetails).catch(e=>console.log('Error from possible team API call: ',e));
