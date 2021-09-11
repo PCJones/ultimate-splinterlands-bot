@@ -17,12 +17,12 @@ Feel free to give suggestions for features/code refurbishing via github or on di
 - The bot clicks away popups
 - The bot waits if there is a loading circle from splinterlands
 - Disabled requesting the free api because it is always overloaded and slows down the bot (I've supplied a very large history file)
+- Option to disable automatic quest reward chest opening
+- Support for the private API of the original bot
 - **Coming Soon**: Better Team Selection - the bot will chose cards with best win rate, not the ones that are most used
 - **Coming Soon**: Individual wait time for each account (right now it will battle with all accounts and wait after that) (aka **Multithreading**)
 - **Coming Soon**: Minimum Energy Capture Rate - the bot will pause automatically if the energy capture rate is below a specified percentage
-- **Coming Soon**: Option to disable automatic quest reward chest opening
 - **Coming Soon**: Statistics on how each account is performing
-- **Coming Soon**: Support for the private API of the original bot
 - Any suggestions?
 
 # Support / Community
@@ -66,6 +66,10 @@ Configuration with default values:
 - `ACCUSERNAME=username1,username2,username3` Your login usernames, each account seperated by comma. **Even if you login via email you have to also set the usernames!**
 
 - `PASSWORD=password1,password2,password3` Your login passwords/posting keys. Use password if you login via email, **use the posting key if you login via username**
+
+- `USE_CLASSIC_BOT_PRIVATE_API=false` Set to false unless you have the private api from the original bot
+
+- `API_URL=` Ignore unless you have the private api from the original bot
 
 # Donations
 
