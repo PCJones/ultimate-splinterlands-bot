@@ -126,18 +126,19 @@ async function createBrowsers(count, headless) {
 	return browsers;
 }
 
-async function clickOnElement(page, selector, timeout=20000) {
+async function clickOnElement(page, selector, timeout=20000, delayBeforeClicking = 0) {
 	try {
-        await page.waitForSelector(selector, { timeout: timeout })
-            .then(elem => {
-				console.log('Clicking element', selector);
-				elem.click();
-			});
+        const elem = await page.waitForSelector(selector, { timeout: timeout });
+		if(elem) {
+			await sleep(delayBeforeClicking);
+			console.log('Clicking element', selector);
+			await elem.click();
+			return true;
+		}
     } catch (e) {
         console.log('Error: Could not find element', selector);
-		return false;
     }
-	return true;
+	return false;
 }
 
 async function selectCorrectBattleType(page) {
@@ -160,7 +161,7 @@ async function selectCorrectBattleType(page) {
 	}
 }
 
-async function startBotPlayMatch(page, myCards, quest, claimQuestReward) {
+async function startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest) {
     
     console.log( new Date().toLocaleString())
     if(myCards) {
@@ -176,7 +177,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward) {
     });
 
     await page.goto('https://splinterlands.io/');
-    await page.waitForTimeout(8000);
+    await page.waitForTimeout(4000);
 
     let item = await page.waitForSelector('#log_in_button > button', {
         visible: true,
@@ -292,12 +293,13 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward) {
         mana: mana,
         rules: rules,
         splinters: splinters,
-        myCards: myCards
+        myCards: myCards,
+		quest: prioritizeQuest ? quest : '',
     }
 	
     await page.waitForTimeout(2000);
     const possibleTeams = await ask.possibleTeams(matchDetails).catch(e=>console.log('Error from possible team API call: ',e));
-	
+
     if (possibleTeams && possibleTeams.length) {
         //console.log('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
         console.log('Possible Teams based on your cards: ', possibleTeams.length);
@@ -344,7 +346,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward) {
         await page.$eval('#btnRumble', elem => elem.click()).then(()=>console.log('btnRumble clicked')).catch(()=>console.log('btnRumble didnt click')); //start rumble
         await page.waitForSelector('#btnSkip', { timeout: 10000 }).then(()=>console.log('btnSkip visible')).catch(()=>console.log('btnSkip not visible'));
         await page.$eval('#btnSkip', elem => elem.click()).then(()=>console.log('btnSkip clicked')).catch(()=>console.log('btnSkip not visible')); //skip rumble
-		await clickOnElement(page, '.btn--done', 15000);
+		await clickOnElement(page, '.btn--done', 15000, 2500);
     } catch (e) {
         throw new Error(e);
     }
@@ -367,11 +369,13 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 		const headless = JSON.parse(process.env.HEADLESS.toLowerCase());
 		const keepBrowserOpen = JSON.parse(process.env.KEEP_BROWSER_OPEN.toLowerCase());
 		const claimQuestReward = JSON.parse(process.env.CLAIM_QUEST_REWARD.toLowerCase());
+		const prioritizeQuest = JSON.parse(process.env.QUEST_PRIORITY.toLowerCase());
 		let browsers = [];
 		console.log('Headless', headless);
 		console.log('Keep Browser Open', keepBrowserOpen);
 		console.log('Login via Email', loginViaEmail);
 		console.log('Claim Quest Reward', claimQuestReward);
+		console.log('Prioritize Quests', prioritizeQuest);
 		console.log('Loaded', accounts.length, ' Accounts')
 		console.log('START ', accounts, new Date().toLocaleString())
 
@@ -402,7 +406,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 				if(!quest) {
 					console.log('Error for quest details. Splinterlands API didnt work or you used incorrect username')
 				}
-				await startBotPlayMatch(page, myCards, quest, claimQuestReward)
+				await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest)
 					.then(() => {
 						console.log('Closing battle', new Date().toLocaleString());        
 					})
