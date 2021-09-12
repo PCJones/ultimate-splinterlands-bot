@@ -136,8 +136,8 @@ async function clickOnElement(page, selector, timeout=20000, delayBeforeClicking
 			return true;
 		}
     } catch (e) {
-        console.log('Error: Could not find element', selector);
     }
+	console.log('Error: Could not find element', selector);
 	return false;
 }
 
@@ -161,7 +161,7 @@ async function selectCorrectBattleType(page) {
 	}
 }
 
-async function startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest) {
+async function startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI) {
     
     console.log( new Date().toLocaleString())
     if(myCards) {
@@ -299,7 +299,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 	
     await page.waitForTimeout(2000);
     const possibleTeams = await ask.possibleTeams(matchDetails).catch(e=>console.log('Error from possible team API call: ',e));
-
+	
     if (possibleTeams && possibleTeams.length) {
         //console.log('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
         console.log('Possible Teams based on your cards: ', possibleTeams.length);
@@ -309,7 +309,25 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     }
     
     //TEAM SELECTION
-    const teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
+    let teamToPlay;
+	if (useAPI) {
+		const apiResponse = await api.getPossibleTeams(matchDetails);
+		if (apiResponse) {
+			console.log('API Response', apiResponse);
+		
+			teamToPlay = { summoner: Object.values(apiResponse)[1], cards: [ Object.values(apiResponse)[1], Object.values(apiResponse)[3], Object.values(apiResponse)[5], Object.values(apiResponse)[7], Object.values(apiResponse)[9], 
+							Object.values(apiResponse)[11], Object.values(apiResponse)[13], Object.values(apiResponse)[15] ] };
+		}
+		else {
+			console.log('API failed, using local history with most cards used tactic');
+			teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
+		}
+	} else {
+		teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
+	}
+	//teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
+	console.log('teamToPlay');
+	console.log(teamToPlay);
 
     if (teamToPlay) {
         page.click('.btn--create-team')[0];
@@ -367,6 +385,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 		const accounts = loginViaEmail ? process.env.EMAIL.split(',') : accountusers;
 		const passwords = process.env.PASSWORD.split(',');
 		const headless = JSON.parse(process.env.HEADLESS.toLowerCase());
+		const useAPI = JSON.parse(process.env.USE_API.toLowerCase());
 		const keepBrowserOpen = JSON.parse(process.env.KEEP_BROWSER_OPEN.toLowerCase());
 		const claimQuestReward = JSON.parse(process.env.CLAIM_QUEST_REWARD.toLowerCase());
 		const prioritizeQuest = JSON.parse(process.env.QUEST_PRIORITY.toLowerCase());
@@ -406,7 +425,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 				if(!quest) {
 					console.log('Error for quest details. Splinterlands API didnt work or you used incorrect username')
 				}
-				await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest)
+				await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI)
 					.then(() => {
 						console.log('Closing battle', new Date().toLocaleString());        
 					})
