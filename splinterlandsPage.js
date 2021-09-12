@@ -30,7 +30,7 @@ async function login(page) {
             .then(() => page.waitForTimeout(500))
             //.then(() => page.reload()) edited by jones
     } catch (e) {
-        throw new Error('Check that you used correctly username and posting key. (dont use email and password)');
+        throw new Error('Check that you used correctly username and posting key or email and password.');
     }
 }
 
