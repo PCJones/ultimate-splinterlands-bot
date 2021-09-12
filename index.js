@@ -9,6 +9,7 @@ const card = require('./cards');
 const helper = require('./helper');
 const quests = require('./quests');
 const ask = require('./possibleTeams');
+const api = require('./api');
 const version = 0.2;
 
 async function checkForUpdate() {
@@ -66,7 +67,8 @@ function sleep(ms) {
 
 // Close popups by Jones
 async function closePopups(page) {
-	try {
+	await clickOnElement(page, '.close', 4000);
+	/*try {
         await page.waitForSelector('.close', { timeout: 4000 })
             .then(button => {
 				console.log('Closing popup 1');
@@ -75,7 +77,7 @@ async function closePopups(page) {
 			});
     } catch (e) {
         console.info('popup 1 not found')
-    }
+    }*/
 	
 	try {
         await page.waitForSelector('.modal-close-new', { timeout: 1000 })
@@ -144,6 +146,19 @@ async function createBrowsers(count, headless) {
 	return browsers;
 }
 
+async function clickOnElement(page, selector, timeout=20000) {
+	try {
+        await page.waitForSelector(selector, { timeout: timeout })
+            .then(elem => {
+				console.log('Clicking element', selector);
+				elem.click();
+				return;
+			});
+    } catch (e) {
+        console.log('Error: Could not find element', selector);
+    }
+}
+
 async function selectCorrectBattleType(page) {
 	try {
 		await page.waitForSelector("#battle_category_type", { timeout: 20000 })
@@ -196,7 +211,6 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward) {
         });
     }
 	
-    await page.waitForTimeout(2000);
 	await waitUntilLoaded(page);
 	await page.waitForTimeout(1000);
     await closePopups(page);
@@ -302,7 +316,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward) {
 	
     await page.waitForTimeout(2000);
     const possibleTeams = await ask.possibleTeams(matchDetails).catch(e=>console.log('Error from possible team API call: ',e));
-
+	
     if (possibleTeams && possibleTeams.length) {
         //console.log('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
         console.log('Possible Teams based on your cards: ', possibleTeams.length);
@@ -349,13 +363,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward) {
         await page.$eval('#btnRumble', elem => elem.click()).then(()=>console.log('btnRumble clicked')).catch(()=>console.log('btnRumble didnt click')); //start rumble
         await page.waitForSelector('#btnSkip', { timeout: 10000 }).then(()=>console.log('btnSkip visible')).catch(()=>console.log('btnSkip not visible'));
         await page.$eval('#btnSkip', elem => elem.click()).then(()=>console.log('btnSkip clicked')).catch(()=>console.log('btnSkip not visible')); //skip rumble
-        await page.waitForTimeout(10000);
-        try {
-            await page.click('.btn--done')[0]; //close the fight
-        } catch(e) {
-            console.log('btn done not found')
-            throw new Error('btn done not found');
-        }
+		await clickOnElement(page, '.btn--done', 15000);
     } catch (e) {
         throw new Error(e);
     }
@@ -411,7 +419,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 				console.log('getting user quest info from splinterlands API...');
 				const quest = await getQuest();
 				if(!quest) {
-					console.log('Error for quest details. Splinterlands API didnt work or you used incorrect username, remove @ and dont use email')
+					console.log('Error for quest details. Splinterlands API didnt work or you used incorrect username')
 				}
 				await startBotPlayMatch(page, myCards, quest, claimQuestReward)
 					.then(() => {
