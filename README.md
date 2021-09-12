@@ -67,9 +67,11 @@ Configuration with default values:
 
 - `PASSWORD=password1,password2,password3` Your login passwords/posting keys. Use password if you login via email, **use the posting key if you login via username**
 
-- `USE_CLASSIC_BOT_PRIVATE_API=false` Set to false unless you have the private api from the original bot
+- `USE_API=true` Enable/Disable the api. If disabled the bot will play the most played cards from local newHistory.json file. **Experimental**
 
-- `API_URL=` Ignore unless you have the private api from the original bot
+- `API_URL=` Ignore/Don't change unless you have the private api from the original bot
+
+- `USE_CLASSIC_BOT_PRIVATE_API=false` Set to false unless you have the private api from the original bot
 
 # Donations
 
