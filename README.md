@@ -67,7 +67,7 @@ Configuration with default values:
 
 - `PASSWORD=password1,password2,password3` Your login passwords/posting keys. Use password if you login via email, **use the posting key if you login via username**
 
-- `USE_API=true` Enable/Disable the API. If disabled the bot will play the most played cards from local newHistory.json file. **Experimental**
+- `USE_API=true` Enable/Disable the team selection API. If disabled the bot will play the most played cards from local newHistory.json file. **Experimental**
 
 - `API_URL=` Ignore/Don't change unless you have the private API from the original bot
 
