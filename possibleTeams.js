@@ -226,7 +226,7 @@ const teamSelection = async (possibleTeams, matchDetails, quest) => {
 
     //check if daily quest is not completed
     console.log('quest custom option set as:', process.env.QUEST_PRIORITY, typeof process.env.QUEST_PRIORITY)
-    let priorityToTheQuest = JSON.parse(process.env.CLAIM_QUEST_REWARD.toLowerCase());
+    let priorityToTheQuest = JSON.parse(process.env.QUEST_PRIORITY.toLowerCase());
     if(priorityToTheQuest && possibleTeams.length > 25 && quest && quest.total) {
         const left = quest.total - quest.completed;
         const questCheck = matchDetails.splinters.includes(quest.splinter) && left > 0;
