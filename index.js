@@ -49,12 +49,17 @@ async function checkForMissingConfigs() {
 		console.log("Missing USE_CLASSIC_BOT_PRIVATE_API parameter in .env - see updated .env-example!");
 		await sleep(60000);
 	}
-	if (!process.env.LOGIN_VIA_EMAIL) {
-		console.log("Missing LOGIN_VIA_EMAIL parameter in .env - see updated .env-example!");
+	if (!process.env.USE_API) {
+		console.log("Missing USE_API parameter in .env - see updated .env-example!");
 		await sleep(60000);
 	}
-	if (!process.env.LOGIN_VIA_EMAIL) {
-		console.log("Missing LOGIN_VIA_EMAIL parameter in .env - see updated .env-example!");
+	if (!process.env.API_URL || (process.env.USE_API === 'true' && !process.env.API_URL.includes('http'))) {
+		console.log("Missing API_URL parameter in .env - see updated .env-example!");
+		await sleep(60000);
+	}
+	
+	if (process.env.USE_API === 'true' && process.env.USE_CLASSIC_BOT_PRIVATE_API === 'true') {
+		console.log('Please only set USE_API or USE_CLASSIC_BOT_PRIVATE_API to true');
 		await sleep(60000);
 	}
 }
@@ -395,6 +400,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 		console.log('Login via Email', loginViaEmail);
 		console.log('Claim Quest Reward', claimQuestReward);
 		console.log('Prioritize Quests', prioritizeQuest);
+		console.log('Use API', useAPI);
 		console.log('Loaded', accounts.length, ' Accounts')
 		console.log('START ', accounts, new Date().toLocaleString())
 
