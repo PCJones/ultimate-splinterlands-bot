@@ -67,28 +67,8 @@ function sleep(ms) {
 
 // Close popups by Jones
 async function closePopups(page) {
-	await clickOnElement(page, '.close', 4000);
-	/*try {
-        await page.waitForSelector('.close', { timeout: 4000 })
-            .then(button => {
-				console.log('Closing popup 1');
-				button.click();
-				return;
-			});
-    } catch (e) {
-        console.info('popup 1 not found')
-    }*/
-	
-	try {
-        await page.waitForSelector('.modal-close-new', { timeout: 1000 })
-            .then(button => {
-				console.log('Closing popup 2');
-				button.click();
-				return;
-			});
-    } catch (e) {
-        console.info('popup 2 not found')
-    }
+	if (await clickOnElement(page, '.close', 4000) ) return;
+	await clickOnElement(page, '.modal-close-new', 1000);
 }
 
 // await loading circle by Jones
@@ -152,11 +132,12 @@ async function clickOnElement(page, selector, timeout=20000) {
             .then(elem => {
 				console.log('Clicking element', selector);
 				elem.click();
-				return;
 			});
     } catch (e) {
         console.log('Error: Could not find element', selector);
+		return false;
     }
+	return true;
 }
 
 async function selectCorrectBattleType(page) {
