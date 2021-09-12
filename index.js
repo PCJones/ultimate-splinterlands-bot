@@ -325,7 +325,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 	} else {
 		teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
 	}
-	//teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
+	
 	console.log('teamToPlay');
 	console.log(teamToPlay);
 
