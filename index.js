@@ -131,6 +131,12 @@ async function createBrowsers(count, headless) {
 	return browsers;
 }
 
+async function getElementText(page, selector, timeout=20000) {
+	const element = await page.waitForSelector(selector,  { timeout: timeout });
+	const text = await element.evaluate(el => el.textContent);
+	return text;
+}
+
 async function clickOnElement(page, selector, timeout=20000, delayBeforeClicking = 0) {
 	try {
         const elem = await page.waitForSelector(selector, { timeout: timeout });
@@ -312,6 +318,14 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 		
 			teamToPlay = { summoner: Object.values(apiResponse)[1], cards: [ Object.values(apiResponse)[1], Object.values(apiResponse)[3], Object.values(apiResponse)[5], Object.values(apiResponse)[7], Object.values(apiResponse)[9], 
 							Object.values(apiResponse)[11], Object.values(apiResponse)[13], Object.values(apiResponse)[15] ] };
+							
+			console.log('api team', teamToPlay);
+			// TEMP, testing
+			if (teamToPlay[1][1] == '') {
+				console.log('Seems like the API found no possible team - using local history');
+				const possibleTeams = await ask.possibleTeams(matchDetails).catch(e=>console.log('Error from possible team API call: ',e));
+				teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
+			}
 		}
 		else {
 			console.log('API failed, using local history with most cards used tactic');
@@ -374,24 +388,22 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         await page.$eval('#btnRumble', elem => elem.click()).then(()=>console.log('btnRumble clicked')).catch(()=>console.log('btnRumble didnt click')); //start rumble
         await page.waitForSelector('#btnSkip', { timeout: 10000 }).then(()=>console.log('btnSkip visible')).catch(()=>console.log('btnSkip not visible'));
         await page.$eval('#btnSkip', elem => elem.click()).then(()=>console.log('btnSkip clicked')).catch(()=>console.log('btnSkip not visible')); //skip rumble
-		if (useAPI) {
-			try {
-				const element = await page.waitForSelector('section.player.winner .bio__name__display',  { timeout: 15000 }); // select the element
-				const winner = await element.evaluate(el => el.textContent); // grab the textContent from the element, by evaluating this function in the browser context
-				if (winner.trim() == process.env.ACCUSERNAME.trim()) {
-					console.log('You won!');
-				}
-				else {
-					console.log('You lost :(');
+		try {
+			const winner = await getElementText(page, 'section.player.winner .bio__name__display', 15000);
+			if (winner.trim() == process.env.ACCUSERNAME.trim()) {
+				const decWon = await getElementText(page, '.player.winner span.dec-reward span', 100);
+				console.log('You won! Reward: ' + decWon + ' DEC');
+			}
+			else {
+				console.log('You lost :(');
+				if (useAPI) {
 					api.reportLoss(winner);
 				}
-			} catch {
-				console.log('Could not find winner - draw?');
 			}
-			await clickOnElement(page, '.btn--done', 1000, 2500);
-		} else {
-			await clickOnElement(page, '.btn--done', 15000, 2500);
+		} catch {
+			console.log('Could not find winner - draw?');
 		}
+		await clickOnElement(page, '.btn--done', 1000, 2500);
     } catch (e) {
         throw new Error(e);
     }
