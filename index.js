@@ -338,9 +338,6 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 		}
 		teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
 	}
-	
-	console.log('teamToPlay');
-	console.log(teamToPlay);
 
     if (teamToPlay) {
         page.click('.btn--create-team')[0];
