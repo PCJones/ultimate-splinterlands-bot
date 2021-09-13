@@ -302,17 +302,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 		quest: prioritizeQuest ? quest : '',
     }
 	
-    await page.waitForTimeout(2000);
-    const possibleTeams = await ask.possibleTeams(matchDetails).catch(e=>console.log('Error from possible team API call: ',e));
-	
-    if (possibleTeams && possibleTeams.length) {
-        //console.log('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
-        console.log('Possible Teams based on your cards: ', possibleTeams.length);
-    } else {
-        console.log('Error:', matchDetails, possibleTeams)
-        throw new Error('NO TEAMS available to be played');
-    }
-    
+    await page.waitForTimeout(2000);   
     //TEAM SELECTION
     let teamToPlay;
 	if (useAPI) {
@@ -325,9 +315,27 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 		}
 		else {
 			console.log('API failed, using local history with most cards used tactic');
+			const possibleTeams = await ask.possibleTeams(matchDetails).catch(e=>console.log('Error from possible team API call: ',e));
+	
+			if (possibleTeams && possibleTeams.length) {
+				//console.log('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
+				console.log('Possible Teams based on your cards: ', possibleTeams.length);
+			} else {
+				console.log('Error:', matchDetails, possibleTeams)
+				throw new Error('NO TEAMS available to be played');
+			}
 			teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
 		}
 	} else {
+		const possibleTeams = await ask.possibleTeams(matchDetails).catch(e=>console.log('Error from possible team API call: ',e));
+
+		if (possibleTeams && possibleTeams.length) {
+			//console.log('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
+			console.log('Possible Teams based on your cards: ', possibleTeams.length);
+		} else {
+			console.log('Error:', matchDetails, possibleTeams)
+			throw new Error('NO TEAMS available to be played');
+		}
 		teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
 	}
 	
@@ -369,7 +377,20 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         await page.$eval('#btnRumble', elem => elem.click()).then(()=>console.log('btnRumble clicked')).catch(()=>console.log('btnRumble didnt click')); //start rumble
         await page.waitForSelector('#btnSkip', { timeout: 10000 }).then(()=>console.log('btnSkip visible')).catch(()=>console.log('btnSkip not visible'));
         await page.$eval('#btnSkip', elem => elem.click()).then(()=>console.log('btnSkip clicked')).catch(()=>console.log('btnSkip not visible')); //skip rumble
-		await clickOnElement(page, '.btn--done', 15000, 2500);
+		if (useAPI) {
+			const element = await page.waitForSelector('section.player.loser .bio__name__display',  { timeout: 15000 }); // select the element
+			const loser = await element.evaluate(el => el.textContent); // grab the textContent from the element, by evaluating this function in the browser context
+			if (loser.trim() != process.env.ACCUSERNAME.trim()) {
+				console.log('You won!');
+			}
+			else {
+				console.log('You lost :(');
+				api.reportLoss(loser);
+			}
+			await clickOnElement(page, '.btn--done', 1000, 2500);
+		} else {
+			await clickOnElement(page, '.btn--done', 15000, 2500);
+		}
     } catch (e) {
         throw new Error(e);
     }

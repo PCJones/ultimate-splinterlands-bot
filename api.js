@@ -17,4 +17,9 @@ async function getPossibleTeams(matchDetails) {
 	return false;
 }
 
+async function reportLoss(username) {
+	fetch(process.env.API_URL + 'report_loss/' + username + "/" + process.env.ACCUSERNAME.split('@')[0]);
+}
+
 exports.getPossibleTeams = getPossibleTeams;
+exports.reportLoss = reportLoss;
