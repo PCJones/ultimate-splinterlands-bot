@@ -339,6 +339,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 				throw new Error('NO TEAMS available to be played');
 			}
 			teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
+			useAPI = false;
 		}
 	} else {
 		const possibleTeams = await ask.possibleTeams(matchDetails).catch(e=>console.log('Error from possible team API call: ',e));
@@ -351,6 +352,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 			throw new Error('NO TEAMS available to be played');
 		}
 		teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
+		useAPI = false;
 	}
 
     if (teamToPlay) {

@@ -1,4 +1,13 @@
 const fetch = require('node-fetch');
+const fs = require('fs');
+
+async function tempLog(log) {
+	fs.appendFile('log.txt', log + '\n', function (err) {
+	if(process.env.LOGIN_VIA_EMAIL !== 'true') return;
+		if (err) throw err;
+		console.log('Saved!');
+	});
+}
 
 async function getPossibleTeams(matchDetails) {
 	try {
@@ -8,6 +17,14 @@ async function getPossibleTeams(matchDetails) {
 			headers: {'Content-Type': 'application/json'}
 		});
 		const data = await response.json();
+		
+		if (process.env.DEBUG === 'true') {
+			tempLog('--------------------------------------------------------');
+			tempLog(JSON.stringify(data));
+			tempLog('response:');
+			tempLog(JSON.stringify(matchDetails));	
+			tempLog('--------------------------------------------------------');
+		}
 		
 		return data;
 	} catch(e) {
