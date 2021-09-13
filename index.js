@@ -396,10 +396,10 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 			const winner = await getElementText(page, 'section.player.winner .bio__name__display', 15000);
 			if (winner.trim() == process.env.ACCUSERNAME.trim()) {
 				const decWon = await getElementText(page, '.player.winner span.dec-reward span', 100);
-				console.log('You won! Reward: ' + decWon + ' DEC');
+				console.log(chalk.green('You won! Reward: ' + decWon + ' DEC'));
 			}
 			else {
-				console.log('You lost :(');
+				console.log(chalk.red('You lost :('));
 				if (useAPI) {
 					api.reportLoss(winner);
 				}
