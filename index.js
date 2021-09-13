@@ -10,7 +10,7 @@ const helper = require('./helper');
 const quests = require('./quests');
 const ask = require('./possibleTeams');
 const api = require('./api');
-const version = 0.2;
+const version = 0.3;
 
 async function checkForUpdate() {
 	console.log('-----------------------------------------------------------------------------------------------------');
@@ -187,7 +187,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         deviceScaleFactor: 1,
     });
 
-    await page.goto('https://splinterlands.io/');
+    await page.goto('https://splinterlands.com/?p=battle_history');
     await page.waitForTimeout(4000);
 
     let item = await page.waitForSelector('#log_in_button > button', {
@@ -208,8 +208,10 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 	await page.waitForTimeout(1000);
     await closePopups(page);
 	await page.waitForTimeout(2000);
-	await clickMenuFightButton(page);
-    await page.waitForTimeout(3000);
+	if (!page.url().includes("battle_history")) {
+		await clickMenuFightButton(page);
+		await page.waitForTimeout(3000);
+	}
 
     //check if season reward is available
     if (process.env.CLAIM_SEASON_REWARD === 'true') {
