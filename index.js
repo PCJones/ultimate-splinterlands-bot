@@ -321,11 +321,11 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 							
 			console.log('api team', teamToPlay);
 			// TEMP, testing
-			/*if (teamToPlay[1][1] == '') {
+			if (Object.values(apiResponse)[1] == '') {
 				console.log('Seems like the API found no possible team - using local history');
 				const possibleTeams = await ask.possibleTeams(matchDetails).catch(e=>console.log('Error from possible team API call: ',e));
 				teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
-			}*/
+			}
 		}
 		else {
 			console.log('API failed, using local history with most cards used tactic');
