@@ -375,14 +375,14 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         await page.waitForSelector('#btnSkip', { timeout: 10000 }).then(()=>console.log('btnSkip visible')).catch(()=>console.log('btnSkip not visible'));
         await page.$eval('#btnSkip', elem => elem.click()).then(()=>console.log('btnSkip clicked')).catch(()=>console.log('btnSkip not visible')); //skip rumble
 		if (useAPI) {
-			const element = await page.waitForSelector('section.player.loser .bio__name__display',  { timeout: 15000 }); // select the element
-			const loser = await element.evaluate(el => el.textContent); // grab the textContent from the element, by evaluating this function in the browser context
-			if (loser.trim() != process.env.ACCUSERNAME.trim()) {
+			const element = await page.waitForSelector('section.player.winner .bio__name__display',  { timeout: 15000 }); // select the element
+			const winner = await element.evaluate(el => el.textContent); // grab the textContent from the element, by evaluating this function in the browser context
+			if (winner.trim() == process.env.ACCUSERNAME.trim()) {
 				console.log('You won!');
 			}
 			else {
 				console.log('You lost :(');
-				api.reportLoss(loser);
+				api.reportLoss(winner);
 			}
 			await clickOnElement(page, '.btn--done', 1000, 2500);
 		} else {
