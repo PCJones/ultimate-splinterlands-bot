@@ -1,15 +1,16 @@
 {
-  "name": "splinter-scraper",
-  "version": "1.0.0",
-  "description": "",
+  "name": "ultimate-splinterlands-bot",
+  "version": "0.3.0",
+  "description": "A fast, free, multi-account splinderlands bot",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "PC Jones",
+  "license": "GPL-3.0",
   "dependencies": {
+    "chalk": "^4.1.2",
     "dimas-kmeans": "^1.0.3",
     "dotenv": "^8.2.0",
     "hierarchical-clustering": "^1.1.0",
@@ -17,5 +18,18 @@
     "node-fetch": "^2.6.1",
     "pg": "^8.0.3",
     "puppeteer": "^10.1.0"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PCJones/ultimate-splinterlands-bot.git"
+  },
+  "keywords": [
+    "bot",
+    "splinterlands"
+  ],
+  "bugs": {
+    "url": "https://github.com/PCJones/ultimate-splinterlands-bot/issues"
+  },
+  "homepage": "https://github.com/PCJones/ultimate-splinterlands-bot#readme"
 }
