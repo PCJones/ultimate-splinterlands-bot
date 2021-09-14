@@ -63,6 +63,10 @@ async function checkForMissingConfigs() {
 		console.log('Please only set USE_API or USE_CLASSIC_BOT_PRIVATE_API to true');
 		await sleep(60000);
 	}
+	if (!process.env.ERC_THRESHOLD) {
+		console.log("Missing ERC_THRESHOLD parameter in .env - see updated .env-example!");
+		await sleep(60000);
+	}
 }
 
 function sleep(ms) {
@@ -138,6 +142,12 @@ async function getElementText(page, selector, timeout=20000) {
 	return text;
 }
 
+async function getElementTextByXpath(page, selector, timeout=20000) {
+	const element = await page.waitForXPath(selector,  { timeout: timeout });
+	const text = await element.evaluate(el => el.textContent);
+	return text;
+}
+
 async function clickOnElement(page, selector, timeout=20000, delayBeforeClicking = 0) {
 	try {
         const elem = await page.waitForSelector(selector, { timeout: timeout });
@@ -175,6 +185,7 @@ async function selectCorrectBattleType(page) {
 
 async function startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI) {
     
+	const ercThreshold = process.env.ERC_THRESHOLD;
     console.log( new Date().toLocaleString())
     if(myCards) {
         console.log(process.env.ACCUSERNAME, ' deck size: '+myCards.length)
@@ -206,6 +217,12 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     }
 	
 	await waitUntilLoaded(page);
+	const erc = (await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 100)).split('.')[0];
+	console.log('Current Energy Capture Rate is ' + erc + "%");
+	if (parseInt(erc) < ercThreshold) {
+		console.log('ERC is below threshold of ' + ercThreshold) + ' - skipping this account';
+		return;
+	}
 	await page.waitForTimeout(1000);
     await closePopups(page);
 	await page.waitForTimeout(2000);
@@ -434,6 +451,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 		const keepBrowserOpen = JSON.parse(process.env.KEEP_BROWSER_OPEN.toLowerCase());
 		const claimQuestReward = JSON.parse(process.env.CLAIM_QUEST_REWARD.toLowerCase());
 		const prioritizeQuest = JSON.parse(process.env.QUEST_PRIORITY.toLowerCase());
+		
 		let browsers = [];
 		console.log('Headless', headless);
 		console.log('Keep Browser Open', keepBrowserOpen);
