@@ -2,6 +2,7 @@
 require('dotenv').config()
 const puppeteer = require('puppeteer');
 const fetch = require("node-fetch");
+const chalk = require('chalk');
 
 const splinterlandsPage = require('./splinterlandsPage');
 const user = require('./user');
@@ -404,7 +405,8 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 					api.reportLoss(winner);
 				}
 			}
-		} catch {
+		} catch(e) {
+			console.log(e);
 			console.log('Could not find winner - draw?');
 		}
 		await clickOnElement(page, '.btn--done', 1000, 2500);
