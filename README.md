@@ -51,6 +51,8 @@ Configuration with default values:
 
 - `MINUTES_BATTLES_INTERVAL=30` Sleep time before the bot will fight with all accounts again. Subtract 2-3 minutes per account
 
+- `ERC_THRESHOLD=80` If your energy capture rate goes below this the bot will stop fighting with this account until it's above again. Set to 0 to disable
+
 - `CLAIM_SEASON_REWARD=false` Disable/Enable season reward claiming
 
 - `CLAIM_QUEST_REWARD=true` Disable/Enable quest reward claiming
