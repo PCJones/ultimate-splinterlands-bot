@@ -220,7 +220,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 	const erc = (await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 100)).split('.')[0];
 	console.log('Current Energy Capture Rate is ' + erc + "%");
 	if (parseInt(erc) < ercThreshold) {
-		console.log('ERC is below threshold of ' + ercThreshold) + ' - skipping this account';
+		console.log('ERC is below threshold of ' + ercThreshold + '% - skipping this account');
 		return;
 	}
 	await page.waitForTimeout(1000);
