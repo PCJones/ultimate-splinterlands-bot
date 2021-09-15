@@ -1,5 +1,4 @@
 node_modules/
+logins/
 .env
-.env_server
-.env_server2
 log.txt
