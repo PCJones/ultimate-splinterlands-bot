@@ -14,8 +14,8 @@ const quests = [
 
 const getQuestSplinter = (questName) => {
     const playerQuest = quests.find(quest=> quest.name === questName)
-	console.log(playerQuest);
-	console.log(questName);
+	//console.log(playerQuest);
+	//console.log(questName);
     return playerQuest.element;
 }
 

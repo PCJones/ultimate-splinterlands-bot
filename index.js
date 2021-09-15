@@ -11,60 +11,61 @@ const helper = require('./helper');
 const quests = require('./quests');
 const ask = require('./possibleTeams');
 const api = require('./api');
+const misc = require('./misc');
 const version = 0.3;
 
 async function checkForUpdate() {
-	console.log('-----------------------------------------------------------------------------------------------------');
+	await misc.writeToLogNoUsername('-----------------------------------------------------------------------------------------------------');
 	await fetch('http://jofri.pf-control.de/prgrms/splnterlnds/version.txt')
 	.then(response=>response.json())
 	.then(newestVersion=>{ 
 		if (newestVersion > version) {
-			console.log('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot');
-			console.log('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot');
-			console.log('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot');
+			misc.writeToLogNoUsername('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot');
+			misc.writeToLogNoUsername('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot');
+			misc.writeToLogNoUsername('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot');
 		} else {
-			console.log('No update available');
+			misc.writeToLogNoUsername('No update available');
 		}
 	})
-	console.log('-----------------------------------------------------------------------------------------------------');
+	misc.writeToLogNoUsername('-----------------------------------------------------------------------------------------------------');
 }
 
 async function checkForMissingConfigs() {
 	if (!process.env.LOGIN_VIA_EMAIL) {
-		console.log("Missing LOGIN_VIA_EMAIL parameter in .env - see updated .env-example!");
+		misc.writeToLogNoUsername("Missing LOGIN_VIA_EMAIL parameter in .env - see updated .env-example!");
 		await sleep(60000);
 	}
 	if (!process.env.HEADLESS) {
-		console.log("Missing HEADLESS parameter in .env - see updated .env-example!");
+		misc.writeToLogNoUsername("Missing HEADLESS parameter in .env - see updated .env-example!");
 		await sleep(60000);
 	}
 	if (!process.env.KEEP_BROWSER_OPEN) {
-		console.log("Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!");
+		misc.writeToLogNoUsername("Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!");
 		await sleep(60000);
 	}
 	if (!process.env.CLAIM_QUEST_REWARD) {
-		console.log("Missing CLAIM_QUEST_REWARD parameter in .env - see updated .env-example!");
+		misc.writeToLogNoUsername("Missing CLAIM_QUEST_REWARD parameter in .env - see updated .env-example!");
 		await sleep(60000);
 	}
 	if (!process.env.USE_CLASSIC_BOT_PRIVATE_API) {
-		console.log("Missing USE_CLASSIC_BOT_PRIVATE_API parameter in .env - see updated .env-example!");
+		misc.writeToLogNoUsername("Missing USE_CLASSIC_BOT_PRIVATE_API parameter in .env - see updated .env-example!");
 		await sleep(60000);
 	}
 	if (!process.env.USE_API) {
-		console.log("Missing USE_API parameter in .env - see updated .env-example!");
+		misc.writeToLogNoUsername("Missing USE_API parameter in .env - see updated .env-example!");
 		await sleep(60000);
 	}
 	if (!process.env.API_URL || (process.env.USE_API === 'true' && !process.env.API_URL.includes('http'))) {
-		console.log("Missing API_URL parameter in .env - see updated .env-example!");
+		misc.writeToLogNoUsername("Missing API_URL parameter in .env - see updated .env-example!");
 		await sleep(60000);
 	}
 	
 	if (process.env.USE_API === 'true' && process.env.USE_CLASSIC_BOT_PRIVATE_API === 'true') {
-		console.log('Please only set USE_API or USE_CLASSIC_BOT_PRIVATE_API to true');
+		misc.writeToLogNoUsername('Please only set USE_API or USE_CLASSIC_BOT_PRIVATE_API to true');
 		await sleep(60000);
 	}
 	if (!process.env.ERC_THRESHOLD) {
-		console.log("Missing ERC_THRESHOLD parameter in .env - see updated .env-example!");
+		misc.writeToLogNoUsername("Missing ERC_THRESHOLD parameter in .env - see updated .env-example!");
 		await sleep(60000);
 	}
 }
@@ -86,7 +87,7 @@ async function waitUntilLoaded(page) {
 	try {
         await page.waitForSelector('.loading', { timeout: 6000 })
             .then(() => {
-				console.log('Waiting until page is loaded...');
+				misc.writeToLog('Waiting until page is loaded...');
 			});
     } catch (e) {
         console.info('No loading circle...')
@@ -115,7 +116,7 @@ async function getCards() {
 async function getQuest() {
     return quests.getPlayerQuest(process.env.ACCUSERNAME.split('@')[0])
         .then(x=>x)
-        .catch(e=>console.log('No quest data, splinterlands API didnt respond, or you are wrongly using the email and password instead of username and posting key'))
+        .catch(e=>misc.writeToLog('No quest data, splinterlands API didnt respond, or you are wrongly using the email and password instead of username and posting key'))
 }
 
 async function createBrowsers(count, headless) {
@@ -153,13 +154,13 @@ async function clickOnElement(page, selector, timeout=20000, delayBeforeClicking
         const elem = await page.waitForSelector(selector, { timeout: timeout });
 		if(elem) {
 			await sleep(delayBeforeClicking);
-			console.log('Clicking element', selector);
+			misc.writeToLog('Clicking element', selector);
 			await elem.click();
 			return true;
 		}
     } catch (e) {
     }
-	console.log('Error: Could not find element', selector);
+	misc.writeToLog('Error: Could not find element', selector);
 	return false;
 }
 
@@ -168,7 +169,7 @@ async function selectCorrectBattleType(page) {
 		await page.waitForSelector("#battle_category_type", { timeout: 20000 })
 		let battleType = (await page.$eval('#battle_category_type', el => el.innerText)).trim();
 		while (battleType !== "RANKED") {
-			console.log("Wrong battleType! battleType is", battleType, "Trying to change it");
+			misc.writeToLog("Wrong battleType! battleType is", battleType, "Trying to change it");
 			try {
 				await page.waitForSelector('#right_slider_btn', { timeout: 500 })
 					.then(button => button.click());
@@ -179,18 +180,18 @@ async function selectCorrectBattleType(page) {
 			battleType = (await page.$eval('#battle_category_type', el => el.innerText)).trim();
 		}
 	} catch (error) {
-		console.log("Error: couldn't find battle category type", error);
+		misc.writeToLog("Error: couldn't find battle category type", error);
 	}
 }
 
 async function startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI) {
     
 	const ercThreshold = process.env.ERC_THRESHOLD;
-    console.log( new Date().toLocaleString())
+    
     if(myCards) {
-        console.log(process.env.ACCUSERNAME, ' deck size: '+myCards.length)
+        misc.writeToLog('Deck size: ' + myCards.length)
     } else {
-        console.log(process.env.EMAIL, ' playing only basic cards')
+        misc.writeToLog('Playing only basic cards')
     }
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36');
     await page.setViewport({
@@ -206,21 +207,21 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         visible: true,
       })
       .then(res => res)
-      .catch(()=> console.log('Already logged in'))
+      .catch(()=> misc.writeToLog('Already logged in'))
 
     if (item != undefined)
-    {console.log('Login')
+    {misc.writeToLog('Login')
         await splinterlandsPage.login(page).catch(e=>{
-            console.log(e);
+            misc.writeToLog(e);
             throw new Error('Login Error');
         });
     }
 	
 	await waitUntilLoaded(page);
 	const erc = (await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 100)).split('.')[0];
-	console.log('Current Energy Capture Rate is ' + erc + "%");
+	misc.writeToLog('Current Energy Capture Rate is ' + erc + "%");
 	if (parseInt(erc) < ercThreshold) {
-		console.log('ERC is below threshold of ' + ercThreshold + '% - skipping this account');
+		misc.writeToLog('ERC is below threshold of ' + ercThreshold + '% - skipping this account');
 		return;
 	}
 	await page.waitForTimeout(1000);
@@ -234,14 +235,14 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     //check if season reward is available
     if (process.env.CLAIM_SEASON_REWARD === 'true') {
         try {
-            console.log('Season reward check: ');
+            misc.writeToLog('Season reward check: ');
             await page.waitForSelector('#claim-btn', { visible:true, timeout: 3000 })
             .then(async (button) => {
                 button.click();
-                console.log(`claiming the season reward. you can check them here https://peakmonsters.com/@${process.env.ACCUSERNAME}/explorer`);
+                misc.writeToLog(`claiming the season reward. you can check them here https://peakmonsters.com/@${process.env.ACCUSERNAME}/explorer`);
                 await page.waitForTimeout(20000);
             })
-            .catch(()=>console.log('no season reward to be claimed, but you can still check your data here https://peakmonsters.com/@${process.env.ACCUSERNAME}/explorer'));
+            .catch(()=>misc.writeToLog('no season reward to be claimed, but you can still check your data here https://peakmonsters.com/@${process.env.ACCUSERNAME}/explorer'));
         }
         catch (e) {
             console.info('no season reward to be claimed')
@@ -249,7 +250,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     }
 
     //if quest done claim reward
-    console.log('Quest details: ', quest);
+    misc.writeToLog('Quest details: ', quest);
 	if (claimQuestReward) {
 		try {
 			await page.waitForSelector('#quest_claim_btn', { timeout: 5000 })
@@ -262,39 +263,39 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 	}
 
 	if (!page.url().includes("battle_history")) {
-		console.log("Seems like battle button menu didn't get clicked correctly - try again");
-		console.log('Clicking fight menu button again');
+		misc.writeToLog("Seems like battle button menu didn't get clicked correctly - try again");
+		misc.writeToLog('Clicking fight menu button again');
 		await clickMenuFightButton(page);
 		await page.waitForTimeout(5000);
 	}
 
     // LAUNCH the battle
     try {
-        console.log('waiting for battle button...')
+        misc.writeToLog('waiting for battle button...')
 		await selectCorrectBattleType(page);
 		
         await page.waitForXPath("//button[contains(., 'BATTLE')]", { timeout: 1000 })
             .then(button => {
-				console.log('Battle button clicked'); button.click()
+				misc.writeToLog('Battle button clicked'); button.click()
 				})
             .catch(e=>console.error('[ERROR] waiting for Battle button. is Splinterlands in maintenance?'));
         await page.waitForTimeout(5000);
 
-        console.log('waiting for an opponent...')
+        misc.writeToLog('waiting for an opponent...')
         await page.waitForSelector('.btn--create-team', { timeout: 25000 })
-            .then(()=>console.log('start the match'))
+            .then(()=>misc.writeToLog('start the match'))
             .catch(async (e)=> {
             console.error('[Error while waiting for battle]');
-			console.log('Clicking fight menu button again');
+			misc.writeToLog('Clicking fight menu button again');
 			await clickMenuFightButton(page);
             console.error('Refreshing the page and retrying to retrieve a battle');
             await page.waitForTimeout(5000);
             await page.reload();
             await page.waitForTimeout(5000);
             await page.waitForSelector('.btn--create-team', { timeout: 50000 })
-                .then(()=>console.log('start the match'))
+                .then(()=>misc.writeToLog('start the match'))
                 .catch(async ()=>{
-                    console.log('second attempt failed reloading from homepage...');
+                    misc.writeToLog('second attempt failed reloading from homepage...');
                     await page.goto('https://splinterlands.io/');
                     await page.waitForTimeout(5000);
                     await page.waitForXPath("//button[contains(., 'BATTLE')]", { timeout: 20000 })
@@ -302,9 +303,9 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                         .catch(e=>console.error('[ERROR] waiting for Battle button second time'));
                     await page.waitForTimeout(5000);
                     await page.waitForSelector('.btn--create-team', { timeout: 25000 })
-                        .then(()=>console.log('start the match'))
+                        .then(()=>misc.writeToLog('start the match'))
                         .catch((e)=>{
-                            console.log('third attempt failed');
+                            misc.writeToLog('third attempt failed');
                             throw new Error(e);})
                         })
         })
@@ -334,41 +335,41 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 	if (useAPI) {
 		const apiResponse = await api.getPossibleTeams(matchDetails);
 		if (apiResponse) {
-			console.log('API Response', apiResponse);
+			misc.writeToLog('API Response', apiResponse);
 		
 			teamToPlay = { summoner: Object.values(apiResponse)[1], cards: [ Object.values(apiResponse)[1], Object.values(apiResponse)[3], Object.values(apiResponse)[5], Object.values(apiResponse)[7], Object.values(apiResponse)[9], 
 							Object.values(apiResponse)[11], Object.values(apiResponse)[13], Object.values(apiResponse)[15] ] };
 							
-			console.log('api team', teamToPlay);
+			misc.writeToLog('api team', teamToPlay);
 			// TEMP, testing
 			if (Object.values(apiResponse)[1] == '') {
-				console.log('Seems like the API found no possible team - using local history');
-				const possibleTeams = await ask.possibleTeams(matchDetails).catch(e=>console.log('Error from possible team API call: ',e));
+				misc.writeToLog('Seems like the API found no possible team - using local history');
+				const possibleTeams = await ask.possibleTeams(matchDetails).catch(e=>misc.writeToLog('Error from possible team API call: ',e));
 				teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
 			}
 		}
 		else {
-			console.log('API failed, using local history with most cards used tactic');
-			const possibleTeams = await ask.possibleTeams(matchDetails).catch(e=>console.log('Error from possible team API call: ',e));
+			misc.writeToLog('API failed, using local history with most cards used tactic');
+			const possibleTeams = await ask.possibleTeams(matchDetails).catch(e=>misc.writeToLog('Error from possible team API call: ',e));
 	
 			if (possibleTeams && possibleTeams.length) {
-				//console.log('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
-				console.log('Possible Teams based on your cards: ', possibleTeams.length);
+				//misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
+				misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);
 			} else {
-				console.log('Error:', matchDetails, possibleTeams)
+				misc.writeToLog('Error:', matchDetails, possibleTeams)
 				throw new Error('NO TEAMS available to be played');
 			}
 			teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
 			useAPI = false;
 		}
 	} else {
-		const possibleTeams = await ask.possibleTeams(matchDetails).catch(e=>console.log('Error from possible team API call: ',e));
+		const possibleTeams = await ask.possibleTeams(matchDetails).catch(e=>misc.writeToLog('Error from possible team API call: ',e));
 
 		if (possibleTeams && possibleTeams.length) {
-			//console.log('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
-			console.log('Possible Teams based on your cards: ', possibleTeams.length);
+			//misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
+			misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);
 		} else {
-			console.log('Error:', matchDetails, possibleTeams)
+			misc.writeToLog('Error:', matchDetails, possibleTeams)
 			throw new Error('NO TEAMS available to be played');
 		}
 		teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
@@ -384,15 +385,15 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     try {
         await page.waitForXPath(`//div[@card_detail_id="${teamToPlay.summoner}"]`, { timeout: 10000 }).then(summonerButton => summonerButton.click());
         if (card.color(teamToPlay.cards[0]) === 'Gold') {
-			console.log('Dragon play TEAMCOLOR', helper.teamActualSplinterToPlay(teamToPlay.cards.slice(0, 6)))
+			misc.writeToLog('Dragon play TEAMCOLOR', helper.teamActualSplinterToPlay(teamToPlay.cards.slice(0, 6)))
             await page.waitForXPath(`//div[@data-original-title="${helper.teamActualSplinterToPlay(teamToPlay.cards.slice(0, 6))}"]`, { timeout: 8000 })
                 .then(selector => selector.click())
         }
         await page.waitForTimeout(5000);
         for (i = 1; i <= 6; i++) {
-            console.log('play: ', teamToPlay.cards[i].toString())
+            misc.writeToLog('play: ', teamToPlay.cards[i].toString())
 			await teamToPlay.cards[i] ? page.waitForXPath(`//div[@card_detail_id="${teamToPlay.cards[i].toString()}"]`, { timeout: 10000 })
-                .then(selector => selector.click()) : console.log('nocard ', i);
+                .then(selector => selector.click()) : misc.writeToLog('nocard ', i);
             await page.waitForTimeout(1000);
         }
 
@@ -400,31 +401,31 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         try {
             await page.click('.btn-green')[0]; //start fight
         } catch {
-            console.log('Start Fight didnt work, waiting 5 sec and retry');
+            misc.writeToLog('Start Fight didnt work, waiting 5 sec and retry');
             await page.waitForTimeout(5000);
             await page.click('.btn-green')[0]; //start fight
         }
         await page.waitForTimeout(5000);
-        await page.waitForSelector('#btnRumble', { timeout: 90000 }).then(()=>console.log('btnRumble visible')).catch(()=>console.log('btnRumble not visible'));
+        await page.waitForSelector('#btnRumble', { timeout: 90000 }).then(()=>misc.writeToLog('btnRumble visible')).catch(()=>misc.writeToLog('btnRumble not visible'));
         await page.waitForTimeout(5000);
-        await page.$eval('#btnRumble', elem => elem.click()).then(()=>console.log('btnRumble clicked')).catch(()=>console.log('btnRumble didnt click')); //start rumble
-        await page.waitForSelector('#btnSkip', { timeout: 10000 }).then(()=>console.log('btnSkip visible')).catch(()=>console.log('btnSkip not visible'));
-        await page.$eval('#btnSkip', elem => elem.click()).then(()=>console.log('btnSkip clicked')).catch(()=>console.log('btnSkip not visible')); //skip rumble
+        await page.$eval('#btnRumble', elem => elem.click()).then(()=>misc.writeToLog('btnRumble clicked')).catch(()=>misc.writeToLog('btnRumble didnt click')); //start rumble
+        await page.waitForSelector('#btnSkip', { timeout: 10000 }).then(()=>misc.writeToLog('btnSkip visible')).catch(()=>misc.writeToLog('btnSkip not visible'));
+        await page.$eval('#btnSkip', elem => elem.click()).then(()=>misc.writeToLog('btnSkip clicked')).catch(()=>misc.writeToLog('btnSkip not visible')); //skip rumble
 		try {
 			const winner = await getElementText(page, 'section.player.winner .bio__name__display', 15000);
 			if (winner.trim() == process.env.ACCUSERNAME.trim()) {
 				const decWon = await getElementText(page, '.player.winner span.dec-reward span', 100);
-				console.log(chalk.green('You won! Reward: ' + decWon + ' DEC'));
+				misc.writeToLog(chalk.green('You won! Reward: ' + decWon + ' DEC'));
 			}
 			else {
-				console.log(chalk.red('You lost :('));
+				misc.writeToLog(chalk.red('You lost :('));
 				if (useAPI) {
 					api.reportLoss(winner);
 				}
 			}
 		} catch(e) {
-			console.log(e);
-			console.log('Could not find winner - draw?');
+			misc.writeToLog(e);
+			misc.writeToLog('Could not find winner - draw?');
 		}
 		await clickOnElement(page, '.btn--done', 1000, 2500);
     } catch (e) {
@@ -453,14 +454,14 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 		const prioritizeQuest = JSON.parse(process.env.QUEST_PRIORITY.toLowerCase());
 		
 		let browsers = [];
-		console.log('Headless', headless);
-		console.log('Keep Browser Open', keepBrowserOpen);
-		console.log('Login via Email', loginViaEmail);
-		console.log('Claim Quest Reward', claimQuestReward);
-		console.log('Prioritize Quests', prioritizeQuest);
-		console.log('Use API', useAPI);
-		console.log('Loaded', accounts.length, ' Accounts')
-		console.log('START ', accounts, new Date().toLocaleString())
+		misc.writeToLogNoUsername('Headless', headless);
+		misc.writeToLogNoUsername('Keep Browser Open', keepBrowserOpen);
+		misc.writeToLogNoUsername('Login via Email', loginViaEmail);
+		misc.writeToLogNoUsername('Claim Quest Reward', claimQuestReward);
+		misc.writeToLogNoUsername('Prioritize Quests', prioritizeQuest);
+		misc.writeToLogNoUsername('Use API', useAPI);
+		misc.writeToLogNoUsername('Loaded', accounts.length, ' Accounts')
+		misc.writeToLogNoUsername('START ', accounts, new Date().toLocaleString())
 
 		// edit by jones, neues while true
 		while (true) {
@@ -470,31 +471,31 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 				process.env['ACCUSERNAME'] = accountusers[i];
 				
 				if (keepBrowserOpen && browsers.length == 0) {
-					console.log('Opening browsers');
+					misc.writeToLog('Opening browsers');
 					browsers = await createBrowsers(accounts.length, headless);
 				} else if (!keepBrowserOpen) { // close browser, only have 1 instance at a time
-					console.log('Opening browser');
+					misc.writeToLog('Opening browser');
 					browsers = await createBrowsers(1, headless);
 				}
 							
 				const page = (await (keepBrowserOpen ? browsers[i] : browsers[0]).pages())[1];
 				
 				//page.goto('https://splinterlands.io/');
-				console.log('getting user cards collection from splinterlands API...')
+				misc.writeToLog('getting user cards collection from splinterlands API...')
 				const myCards = await getCards()
-					.then((x)=>{console.log('cards retrieved'); return x})
-					.catch(()=>console.log('cards collection api didnt respond. Did you use username? avoid email!'));
-				console.log('getting user quest info from splinterlands API...');
+					.then((x)=>{misc.writeToLog('cards retrieved'); return x})
+					.catch(()=>misc.writeToLog('cards collection api didnt respond. Did you use username? avoid email!'));
+				misc.writeToLog('getting user quest info from splinterlands API...');
 				const quest = await getQuest();
 				if(!quest) {
-					console.log('Error for quest details. Splinterlands API didnt work or you used incorrect username')
+					misc.writeToLog('Error for quest details. Splinterlands API didnt work or you used incorrect username')
 				}
 				await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI)
 					.then(() => {
-						console.log('Closing battle', new Date().toLocaleString());        
+						misc.writeToLog('Closing battle', new Date().toLocaleString());        
 					})
 					.catch((e) => {
-						console.log(e)
+						misc.writeToLog(e)
 					})
 				
 				await page.waitForTimeout(5000);
@@ -504,8 +505,8 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 					await browsers[0].close();
 				}
 			}
-			await console.log('Waiting for the next battle in', sleepingTime / 1000 / 60 , ' minutes at ', new Date(Date.now() +sleepingTime).toLocaleString() );
-			await console.log('Join the telegram group https://t.me/ultimatesplinterlandsbot and discord https://discord.gg/hwSr7KNGs9');
+			await misc.writeToLog('Waiting for the next battle in', sleepingTime / 1000 / 60 , ' minutes at ', new Date(Date.now() +sleepingTime).toLocaleString() );
+			await misc.writeToLog('Join the telegram group https://t.me/ultimatesplinterlandsbot and discord https://discord.gg/hwSr7KNGs9');
 			await new Promise(r => setTimeout(r, sleepingTime));
 		}
 	} catch (e) {
