@@ -245,7 +245,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             .catch(()=>misc.writeToLog('no season reward to be claimed, but you can still check your data here https://peakmonsters.com/@${process.env.ACCUSERNAME}/explorer'));
         }
         catch (e) {
-            misc.writeToLog(('no season reward to be claimed');
+            misc.writeToLog('no season reward to be claimed');
         }
     }
 
