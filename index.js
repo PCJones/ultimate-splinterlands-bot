@@ -454,14 +454,14 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 		const prioritizeQuest = JSON.parse(process.env.QUEST_PRIORITY.toLowerCase());
 		
 		let browsers = [];
-		misc.writeToLogNoUsername('Headless', headless);
-		misc.writeToLogNoUsername('Keep Browser Open', keepBrowserOpen);
-		misc.writeToLogNoUsername('Login via Email', loginViaEmail);
-		misc.writeToLogNoUsername('Claim Quest Reward', claimQuestReward);
-		misc.writeToLogNoUsername('Prioritize Quests', prioritizeQuest);
-		misc.writeToLogNoUsername('Use API', useAPI);
-		misc.writeToLogNoUsername('Loaded', accounts.length, ' Accounts')
-		misc.writeToLogNoUsername('START ', accounts)
+		misc.writeToLogNoUsername('Headless: ' + headless);
+		misc.writeToLogNoUsername('Keep Browser Open: ' + keepBrowserOpen);
+		misc.writeToLogNoUsername('Login via Email: ' + loginViaEmail);
+		misc.writeToLogNoUsername('Claim Quest Reward: ' + claimQuestReward);
+		misc.writeToLogNoUsername('Prioritize Quests: ' + prioritizeQuest);
+		misc.writeToLogNoUsername('Use API: ' + useAPI);
+		misc.writeToLogNoUsername('Loaded ' + accounts.length + ' Accounts')
+		misc.writeToLogNoUsername('START '+ accounts)
 
 		// edit by jones, neues while true
 		while (true) {
