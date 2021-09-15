@@ -15,7 +15,7 @@ const misc = require('./misc');
 const version = 0.3;
 
 async function checkForUpdate() {
-	await misc.writeToLogNoUsername('-----------------------------------------------------------------------------------------------------');
+	await misc.writeToLogNoUsername('------------------------------------------------------------------------------------------------');
 	await fetch('http://jofri.pf-control.de/prgrms/splnterlnds/version.txt')
 	.then(response=>response.json())
 	.then(newestVersion=>{ 
@@ -27,7 +27,7 @@ async function checkForUpdate() {
 			misc.writeToLogNoUsername('No update available');
 		}
 	})
-	misc.writeToLogNoUsername('-----------------------------------------------------------------------------------------------------');
+	misc.writeToLogNoUsername('------------------------------------------------------------------------------------------------');
 }
 
 async function checkForMissingConfigs() {
@@ -154,13 +154,13 @@ async function clickOnElement(page, selector, timeout=20000, delayBeforeClicking
         const elem = await page.waitForSelector(selector, { timeout: timeout });
 		if(elem) {
 			await sleep(delayBeforeClicking);
-			misc.writeToLog('Clicking element', selector);
+			misc.writeToLog('Clicking element ' + selector);
 			await elem.click();
 			return true;
 		}
     } catch (e) {
     }
-	misc.writeToLog('Error: Could not find element', selector);
+	misc.writeToLog('Error: Could not find element ' + selector);
 	return false;
 }
 
@@ -169,18 +169,18 @@ async function selectCorrectBattleType(page) {
 		await page.waitForSelector("#battle_category_type", { timeout: 20000 })
 		let battleType = (await page.$eval('#battle_category_type', el => el.innerText)).trim();
 		while (battleType !== "RANKED") {
-			misc.writeToLog("Wrong battleType! battleType is", battleType, "Trying to change it");
+			misc.writeToLog("Wrong battleType! battleType is " +  battleType +  " - Trying to change it");
 			try {
 				await page.waitForSelector('#right_slider_btn', { timeout: 500 })
 					.then(button => button.click());
 			} catch (e) {
-				misc.writeToLog('Slider button not found', e)
+				misc.writeToLog('Slider button not found ', e)
 			}
 			await page.waitForTimeout(1000);
 			battleType = (await page.$eval('#battle_category_type', el => el.innerText)).trim();
 		}
 	} catch (error) {
-		misc.writeToLog("Error: couldn't find battle category type", error);
+		misc.writeToLog("Error: couldn't find battle category type ", error);
 	}
 }
 
@@ -250,7 +250,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     }
 
     //if quest done claim reward
-    misc.writeToLog('Quest details: ', quest);
+    misc.writeToLog('Quest details: ' + JSON.stringify(quest));
 	try {
 		const claimButton = await page.waitForSelector('#quest_claim_btn', { timeout: 2500 });
 		misc.writeToLog('Quest reward can be redeemed!');
@@ -335,12 +335,12 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 	if (useAPI) {
 		const apiResponse = await api.getPossibleTeams(matchDetails);
 		if (apiResponse) {
-			misc.writeToLog('API Response', apiResponse);
+			misc.writeToLog('API Response: ' + JSON.stringify(apiResponse));
 		
 			teamToPlay = { summoner: Object.values(apiResponse)[1], cards: [ Object.values(apiResponse)[1], Object.values(apiResponse)[3], Object.values(apiResponse)[5], Object.values(apiResponse)[7], Object.values(apiResponse)[9], 
 							Object.values(apiResponse)[11], Object.values(apiResponse)[13], Object.values(apiResponse)[15] ] };
 							
-			misc.writeToLog('api team', teamToPlay);
+			misc.writeToLog('Team picked by API: ' + JSON.stringify(teamToPlay));
 			// TEMP, testing
 			if (Object.values(apiResponse)[1] == '') {
 				misc.writeToLog('Seems like the API found no possible team - using local history');
@@ -354,9 +354,9 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 	
 			if (possibleTeams && possibleTeams.length) {
 				//misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
-				misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);
+				misc.writeToLog('Possible Teams based on your cards: ' + possibleTeams.length);
 			} else {
-				misc.writeToLog('Error:', matchDetails, possibleTeams)
+				misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
 				throw new Error('NO TEAMS available to be played');
 			}
 			teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
@@ -369,7 +369,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 			//misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
 			misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);
 		} else {
-			misc.writeToLog('Error:', matchDetails, possibleTeams)
+			misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
 			throw new Error('NO TEAMS available to be played');
 		}
 		teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
@@ -385,15 +385,15 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     try {
         await page.waitForXPath(`//div[@card_detail_id="${teamToPlay.summoner}"]`, { timeout: 10000 }).then(summonerButton => summonerButton.click());
         if (card.color(teamToPlay.cards[0]) === 'Gold') {
-			misc.writeToLog('Dragon play TEAMCOLOR', helper.teamActualSplinterToPlay(teamToPlay.cards.slice(0, 6)))
+			misc.writeToLog('Dragon play TEAMCOLOR ' + helper.teamActualSplinterToPlay(teamToPlay.cards.slice(0, 6)))
             await page.waitForXPath(`//div[@data-original-title="${helper.teamActualSplinterToPlay(teamToPlay.cards.slice(0, 6))}"]`, { timeout: 8000 })
                 .then(selector => selector.click())
         }
         await page.waitForTimeout(5000);
         for (i = 1; i <= 6; i++) {
-            misc.writeToLog('play: ', teamToPlay.cards[i].toString())
+            misc.writeToLog('play: ' + teamToPlay.cards[i].toString())
 			await teamToPlay.cards[i] ? page.waitForXPath(`//div[@card_detail_id="${teamToPlay.cards[i].toString()}"]`, { timeout: 10000 })
-                .then(selector => selector.click()) : misc.writeToLog('nocard ', i);
+                .then(selector => selector.click()) : misc.writeToLog('nocard ' + i);
             await page.waitForTimeout(1000);
         }
 
@@ -461,7 +461,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 		misc.writeToLogNoUsername('Prioritize Quests', prioritizeQuest);
 		misc.writeToLogNoUsername('Use API', useAPI);
 		misc.writeToLogNoUsername('Loaded', accounts.length, ' Accounts')
-		misc.writeToLogNoUsername('START ', accounts, new Date().toLocaleString())
+		misc.writeToLogNoUsername('START ', accounts)
 
 		// edit by jones, neues while true
 		while (true) {
@@ -492,7 +492,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 				}
 				await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI)
 					.then(() => {
-						misc.writeToLog('Closing battle', new Date().toLocaleString());        
+						misc.writeToLog('Closing battle');
 					})
 					.catch((e) => {
 						misc.writeToLog(e)

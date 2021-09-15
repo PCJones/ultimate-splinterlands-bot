@@ -6,7 +6,7 @@ function writeToLog(...logMessage) {
 
 function writeErrorToLog(...logMessage) {
 	const time = new Date().toLocaleString();
-	const message = `[${time}] ${process.env.ACCUSERNAME}: ${logMessage}`;
+	const message = `[${time}] ${process.env.ACCUSERNAME}: ${objToString(logMessage)}`;
 	console.error(message);
 }
 
@@ -16,6 +16,11 @@ function writeToLogNoUsername(...logMessage) {
 	console.log(message);
 }
 
+function objToString (obj) {
+    return Object.entries(obj).reduce((str, [p, val]) => {
+        return `${str}${p}::${val}\n`;
+    }, '');
+}
 
 exports.writeToLog = writeToLog;
 exports.writeToLogNoUsername = writeToLogNoUsername;

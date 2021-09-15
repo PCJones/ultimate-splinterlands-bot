@@ -1,3 +1,5 @@
+const misc = require('./misc');
+
 async function login(page) {
     try {
         page.waitForSelector('#log_in_button > button').then(() => page.click('#log_in_button > button'))
@@ -20,10 +22,10 @@ async function login(page) {
                         visible: true, timeout: 3000
                     })
                     .then(()=>{
-                        console.log('logged in!')
+                        misc.writeToLog('logged in!')
                     })
                     .catch(()=>{
-                        console.log('didnt login');
+                        misc.writeToLog('didnt login');
                         throw new Error('Didnt login');
                     })
                 })
@@ -41,14 +43,14 @@ async function checkMana(page) {
         var manaLeft = manaCap - manaUsed
         return { manaCap, manaUsed, manaLeft };
     });
-    console.log('manaLimit', manas);
+    misc.writeToLog('manaLimit', manas);
     return manas;
 }
 
 async function checkMatchMana(page) {
     const mana = await page.$$eval("div.col-md-12 > div.mana-cap__icon", el => el.map(x => x.getAttribute("data-original-title")));
     const manaValue = parseInt(mana[0].split(':')[1], 10);
-    console.log(manaValue);
+    misc.writeToLog(manaValue);
     return manaValue;
 }
 
