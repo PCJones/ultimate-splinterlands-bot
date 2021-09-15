@@ -245,7 +245,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             .catch(()=>misc.writeToLog('no season reward to be claimed, but you can still check your data here https://peakmonsters.com/@${process.env.ACCUSERNAME}/explorer'));
         }
         catch (e) {
-            misc.writeToLog(('no season reward to be claimed')
+            misc.writeToLog(('no season reward to be claimed');
         }
     }
 
@@ -256,7 +256,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 		misc.writeToLog('Quest reward can be redeemed!');
 		if (claimQuestReward) {
 			await claimButton.click();
-			await page.waitForTimeout(1000);
+			await page.waitForTimeout(40000);
 		}
 	} catch (e) {
 		misc.writeToLog('No quest reward to be claimed waiting for the battle...')
