@@ -90,7 +90,7 @@ async function waitUntilLoaded(page) {
 				misc.writeToLog('Waiting until page is loaded...');
 			});
     } catch (e) {
-        console.info('No loading circle...')
+        misc.writeToLog('No loading circle...')
 		return;
     }
 	
@@ -102,7 +102,7 @@ async function clickMenuFightButton(page) {
         await page.waitForSelector('#menu_item_battle', { timeout: 6000 })
             .then(button => button.click());
     } catch (e) {
-        console.info('fight button not found')
+        misc.writeToLog('fight button not found')
     }
 	
 }
@@ -174,7 +174,7 @@ async function selectCorrectBattleType(page) {
 				await page.waitForSelector('#right_slider_btn', { timeout: 500 })
 					.then(button => button.click());
 			} catch (e) {
-				console.info('Slider button not found', e)
+				misc.writeToLog('Slider button not found', e)
 			}
 			await page.waitForTimeout(1000);
 			battleType = (await page.$eval('#battle_category_type', el => el.innerText)).trim();
@@ -245,21 +245,21 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             .catch(()=>misc.writeToLog('no season reward to be claimed, but you can still check your data here https://peakmonsters.com/@${process.env.ACCUSERNAME}/explorer'));
         }
         catch (e) {
-            console.info('no season reward to be claimed')
+            misc.writeToLog(('no season reward to be claimed')
         }
     }
 
     //if quest done claim reward
     misc.writeToLog('Quest details: ', quest);
-	if (claimQuestReward) {
-		try {
-			await page.waitForSelector('#quest_claim_btn', { timeout: 5000 })
-				.then(button => button.click());
-		} catch (e) {
-			console.info('no quest reward to be claimed waiting for the battle...')
+	try {
+		const claimButton = await page.waitForSelector('#quest_claim_btn', { timeout: 2500 });
+		misc.writeToLog('Quest reward can be redeemed!');
+		if (claimQuestReward) {
+			await claimButton.click();
+			await page.waitForTimeout(1000);
 		}
-
-		await page.waitForTimeout(1000);
+	} catch (e) {
+		misc.writeToLog('No quest reward to be claimed waiting for the battle...')
 	}
 
 	if (!page.url().includes("battle_history")) {
@@ -278,17 +278,17 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             .then(button => {
 				misc.writeToLog('Battle button clicked'); button.click()
 				})
-            .catch(e=>console.error('[ERROR] waiting for Battle button. is Splinterlands in maintenance?'));
+            .catch(e=>misc.writeErrorToLog('[ERROR] waiting for Battle button. is Splinterlands in maintenance?'));
         await page.waitForTimeout(5000);
 
         misc.writeToLog('waiting for an opponent...')
         await page.waitForSelector('.btn--create-team', { timeout: 25000 })
             .then(()=>misc.writeToLog('start the match'))
             .catch(async (e)=> {
-            console.error('[Error while waiting for battle]');
+            misc.writeErrorToLog('[Error while waiting for battle]');
 			misc.writeToLog('Clicking fight menu button again');
 			await clickMenuFightButton(page);
-            console.error('Refreshing the page and retrying to retrieve a battle');
+            misc.writeErrorToLog('Refreshing the page and retrying to retrieve a battle');
             await page.waitForTimeout(5000);
             await page.reload();
             await page.waitForTimeout(5000);
@@ -300,7 +300,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                     await page.waitForTimeout(5000);
                     await page.waitForXPath("//button[contains(., 'BATTLE')]", { timeout: 20000 })
                         .then(button => button.click())
-                        .catch(e=>console.error('[ERROR] waiting for Battle button second time'));
+                        .catch(e=>misc.writeErrorToLog('[ERROR] waiting for Battle button second time'));
                     await page.waitForTimeout(5000);
                     await page.waitForSelector('.btn--create-team', { timeout: 25000 })
                         .then(()=>misc.writeToLog('start the match'))
@@ -310,7 +310,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                         })
         })
     } catch(e) {
-        console.error('[Battle cannot start]:', e)
+        misc.writeErrorToLog('[Battle cannot start]:', e)
         throw new Error('The Battle cannot start');
 
     }
