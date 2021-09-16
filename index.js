@@ -124,6 +124,7 @@ async function createBrowsers(count, headless) {
 	for (let i = 0; i < count; i++) {
 		const browser = await puppeteer.launch({
 			headless: headless,
+			args: process.env.CHROME_NO_SANDBOX === 'true' ? ["--no-sandbox"] : [""],
 		});
 		const page = await browser.newPage();
 		await page.setDefaultNavigationTimeout(500000);
