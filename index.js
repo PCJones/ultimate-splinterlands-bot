@@ -216,7 +216,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             throw new Error('Login Error');
         });
     }
-	
+	return; //temp
 	await waitUntilLoaded(page);
 	const erc = (await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 100)).split('.')[0];
 	misc.writeToLog('Current Energy Capture Rate is ' + erc + "%");
@@ -253,10 +253,12 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     misc.writeToLog('Quest details: ' + JSON.stringify(quest));
 	try {
 		const claimButton = await page.waitForSelector('#quest_claim_btn', { timeout: 2500 });
-		misc.writeToLog(chalk.green('Quest reward can be redeemed!'));
-		if (claimQuestReward) {
-			await claimButton.click();
-			await page.waitForTimeout(40000);
+		if (claimButton {
+			misc.writeToLog(chalk.green('Quest reward can be redeemed!'));
+			if (claimQuestReward) {
+				await claimButton.click();
+				await page.waitForTimeout(40000);
+			}
 		}
 	} catch (e) {
 		misc.writeToLog('No quest reward to be claimed waiting for the battle...')
