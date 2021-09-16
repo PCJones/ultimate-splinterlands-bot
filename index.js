@@ -216,7 +216,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             throw new Error('Login Error');
         });
     }
-	return; //temp
+	
 	await waitUntilLoaded(page);
 	const erc = (await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 100)).split('.')[0];
 	misc.writeToLog('Current Energy Capture Rate is ' + erc + "%");
