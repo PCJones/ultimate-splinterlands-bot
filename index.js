@@ -253,9 +253,9 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     //if quest done claim reward
     misc.writeToLog('Quest details: ' + JSON.stringify(quest));
 	try {
-		const claimButton = await page.waitForSelector('#quest_claim_btn', { timeout: 2500 });
+		const claimButton = await page.waitForSelector('#quest_claim_btn', { timeout: 2500, visible: true });
 		if (claimButton) {
-			misc.writeToLog(chalk.green('Quest reward can be redeemed!'));
+			misc.writeToLog(chalk.green('Quest reward can be claimed!'));
 			if (claimQuestReward) {
 				await claimButton.click();
 				await page.waitForTimeout(40000);
