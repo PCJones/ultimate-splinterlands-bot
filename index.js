@@ -341,7 +341,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     let teamToPlay;
 	if (useAPI) {
 		const apiResponse = await api.getPossibleTeams(matchDetails);
-		if (apiResponse) {
+		if (apiResponse && !JSON.stringify(apiResponse).includes('api limit reached')) {
 			misc.writeToLog('API Response: ' + JSON.stringify(apiResponse));
 		
 			teamToPlay = { summoner: Object.values(apiResponse)[1], cards: [ Object.values(apiResponse)[1], Object.values(apiResponse)[3], Object.values(apiResponse)[5], Object.values(apiResponse)[7], Object.values(apiResponse)[9], 
@@ -356,7 +356,13 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 			}
 		}
 		else {
-			misc.writeToLog('API failed, using local history with most cards used tactic');
+			if (apiResponse && JSON.stringify(apiResponse).includes('api limit reached')) {
+				misc.writeToLog('API limit per hour reached, using local backup!');
+				misc.writeToLog('Visit discord or telegram group to learn more about API limits: https://t.me/ultimatesplinterlandsbot and https://discord.gg/hwSr7KNGs9');
+			}
+			else {
+				misc.writeToLog('API failed, using local history with most cards used tactic');
+			}
 			const possibleTeams = await ask.possibleTeams(matchDetails).catch(e=>misc.writeToLog('Error from possible team API call: ',e));
 	
 			if (possibleTeams && possibleTeams.length) {
