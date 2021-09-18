@@ -206,6 +206,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 
     let item = await page.waitForSelector('#log_in_button > button', {
         visible: true,
+		timeout: 15000
       })
       .then(res => res)
       .catch(()=> misc.writeToLog('Already logged in'))
