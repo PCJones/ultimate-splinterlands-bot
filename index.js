@@ -332,7 +332,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         rules: rules,
         splinters: splinters,
         myCards: myCards,
-		quest: prioritizeQuest ? quest : '',
+		quest: (prioritizeQuest && quest) ? quest : '',
     }
 	
     await page.waitForTimeout(2000);   
