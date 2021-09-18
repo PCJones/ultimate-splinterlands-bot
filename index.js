@@ -12,7 +12,7 @@ const quests = require('./quests');
 const ask = require('./possibleTeams');
 const api = require('./api');
 const misc = require('./misc');
-const version = 0.4;
+const version = 0.41;
 
 async function checkForUpdate() {
 	await misc.writeToLogNoUsername('------------------------------------------------------------------------------------------------');
