@@ -259,8 +259,9 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 			if (claimQuestReward) {
 				await claimButton.click();
 				misc.writeToLog(chalk.green('Claimed quest reward!'));
-				await page.waitForTimeout(20000);
+				await page.waitForTimeout(60000);
 				await page.reload();
+				await page.waitForTimeout(10000);
 			}
 		}
 	} catch (e) {
