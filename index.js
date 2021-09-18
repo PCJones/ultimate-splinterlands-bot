@@ -255,10 +255,12 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 	try {
 		const claimButton = await page.waitForSelector('#quest_claim_btn', { timeout: 2500, visible: true });
 		if (claimButton) {
-			misc.writeToLog(chalk.green('Quest reward can be claimed!'));
+			misc.writeToLog(chalk.orange('Quest reward can be claimed!'));
 			if (claimQuestReward) {
 				await claimButton.click();
-				await page.waitForTimeout(40000);
+				misc.writeToLog(chalk.green('Claimed quest reward!'));
+				await page.waitForTimeout(20000);
+				await page.reload();
 			}
 		}
 	} catch (e) {
@@ -491,7 +493,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 				misc.writeToLog('getting user quest info from splinterlands API...');
 				const quest = await getQuest();
 				if(!quest) {
-					misc.writeToLog('Error for quest details. Splinterlands API didnt work or you used incorrect username')
+					misc.writeToLog('Error for quest details. Splinterlands API didnt work or you used incorrect username');
 				}
 				await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI)
 					.then(() => {
