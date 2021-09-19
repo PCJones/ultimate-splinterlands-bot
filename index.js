@@ -281,7 +281,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         misc.writeToLog('waiting for battle button...')
 		await selectCorrectBattleType(page);
 		
-        await page.waitForXPath("//button[contains(., 'BATTLE')]", { timeout: 1000 })
+        await page.waitForXPath("//button[contains(., 'BATTLE')]", { timeout: 3000 })
             .then(button => {
 				misc.writeToLog('Battle button clicked'); button.click()
 				})
@@ -295,6 +295,12 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             misc.writeErrorToLog('[Error while waiting for battle]');
 			misc.writeToLog('Clicking fight menu button again');
 			await clickMenuFightButton(page);
+			misc.writeToLog('Clicking battle button again');
+			await page.waitForXPath("//button[contains(., 'BATTLE')]", { timeout: 3000 })
+            .then(button => {
+				misc.writeToLog('Battle button clicked'); button.click()
+				})
+            .catch(e=>misc.writeErrorToLog('[ERROR] waiting for Battle button. is Splinterlands in maintenance?'));
             misc.writeErrorToLog('Refreshing the page and retrying to retrieve a battle');
             await page.waitForTimeout(5000);
             await page.reload();
@@ -515,6 +521,8 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 				if (keepBrowserOpen) {
 					await page.goto('about:blank');	
 				} else {
+					let pages = await browsers[0].pages();
+					await Promise.all(pages.map(page =>page.close()));
 					await browsers[0].close();
 				}
 			}
