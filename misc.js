@@ -2,6 +2,7 @@ function writeToLog(...logMessage) {
 	const time = new Date().toLocaleString();
 	const message = `[${time}] ${process.env.ACCUSERNAME}: ${logMessage}`;
 	console.log(message);
+	return message;
 }
 
 function writeErrorToLog(...logMessage) {

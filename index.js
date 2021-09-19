@@ -185,7 +185,7 @@ async function selectCorrectBattleType(page) {
 	}
 }
 
-async function startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI) {
+async function startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary) {
     
 	const ercThreshold = process.env.ERC_THRESHOLD;
     
@@ -204,15 +204,12 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     await page.goto('https://splinterlands.com/?p=battle_history');
     await page.waitForTimeout(4000);
 
-    let item = await page.waitForSelector('#log_in_button > button', {
-        visible: true,
-		timeout: 15000
-      })
-      .then(res => res)
-      .catch(()=> misc.writeToLog('Already logged in'))
+    let username = await getElementText(page, '.dropdown-toggle .bio__name__display', 10000);
 
-    if (item != undefined)
-    {misc.writeToLog('Login')
+    if (username == process.env.ACCUSERNAME) {
+		misc.writeToLog('Already logged in!');
+	} else {
+		misc.writeToLog('Login')
         await splinterlandsPage.login(page).catch(e=>{
             misc.writeToLog(e);
             throw new Error('Login Error');
@@ -339,7 +336,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         rules: rules,
         splinters: splinters,
         myCards: myCards,
-		quest: (prioritizeQuest && quest) ? quest : '',
+		quest: (prioritizeQuest && quest && (quest.total != quest.completed) ? quest : '',
     }
 	
     await page.waitForTimeout(2000);   
@@ -434,10 +431,10 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 			const winner = await getElementText(page, 'section.player.winner .bio__name__display', 15000);
 			if (winner.trim() == process.env.ACCUSERNAME.trim()) {
 				const decWon = await getElementText(page, '.player.winner span.dec-reward span', 100);
-				misc.writeToLog(chalk.green('You won! Reward: ' + decWon + ' DEC'));
+				logSummary.push(misc.writeToLog(chalk.green('You won! Reward: ' + decWon + ' DEC')));
 			}
 			else {
-				misc.writeToLog(chalk.red('You lost :('));
+				logSummary.push(misc.writeToLog(chalk.red('You lost :(')));
 				if (useAPI) {
 					api.reportLoss(winner);
 				}
@@ -484,6 +481,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 
 		// edit by jones, neues while true
 		while (true) {
+			let logSummary = [];
 			for (let i = 0; i < accounts.length; i++) {
 				process.env['EMAIL'] = accounts[i];
 				process.env['PASSWORD'] = passwords[i];
@@ -509,7 +507,8 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 				if(!quest) {
 					misc.writeToLog('Error for quest details. Splinterlands API didnt work or you used incorrect username');
 				}
-				await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI)
+				
+				await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary)
 					.then(() => {
 						misc.writeToLog('Closing battle');
 					})
@@ -525,6 +524,11 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 					await Promise.all(pages.map(page =>page.close()));
 					await browsers[0].close();
 				}
+			}
+			
+			if (accounts.length > 1) {
+				misc.writeToLog("Fighting summary:");
+				logSummary.forEach(x => console.log(x));
 			}
 			await misc.writeToLog('Waiting for the next battle in', sleepingTime / 1000 / 60 , ' minutes at ', new Date(Date.now() +sleepingTime).toLocaleString() );
 			await misc.writeToLog('Join the telegram group https://t.me/ultimatesplinterlandsbot and discord https://discord.gg/hwSr7KNGs9');
