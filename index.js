@@ -124,7 +124,9 @@ async function createBrowsers(count, headless) {
 	for (let i = 0; i < count; i++) {
 		const browser = await puppeteer.launch({
 			headless: headless,
-			args: process.env.CHROME_NO_SANDBOX === 'true' ? ["--no-sandbox"] : [""],
+			args: process.env.CHROME_NO_SANDBOX === 'true' ? ["--no-sandbox"] : ['--disable-web-security',
+            '--disable-features=IsolateOrigins', 
+            ' --disable-site-isolation-trials'],
 		});
 		const page = await browser.newPage();
 		await page.setDefaultNavigationTimeout(500000);
@@ -523,6 +525,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 					let pages = await browsers[0].pages();
 					await Promise.all(pages.map(page =>page.close()));
 					await browsers[0].close();
+					//browsers[0].process().kill('SIGKILL');
 				}
 			}
 			
