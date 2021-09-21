@@ -534,6 +534,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 				logSummary.forEach(x => console.log(x));
 			}
 			await misc.writeToLog('Waiting for the next battle in', sleepingTime / 1000 / 60 , ' minutes at ', new Date(Date.now() +sleepingTime).toLocaleString() );
+			await misc.writeToLog(chalk.green('Interested in a bot that transfers all cards, dec and sps to your main account? Visit the discord or telegram!'));
 			await misc.writeToLog('Join the telegram group https://t.me/ultimatesplinterlandsbot and discord https://discord.gg/hwSr7KNGs9');
 			await new Promise(r => setTimeout(r, sleepingTime));
 		}
