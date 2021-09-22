@@ -13,6 +13,10 @@ const ask = require('./possibleTeams');
 const api = require('./api');
 const misc = require('./misc');
 const version = 0.41;
+let resultAll = [];
+let captureRateAll = [];
+let questRewardAll = [];
+let finalRateAll = [];
 
 async function checkForUpdate() {
 	await misc.writeToLogNoUsername('------------------------------------------------------------------------------------------------');
@@ -125,8 +129,10 @@ async function createBrowsers(count, headless) {
 		const browser = await puppeteer.launch({
 			headless: headless,
 			args: process.env.CHROME_NO_SANDBOX === 'true' ? ["--no-sandbox"] : ['--disable-web-security',
-            '--disable-features=IsolateOrigins', 
-            ' --disable-site-isolation-trials'],
+			'--disable-features=IsolateOrigins', 
+			' --disable-site-isolation-trials'],
+			product: "chrome",
+			//executablePath:"/Program Files/BraveSoftware/Brave-Browser/Application/brave",
 		});
 		const page = await browser.newPage();
 		await page.setDefaultNavigationTimeout(500000);
@@ -203,7 +209,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         deviceScaleFactor: 1,
     });
 
-    await page.goto('https://splinterlands.com/?p=battle_history');
+    await page.goto('https://splinterlands.io');
     await page.waitForTimeout(4000);
 
     let username = await getElementText(page, '.dropdown-toggle .bio__name__display', 10000);
@@ -217,10 +223,22 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             throw new Error('Login Error');
         });
     }
-	
 	await waitUntilLoaded(page);
 	const erc = (await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 100)).split('.')[0];
-	misc.writeToLog('Current Energy Capture Rate is ' + erc + "%");
+	if (erc >= 50){
+		misc.writeToLog('Current Energy Capture Rate is ' + chalk.green(erc + "%"));
+	}
+	else {
+		misc.writeToLog('Current Energy Capture Rate is ' + chalk.red(erc + "%"));
+	}
+
+	let e = parseInt(erc);
+	if (e >= 49) {
+		captureRateAll.push(process.env.ACCUSERNAME + chalk.green(' ERC: ' + erc + "%"));
+	}
+	else {
+		captureRateAll.push(process.env.ACCUSERNAME + chalk.red(' ERC: ' + erc + "%"));
+	}
 	if (parseInt(erc) < ercThreshold) {
 		misc.writeToLog('ERC is below threshold of ' + ercThreshold + '% - skipping this account');
 		return;
@@ -249,16 +267,18 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             misc.writeToLog('no season reward to be claimed');
         }
     }
+	let curRating = await getElementText(page, 'span.number_text', 100);
+	await misc.writeToLog('Current Rating is ' + chalk.yellow(curRating));
 
     //if quest done claim reward
-    misc.writeToLog('Quest details: ' + JSON.stringify(quest));
+    misc.writeToLog('Quest details: ' + chalk.yellow(JSON.stringify(quest)));
 	try {
 		const claimButton = await page.waitForSelector('#quest_claim_btn', { timeout: 2500, visible: true });
 		if (claimButton) {
-			misc.writeToLog(chalk.yellow('Quest reward can be claimed!'));
+			misc.writeToLog(chalk.green('Quest reward can be claimed!'));
+			questRewardAll.push(process.env.ACCUSERNAME + " Quest: " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.yellow(' Quest reward can be claimed!'))
 			if (claimQuestReward) {
 				await claimButton.click();
-				misc.writeToLog(chalk.green('Claimed quest reward!'));
 				await page.waitForTimeout(60000);
 				await page.reload();
 				await page.waitForTimeout(10000);
@@ -266,6 +286,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 		}
 	} catch (e) {
 		misc.writeToLog('No quest reward to be claimed waiting for the battle...')
+		questRewardAll.push(process.env.ACCUSERNAME + " Quest: " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.red(' No quest reward...'));
 	}
 
 	if (!page.url().includes("battle_history")) {
@@ -292,14 +313,15 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             .then(()=>misc.writeToLog('start the match'))
             .catch(async (e)=> {
             misc.writeErrorToLog('[Error while waiting for battle]');
-			misc.writeToLog('Clicking fight menu button again');
-			await clickMenuFightButton(page);
-			misc.writeToLog('Clicking battle button again');
-			await page.waitForXPath("//button[contains(., 'BATTLE')]", { timeout: 3000 })
+				misc.writeToLog('Clicking fight menu button again');
+				await clickMenuFightButton(page);
+				misc.writeToLog('Clicking battle button again');
+				await page.waitForXPath("//button[contains(., 'BATTLE')]", { timeout: 3000 })
             .then(button => {
-				misc.writeToLog('Battle button clicked'); button.click()
-				})
+					misc.writeToLog('Battle button clicked'); button.click()
+					})
             .catch(e=>misc.writeErrorToLog('[ERROR] waiting for Battle button. is Splinterlands in maintenance?'));
+
             misc.writeErrorToLog('Refreshing the page and retrying to retrieve a battle');
             await page.waitForTimeout(5000);
             await page.reload();
@@ -338,21 +360,22 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         rules: rules,
         splinters: splinters,
         myCards: myCards,
-		quest: (prioritizeQuest && quest && (quest.total != quest.completed)) ? quest : '',
-    }
+			quest: (prioritizeQuest && quest && (quest.total != quest.completed)) ? quest : '',
+     }
 	
-    await page.waitForTimeout(2000);   
+    await page.waitForTimeout(1000);   
     //TEAM SELECTION
     let teamToPlay;
+	misc.writeToLog(chalk.green('starting team selection'));
 	if (useAPI) {
 		const apiResponse = await api.getPossibleTeams(matchDetails);
 		if (apiResponse && !JSON.stringify(apiResponse).includes('api limit reached')) {
-			misc.writeToLog('API Response: ' + JSON.stringify(apiResponse));
+			misc.writeToLog(chalk.magenta('API Response: ' + JSON.stringify(apiResponse)));
 		
 			teamToPlay = { summoner: Object.values(apiResponse)[1], cards: [ Object.values(apiResponse)[1], Object.values(apiResponse)[3], Object.values(apiResponse)[5], Object.values(apiResponse)[7], Object.values(apiResponse)[9], 
 							Object.values(apiResponse)[11], Object.values(apiResponse)[13], Object.values(apiResponse)[15] ] };
 							
-			misc.writeToLog('Team picked by API: ' + JSON.stringify(teamToPlay));
+			misc.writeToLog(chalk.cyan('Team picked by API: ' + JSON.stringify(teamToPlay)));
 			// TEMP, testing
 			if (Object.values(apiResponse)[1] == '') {
 				misc.writeToLog('Seems like the API found no possible team - using local history');
@@ -367,7 +390,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 			}
 			else {
 				misc.writeToLog('API failed, using local history with most cards used tactic');
-			}
+			}	
 			const possibleTeams = await ask.possibleTeams(matchDetails).catch(e=>misc.writeToLog('Error from possible team API call: ',e));
 	
 			if (possibleTeams && possibleTeams.length) {
@@ -434,18 +457,32 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 			if (winner.trim() == process.env.ACCUSERNAME.trim()) {
 				const decWon = await getElementText(page, '.player.winner span.dec-reward span', 100);
 				logSummary.push(misc.writeToLog(chalk.green('You won! Reward: ' + decWon + ' DEC')));
+				resultAll.push(process.env.ACCUSERNAME + chalk.green(' You won! Reward: ' + decWon + ' DEC'));
 			}
 			else {
 				logSummary.push(misc.writeToLog(chalk.red('You lost :(')));
+				resultAll.push(process.env.ACCUSERNAME + chalk.red(' You lost :('));
 				if (useAPI) {
 					api.reportLoss(winner);
 				}
 			}
 		} catch(e) {
 			misc.writeToLog(e);
-			misc.writeToLog('Could not find winner - draw?');
+			misc.writeToLog(chalk.blueBright('Could not find winner - draw?'));
+			resultAll.push(process.env.ACCUSERNAME + chalk.blueBright('Could not find winner - draw?'));
 		}
 		await clickOnElement(page, '.btn--done', 1000, 2500);
+
+		try {
+			let curRating = await getElementText(page, 'span.number_text', 100);
+			misc.writeToLog('Updated Rating after battle is ' + chalk.yellow(curRating));
+			finalRateAll.push(process.env.ACCUSERNAME +(' New rating is ' + chalk.yellow(curRating)));
+		} catch (e){
+			misc.writeToLog(e);
+			misc.writeToLog(chalk.blueBright('Unable to get new rating'));
+			finalRateAll.push(process.env.ACCUSERNAME +chalk.red(' Unable to get new rating'));
+		}
+		
     } catch (e) {
         throw new Error(e);
     }
@@ -478,8 +515,8 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 		misc.writeToLogNoUsername('Claim Quest Reward: ' + claimQuestReward);
 		misc.writeToLogNoUsername('Prioritize Quests: ' + prioritizeQuest);
 		misc.writeToLogNoUsername('Use API: ' + useAPI);
-		misc.writeToLogNoUsername('Loaded ' + accounts.length + ' Accounts')
-		misc.writeToLogNoUsername('START '+ accounts)
+		misc.writeToLogNoUsername('Loaded ' + chalk.yellow(accounts.length) + ' Accounts')
+		misc.writeToLogNoUsername('START '+ chalk.greenBright(accounts))
 
 		// edit by jones, neues while true
 		while (true) {
@@ -507,9 +544,8 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 				misc.writeToLog('getting user quest info from splinterlands API...');
 				const quest = await getQuest();
 				if(!quest) {
-					misc.writeToLog('Error for quest details. Splinterlands API didnt work or you used incorrect username');
+					misc.writeToLog('Error for quest details. Splinterlands API didnt work or you used incorrect username')
 				}
-				
 				await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary)
 					.then(() => {
 						misc.writeToLog('Closing battle');
@@ -517,7 +553,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 					.catch((e) => {
 						misc.writeToLog(e)
 					})
-				
+
 				await page.waitForTimeout(5000);
 				if (keepBrowserOpen) {
 					await page.goto('about:blank');	
@@ -525,20 +561,38 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 					let pages = await browsers[0].pages();
 					await Promise.all(pages.map(page =>page.close()));
 					await browsers[0].close();
-					//browsers[0].process().kill('SIGKILL');
 				}
 			}
-			
-			if (accounts.length > 1) {
-				misc.writeToLog("Fighting summary:");
-				logSummary.forEach(x => console.log(x));
+
+			console.log('--------------------------Battle Result Summary:----------------------');
+			//if (accounts.length > 1) {
+				//logSummary.forEach(x => console.log(x));
+			//}
+			for (let i = 0; i<resultAll.length; i++) {
+				console.log(resultAll[i]);
 			}
-			await misc.writeToLog('Waiting for the next battle in', sleepingTime / 1000 / 60 , ' minutes at ', new Date(Date.now() +sleepingTime).toLocaleString() );
-			await misc.writeToLog(chalk.green('Interested in a bot that transfers all cards, dec and sps to your main account? Visit the discord or telegram!'));
-			await misc.writeToLog('Join the telegram group https://t.me/ultimatesplinterlandsbot and discord https://discord.gg/hwSr7KNGs9');
+			for (let i = 0; i<finalRateAll.length; i++) {
+				console.log(finalRateAll[i]);
+			}
+			for (let i = 0; i<captureRateAll.length; i++) {
+				console.log(captureRateAll[i]);
+			}
+			for (let i = 0; i<questRewardAll.length; i++) {
+				console.log(questRewardAll[i]);
+			}
+			console.log('----------------------------------------------------------------------');
+			misc.writeToLog('Waiting for the next battle in', sleepingTime / 1000 / 60 , ' minutes at ', new Date(Date.now() +sleepingTime).toLocaleString() );
+			console.log(chalk.green('Interested in a bot that transfers all cards, dec and sps to your main account? Visit the discord or telegram!'));
+			console.log('Join the telegram group https://t.me/ultimatesplinterlandsbot and discord https://discord.gg/hwSr7KNGs9')
+			console.log('--------------------------End of Battle--------------------------------');
 			await new Promise(r => setTimeout(r, sleepingTime));
+			resultAll = [];
+			captureRateAll = [];
+			questRewardAll = [];
+			finalRateAll = [];
 		}
 	} catch (e) {
 		console.log('Routine error at: ', new Date().toLocaleString(), e)
 	}
+	
 })();
