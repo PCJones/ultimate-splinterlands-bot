@@ -492,7 +492,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 				if (keepBrowserOpen && browsers.length == 0) {
 					misc.writeToLog('Opening browsers');
 					browsers = await createBrowsers(accounts.length, headless);
-				} else if (!keepBrowserOpen) { // close browser, only have 1 instance at a time
+				} else if (!keepBrowserOpen && browsers.length == 0) { // close browser, only have 1 instance at a time
 					misc.writeToLog('Opening browser');
 					browsers = await createBrowsers(1, headless);
 				}
@@ -522,9 +522,12 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 				if (keepBrowserOpen) {
 					await page.goto('about:blank');	
 				} else {
-					let pages = await browsers[0].pages();
-					await Promise.all(pages.map(page =>page.close()));
-					await browsers[0].close();
+					await page.evaluate( function(){
+						SM.Logout();
+					});
+					//let pages = await browsers[0].pages();
+					//await Promise.all(pages.map(page =>page.close()));
+					//await browsers[0].close();
 					//browsers[0].process().kill('SIGKILL');
 				}
 			}
