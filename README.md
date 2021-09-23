@@ -78,11 +78,11 @@ Configuration with default values:
 
 - `USE_CLASSIC_BOT_PRIVATE_API=false` Set to false unless you have the private API from the original bot
 
--`TELEGRAM_NOTIF=false` Set to false unless you create a Telegram bot for notification. 
+- `TELEGRAM_NOTIF=false` Set to false unless you create a Telegram bot for notification. 
 
--`TELEGRAM_TOKEN=` your telegram bot token, create bot: https://t.me/BotFather
+- `TELEGRAM_TOKEN=` your telegram bot token, create bot: https://t.me/BotFather
 
--`TELEGRAM_CHATID` telegram chat id for notify, get the id: https://t.me/get_id_bot
+- `TELEGRAM_CHATID` telegram chat id for notify, get the id: https://t.me/get_id_bot
 
 # Donations
 
