@@ -115,7 +115,7 @@ PASSWORD=password1,password2,POST_KEY3
 1. Backup newHistory.json in case something goes wrong
 2. Run `node combine.js` in the data folder to add the data from history.json to the newHistory.json file
 
-**I can see the Telegram notification in after setting up?**
+**Why I can't see the Telegram notification after setting it up?**
 
 1. Look for the for the name of your bot in Telegram. 
 2. Type `/start` to receive notifcation once battle summary result is available. 
