@@ -228,16 +228,17 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         });
     }
 	await waitUntilLoaded(page);
-	const erc = (await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 100)).split('.')[0];
+	const erc = (await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 100)).split('%')[0];
 	if (erc >= 50){
 		misc.writeToLog('Current Energy Capture Rate is ' + chalk.green(erc + "%"));
 	}
 	else {
-		misc.writeToLog('Current Energy Capture Rate is ' + chalk.red(erc + "%"));
+		misc.writeToLog('Current Energy Capture Rate is ' + chalk.red(erc+ "%"));
 	}
 
 	if (parseInt(erc) < ercThreshold) {
-		misc.writeToLog('ERC is below threshold of ' + ercThreshold + '% - skipping this account');
+		misc.writeToLog('ERC is below threshold of ' + ercThreshold + '- skipping this account');
+		logSummary.push(' Account skipped: ERC is below threshold of ' + ercThreshold )
 		return;
 	}
 	await page.waitForTimeout(1000);
@@ -264,18 +265,20 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             misc.writeToLog('no season reward to be claimed');
         }
     }
-	let curRating = await getElementText(page, 'span.number_text', 100)
+	const curRating = await getElementText(page, 'span.number_text', 100)
 	await misc.writeToLog('Current Rating is ' + chalk.yellow(curRating));
 
     //if quest done claim reward
     misc.writeToLog('Quest details: ' + chalk.yellow(JSON.stringify(quest)));
+	const questerNameRaw = await getElementText(page, 'div#quest_title1.quest_title_text', 1000);
+	const questerName = questerNameRaw.replace(/(^\w|\s\w)(\S*)/g, (_,m1,m2) => m1.toUpperCase()+m2.toLowerCase());
 	try {
 		const claimButton = await page.waitForSelector('#quest_claim_btn', { timeout: 2500, visible: true });
 		if (claimButton) {
 			misc.writeToLog(chalk.green('Quest reward can be claimed!'));
 			if (claimQuestReward) {
 				await claimButton.click();
-				logSummary.push( " Quest: " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.yellow(' Quest reward claimed!'));
+				logSummary.push(" " + questerName + ": " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.yellow(' Quest reward claimed!'));
 				await page.waitForTimeout(60000);
 				await page.reload();
 				await page.waitForTimeout(10000);
@@ -283,7 +286,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 		}
 	} catch (e) {
 		misc.writeToLog('No quest reward to be claimed waiting for the battle...')
-		logSummary.push( " Quest: " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.red(' No quest reward...'));
+		logSummary.push(" " + questerName + ": " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.red(' No quest reward...'));
 	}
 
 	if (!page.url().includes("battle_history")) {
@@ -444,7 +447,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             await page.click('.btn-green')[0]; //start fight
         }
         await page.waitForTimeout(5000);
-        await page.waitForSelector('#btnRumble', { timeout: 100000 }).then(()=>misc.writeToLog('btnRumble visible')).catch(()=>misc.writeToLog('btnRumble not visible'));
+        await page.waitForSelector('#btnRumble', { timeout: 160000 }).then(()=>misc.writeToLog('btnRumble visible')).catch(()=>misc.writeToLog('btnRumble not visible'));
         await page.waitForTimeout(5000);
         await page.$eval('#btnRumble', elem => elem.click()).then(()=>misc.writeToLog('btnRumble clicked')).catch(()=>misc.writeToLog('btnRumble didnt click')); //start rumble
         await page.waitForSelector('#btnSkip', { timeout: 10000 }).then(()=>misc.writeToLog('btnSkip visible')).catch(()=>misc.writeToLog('btnSkip not visible'));
@@ -481,14 +484,14 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 			}
 			let curRating = await getElementText(page, 'span.number_text', 1000);
 			misc.writeToLog('Updated Rating after battle is ' + chalk.yellow(curRating));
-			logSummary.push(' New rating is ' + chalk.yellow(curRating));
-		const newERC = (await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 2000)).split('.')[0];
+			logSummary.push(' New rating: ' + chalk.yellow(curRating));
+		const newERC = (await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 2000)).split('%')[0];
 			let e = parseInt(newERC);
 				if (e >= 50) {
-					logSummary.push(' Remaining ERC: ' + chalk.green(newERC + "%"));
+					logSummary.push(' Remaining ERC: ' + chalk.green(newERC + '%'));
 				}
 				else {
-					logSummary.push(' Remaining ERC: ' + chalk.red(newERC + "%"));
+					logSummary.push(' Remaining ERC: ' + chalk.red(newERC + '%'));
 				}
 
 				
@@ -590,7 +593,6 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 			if (accounts.length > 1) {
 				logSummary.forEach(x => console.log(x));
 			};
-			console.log('-----------------------------------------------------------------------');
 
 			// telegram notification 
 			if (process.env.TELEGRAM_NOTIF === 'true') {
@@ -601,18 +603,21 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 						message = message + logSummary[i].replace(/\u001b[^m]*?m/g,"") +' \n';
 			
 					}
+					message = message + ' \n' + ' Next battle in '+ sleepingTime / 1000 / 60 + ' minutes at ' + new Date(Date.now() +sleepingTime).toLocaleString() +' \n';;
+
 					await notify.send(message);
-					misc.writeToLog('Battle result sent to telegram');
+					console.log(chalk.green(' Battle result sent to telegram'));
 					message = '';	
 				}
 				catch (e) {
-					misc.writeToLog('[ERROR] Unable to send battle result to Telegram' + ' \n' + 'Please make sure telegram setting is correct.');
+					console.log(chalk.red(' [ERROR] Unable to send battle result to Telegram. Please make sure telegram setting is correct.'));
 				}
 			}
+			console.log('-----------------------------------------------------------------------');
 
-			misc.writeToLog('Waiting for the next battle in ' + chalk.yellow(sleepingTime / 1000 / 60) + ' minutes at ' + new Date(Date.now() +sleepingTime).toLocaleString() );
-			console.log(chalk.green('Interested in a bot that transfers all cards, dec and sps to your main account? Visit the discord or telegram!'));
-			console.log('Join the telegram group https://t.me/ultimatesplinterlandsbot and discord https://discord.gg/hwSr7KNGs9')
+			console.log(' Waiting for the next battle in ' + chalk.yellow(sleepingTime / 1000 / 60) + ' minutes at ' + new Date(Date.now() +sleepingTime).toLocaleString() );
+			console.log(chalk.green(' Interested in a bot that transfers all cards, dec and sps to your main account? Visit the discord or telegram!'));
+			console.log(' Join the telegram group https://t.me/ultimatesplinterlandsbot and discord https://discord.gg/hwSr7KNGs9')
 			console.log('--------------------------End of Battle--------------------------------');
 			await new Promise(r => setTimeout(r, sleepingTime));
 		}

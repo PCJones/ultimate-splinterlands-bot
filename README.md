@@ -17,11 +17,13 @@ Feel free to give suggestions for features/code refurbishing via github or on di
 - The bot no longer refreshes the page all the time (which often got you blocked from splinterlands for a few minutes)
 - The bot clicks away popups
 - The bot waits if there is a loading circle from splinterlands
-- Minimum Energy Capture Rate - the bot will pause automatically if the energy capture rate is below a specified percentage
+- Disabled requesting the free API because it is always overloaded and slows down the bot (I've supplied a very large history file)
 - Option to disable automatic quest reward chest opening
 - Support for the private API of the original bot
+- Minimum Energy Capture Rate - the bot will pause automatically if the energy capture rate is below a specified percentage
+- New battle log summary after all battles
+- Receive Battle log summary notification via Telegram 
 - **Coming Soon**: Individual wait time for each account (right now it will battle with all accounts and wait after that) (aka **Multithreading**)
-- **Coming Soon**: 
 - **Coming Soon**: Statistics on how each account is performing
 - Any suggestions?
 
@@ -39,6 +41,9 @@ https://discord.gg/hwSr7KNGs9)
 - On windows: Execute `install.bat` in bot folder
 - On MacOS/Linux: open terminal in bot folder and execute command `npm install`
 
+## How to install Telegram Notfication
+- open terminal in bot folder and execute command `npm install --save telegram-notify`
+
 ## How to start the bot
 - On windows: Execute `start.bat` in bot folder
 - On MacOS/Linux: open terminal in bot folder and execute command `npm start`
@@ -50,8 +55,6 @@ Configuration with default values:
 - `QUEST_PRIORITY=true` Disable/Enable quest priority
 
 - `MINUTES_BATTLES_INTERVAL=30` Sleep time before the bot will fight with all accounts again. Subtract 2-3 minutes per account
-
-- `ERC_THRESHOLD=80` If your energy capture rate goes below this the bot will stop fighting with this account until it's above again. Set to 0 to disable
 
 - `CLAIM_SEASON_REWARD=false` Disable/Enable season reward claiming
 
@@ -75,6 +78,12 @@ Configuration with default values:
 
 - `USE_CLASSIC_BOT_PRIVATE_API=false` Set to false unless you have the private API from the original bot
 
+-`TELEGRAM_NOTIF=false` Set to false unless you create a Telegram bot for notification. 
+
+-`TELEGRAM_TOKEN=` your telegram bot token, create bot: https://t.me/BotFather
+
+-`TELEGRAM_CHATID` telegram chat id for notify, get the id: https://t.me/get_id_bot
+
 # Donations
 
 In case you want to donate to me for updating this bot, I would be very happy! Please also consider donating to the original bot creator.
@@ -82,7 +91,6 @@ In case you want to donate to me for updating this bot, I would be very happy! P
 - DEC into the game to the player **pcjones** 
 - Bitcoin 3KU85k1HFTqCC4geQz3XUFk84R6uekuzD8
 - Ethereum 0xcFE8c78F07e0190EBdD9077cF9d9E3A8DCED8d91 
-- WAX to account **lshru.wam** (please copy the name)
 - Text me on Discord or Telegram for anything other
 
 # FAQ
@@ -106,3 +114,8 @@ PASSWORD=password1,password2,POST_KEY3
 
 1. Backup newHistory.json in case something goes wrong
 2. Run `node combine.js` in the data folder to add the data from history.json to the newHistory.json file
+
+**I can see the Telegram notification in after setting up?**
+
+1. Look for the for the name of your bot in Telegram. 
+2. Type `/start` to receive notifcation once battle summary result is available. 
