@@ -424,7 +424,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             await page.click('.btn-green')[0]; //start fight
         }
         await page.waitForTimeout(5000);
-        await page.waitForSelector('#btnRumble', { timeout: 90000 }).then(()=>misc.writeToLog('btnRumble visible')).catch(()=>misc.writeToLog('btnRumble not visible'));
+        await page.waitForSelector('#btnRumble', { timeout: 160000 }).then(()=>misc.writeToLog('btnRumble visible')).catch(()=>misc.writeToLog('btnRumble not visible'));
         await page.waitForTimeout(5000);
         await page.$eval('#btnRumble', elem => elem.click()).then(()=>misc.writeToLog('btnRumble clicked')).catch(()=>misc.writeToLog('btnRumble didnt click')); //start rumble
         await page.waitForSelector('#btnSkip', { timeout: 10000 }).then(()=>misc.writeToLog('btnSkip visible')).catch(()=>misc.writeToLog('btnSkip not visible'));
