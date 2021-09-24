@@ -277,7 +277,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             misc.writeToLog('no season reward to be claimed');
         }
     }
-    let curRating = await getElementText(page, 'span.number_text', 100);
+    let curRating = await getElementText(page, 'span.number_text', 2000);
     await misc.writeToLog('Current Rating is ' + chalk.yellow(curRating));
 
     //if quest done claim reward
