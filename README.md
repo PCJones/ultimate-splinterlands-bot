@@ -11,17 +11,13 @@ Feel free to give suggestions for features/code refurbishing via github or on di
 
 ## New Features
 - Multiple accounts with only one instance
-- Login via Email
+- Login via Email or Username
 - Better Team Selection - the bot will chose cards with best win rate, not the ones that are most used
-- Faster Login & Fighting:
-- The bot no longer refreshes the page all the time (which often got you blocked from splinterlands for a few minutes)
-- The bot clicks away popups
-- The bot waits if there is a loading circle from splinterlands
+- The bot will play for the quests, including sneak and snipe (can be disabled)
 - Minimum Energy Capture Rate - the bot will pause automatically if the energy capture rate is below a specified percentage
-- Option to disable automatic quest reward chest opening
+- Option to enable/disable automatic quest reward chest opening
 - Support for the private API of the original bot
 - **Coming Soon**: Individual wait time for each account (right now it will battle with all accounts and wait after that) (aka **Multithreading**)
-- **Coming Soon**: 
 - **Coming Soon**: Statistics on how each account is performing
 - Any suggestions?
 
