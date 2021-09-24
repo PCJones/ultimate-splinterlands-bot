@@ -269,14 +269,14 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 	await misc.writeToLog('Current Rating is ' + chalk.yellow(curRating));
 
     //if quest done claim reward
-    misc.writeToLog('Quest details: ' + chalk.yellow(JSON.stringify(quest)));
+    misc.writeToLog('Quest details: ' + chalk.yellow(JSON.stringify(quest)));	
 	try {
 		const claimButton = await page.waitForSelector('#quest_claim_btn', { timeout: 2500, visible: true });
 		if (claimButton) {
 			misc.writeToLog(chalk.green('Quest reward can be claimed!'));
 			if (claimQuestReward) {
 				await claimButton.click();
-				logSummary.push(" " + Object.values(quest)[1].toString() + "Quest: " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.yellow(' Quest reward claimed!'));
+				logSummary.push(" " + Object.values(quest)[1].toString() + " Quest: " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.yellow(' Quest reward claimed!'));
 				await page.waitForTimeout(60000);
 				await page.reload();
 				await page.waitForTimeout(10000);
@@ -284,7 +284,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 		}
 	} catch (e) {
 		misc.writeToLog('No quest reward to be claimed waiting for the battle...')
-		logSummary.push(" " + Object.values(quest)[1].toString() + "Quest: " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.red(' No quest reward...'));
+		logSummary.push(" " + Object.values(quest)[1].toString()  + " Quest: " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.red(' No quest reward...'));
 	}
 
 	if (!page.url().includes("battle_history")) {
