@@ -12,7 +12,7 @@ const quests = require('./quests');
 const ask = require('./possibleTeams');
 const api = require('./api');
 const misc = require('./misc');
-const version = 0.41;
+const version = 0.42;
 let resultAll = [];
 let captureRateAll = [];
 let questRewardAll = [];
@@ -277,7 +277,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             misc.writeToLog('no season reward to be claimed');
         }
     }
-    let curRating = await getElementText(page, 'span.number_text', 100);
+    let curRating = await getElementText(page, 'span.number_text', 2000);
     await misc.writeToLog('Current Rating is ' + chalk.yellow(curRating));
 
     //if quest done claim reward
