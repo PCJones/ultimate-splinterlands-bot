@@ -265,20 +265,18 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             misc.writeToLog('no season reward to be claimed');
         }
     }
-	const curRating = await getElementText(page, 'span.number_text', 100)
+	const curRating = await getElementText(page, 'span.number_text', 1000)
 	await misc.writeToLog('Current Rating is ' + chalk.yellow(curRating));
 
     //if quest done claim reward
     misc.writeToLog('Quest details: ' + chalk.yellow(JSON.stringify(quest)));
-	const questerNameRaw = await getElementText(page, 'div#quest_title1.quest_title_text', 1000);
-	const questerName = questerNameRaw.replace(/(^\w|\s\w)(\S*)/g, (_,m1,m2) => m1.toUpperCase()+m2.toLowerCase());
 	try {
 		const claimButton = await page.waitForSelector('#quest_claim_btn', { timeout: 2500, visible: true });
 		if (claimButton) {
 			misc.writeToLog(chalk.green('Quest reward can be claimed!'));
 			if (claimQuestReward) {
 				await claimButton.click();
-				logSummary.push(" " + questerName + ": " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.yellow(' Quest reward claimed!'));
+				logSummary.push(" " + Object.values(quest)[1].toString() + "Quest: " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.yellow(' Quest reward claimed!'));
 				await page.waitForTimeout(60000);
 				await page.reload();
 				await page.waitForTimeout(10000);
@@ -286,7 +284,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 		}
 	} catch (e) {
 		misc.writeToLog('No quest reward to be claimed waiting for the battle...')
-		logSummary.push(" " + questerName + ": " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.red(' No quest reward...'));
+		logSummary.push(" " + Object.values(quest)[1].toString() + "Quest: " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.red(' No quest reward...'));
 	}
 
 	if (!page.url().includes("battle_history")) {
@@ -598,7 +596,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 			if (process.env.TELEGRAM_NOTIF === 'true') {
 				try {
 					const notify = new Telegram({token: process.env.TELEGRAM_TOKEN, chatId: process.env.TELEGRAM_CHATID});
-					message = 'Battle result summary: \n' + new Date().toLocaleString() + ' \n' + tet.replace(/\u001b[^m]*?m/g,"") + ' \n';
+					message = 'Battle result summary: \n' + "" + new Date().toLocaleString() + ' \n' + tet.replace(/\u001b[^m]*?m/g,"") + ' \n';
 					for (let i = 0; i < logSummary.length; i++) {
 						message = message + logSummary[i].replace(/\u001b[^m]*?m/g,"") +' \n';
 			
