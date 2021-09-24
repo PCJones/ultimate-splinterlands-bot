@@ -510,7 +510,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         await clickOnElement(page, '.btn--done', 1000, 2500);
 
         try {
-            let curRating = await getElementText(page, 'span.number_text', 100);
+            let curRating = await getElementText(page, 'span.number_text', 2000);
             misc.writeToLog('Updated Rating after battle is ' + chalk.yellow(curRating));
             finalRateAll.push(process.env.ACCUSERNAME + (' New rating is ' + chalk.yellow(curRating)));
         } catch (e) {
