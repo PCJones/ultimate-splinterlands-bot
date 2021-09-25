@@ -273,12 +273,13 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 
     //if quest done claim reward
 	try {
-		const claimButton = await page.waitForSelector('#quest_claim_btn', { timeout: 2500, visible: true });
+		 claimButton = await page.waitForSelector('#quest_claim_btn', { timeout: 2500, visible: true });
 		if (claimButton) {
 			misc.writeToLog(chalk.green('Quest reward can be claimed!'));
 			if (claimQuestReward) {
 				misc.writeToLog(chalk.green('Claiming quest reward now...'));
 				await claimButton.click();
+				logSummary.push(" " + Object.values(quest)[1].toString()  + " Quest: " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.yellow(' Quest reward claimed!'));
 				await page.waitForTimeout(60000);
 				await page.reload();
 				await page.waitForTimeout(10000);
@@ -345,7 +346,8 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         })
     } catch(e) {
         misc.writeErrorToLog('[Battle cannot start]:', e)
-        throw new Error('The Battle cannot start');
+		logSummary.push(chalk.red(' No records due to battle error'));
+        throw new Error('The battle cannot start');
 
     }
     await page.waitForTimeout(10000);
@@ -474,25 +476,25 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 		await clickOnElement(page, '.btn--done', 2000, 2500);
 		await page.waitForTimeout(5000)	
 
-		// after battle quest reward log
-		try {
-			if (claimButton, questReward !== 'true') {
-				misc.writeToLog(chalk.green('Claiming quest reward...'));
-				if (claimQuestReward) {
-					await claimButton.click().then(()=>logSummary.push(" " + Object.values(quest)[1].toString() + " Quest: " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.yellow(' Quest reward claimed!')), 60000).then(()=>page.reload());
-				}
-			}
-		} catch (e) {
-			logSummary.push(" " + Object.values(quest)[1].toString()  + " Quest: " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.red(' No quest reward...'));
-		}
-
+		// after battle quest reward log		
 		try {
 			if (!page.url().includes("battle_history")) {
-				await page.reload()
-				await page.waitForTimeout(5000);
-			} else { 
 				await page.goto('https://splinterlands.com/?p=battle_history');
 				await page.waitForTimeout(5000)	
+			}
+				// after battle quest reward log
+			try {
+				let quest = await getQuest();
+				let claimButton = await page.waitForSelector('#quest_claim_btn', { timeout: 2500, visible: true });
+				if (claimButton && questReward !== 'true') {
+					misc.writeToLog(chalk.green('Claiming quest reward...'));
+					if (claimQuestReward) {
+						await claimButton.click().then(()=>logSummary.push(" " + Object.values(quest)[1].toString()  + " Quest: " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.Green(' Quest reward claimed!')), 60000).then(()=>page.reload());
+					}
+				}
+			} catch (e) {
+				misc.writeToLog('Updated Quest Details:' + Object.values(quest)[1].toString()  + " Quest: " + Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString())
+				logSummary.push(" " + Object.values(quest)[1].toString()  + " Quest: " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.red(' No quest reward...'));
 			}
 			decRaw = await getElementText(page, 'div.balance', 2000);
 			let UpDateDec = parseFloat(Math.round((parseFloat(decRaw * 100)).toFixed(2)) / 100 ).toFixed(2);
@@ -580,7 +582,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 					.then((x)=>{misc.writeToLog('cards retrieved'); return x})
 					.catch(()=>misc.writeToLog('cards collection api didnt respond. Did you use username? avoid email!'));
 				misc.writeToLog('getting user quest info from splinterlands API...');
-				const quest = await getQuest();
+				quest = await getQuest();
 				if(!quest) {
 					misc.writeToLog('Error for quest details. Splinterlands API didnt work or you used incorrect username')
 				}
