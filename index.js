@@ -116,7 +116,7 @@ async function clickMenuFightButton(page) {
 
 // LOAD MY CARDS
 async function getCards() {
-    const myCards = await user.getPlayerCards(process.env.ACCUSERNAME.split('@')[0]) //split to prevent email use
+    const myCards = await user.getPlayerCards(process.env.ACCUSERNAME, new Date(Date.now() - 86400000)) // 86400000 = 1 day in milliseconds
     return myCards;
 } 
 
@@ -227,6 +227,8 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             throw new Error('Login Error');
         });
     }
+	//decRaw = await getElementText(page, 'div.balance', 1000);
+
 	await waitUntilLoaded(page);
 	const erc = (await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 100)).split('%')[0];
 	if (erc >= 50){
@@ -480,13 +482,13 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 				await page.goto('https://splinterlands.com/?p=battle_history');
 				await page.waitForTimeout(5000)	
 			}
-			decRaw = await getElementText(page, 'div.balance', 1000);
+			decRaw = await getElementText(page, 'div.balance', 2000);
 			let UpDateDec = parseFloat(Math.round((parseFloat(decRaw * 100)).toFixed(2)) / 100 ).toFixed(2);
-			let curRating = await getElementText(page, 'span.number_text', 1000);
+			let curRating = await getElementText(page, 'span.number_text', 2000);
 			let newERC = (await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 2000)).split('%')[0];
 			misc.writeToLog('Updated Rating after battle is ' + chalk.yellow(curRating));
 			logSummary.push(' New rating: ' + chalk.yellow(curRating));
-			logSummary.push(' New DEC Balance: ' + chalk.magentaBright(UpDateDec + ' DEC'));
+			logSummary.push(' New DEC Balance: ' + chalk.cyan(UpDateDec + ' DEC'));
 			let e = parseInt(newERC);
 				if (e >= 50) {
 					logSummary.push(' Remaining ERC: ' + chalk.green(newERC + '%'));
@@ -544,7 +546,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 		while (true) {
 			let logSummary = [];
 			startTimer = new Date().getTime();
-			if (process.env.TELEGRAM_NOTIF === 'true'){ await notify.send(' Initialize Bot: Battle now starting...')};
+			if (process.env.TELEGRAM_NOTIF === 'true'){ await notify.send(' Bot Initiated: Battle now starting.' + ' \n' + ' Please wait for the battle results.')};
 			for (let i = 0; i < accounts.length; i++) {
 				process.env['EMAIL'] = accounts[i];
 				process.env['PASSWORD'] = passwords[i];
@@ -600,7 +602,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 			// telegram notification 
 			if (process.env.TELEGRAM_NOTIF === 'true') {
 				try {
-					message = 'Battle result summary: \n' + "" + new Date().toLocaleString() + ' \n' + tet.replace(/\u001b[^m]*?m/g,"") + ' \n';
+					message = 'Battle result summary: \n' + " " + new Date().toLocaleString() + ' \n' + tet.replace(/\u001b[^m]*?m/g,"") + ' \n';
 					for (let i = 0; i < logSummary.length; i++) {
 						message = message + logSummary[i].replace(/\u001b[^m]*?m/g,"") +' \n';
 			

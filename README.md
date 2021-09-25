@@ -22,6 +22,7 @@ Feel free to give suggestions for features/code refurbishing via github or on di
 - Support for the private API of the original bot
 - Minimum Energy Capture Rate - the bot will pause automatically if the energy capture rate is below a specified percentage
 - New battle log summary after all battles
+- New DEC log after battle. 
 - Receive Battle log summary notification via Telegram 
 - **Coming Soon**: Individual wait time for each account (right now it will battle with all accounts and wait after that) (aka **Multithreading**)
 - **Coming Soon**: Statistics on how each account is performing
@@ -39,10 +40,7 @@ https://discord.gg/hwSr7KNGs9)
 - Download the [bot](https://github.com/PCJones/ultimate-splinterlands-bot/archive/refs/heads/master.zip) (extract if its .zip)
 - Create .env file (see .env-example)
 - On windows: Execute `install.bat` in bot folder
-- On MacOS/Linux: open terminal in bot folder and execute command `npm install`
-
-## How to install Telegram Notfication
-- open terminal in bot folder and execute command `npm install --save telegram-notify`
+- On MacOS/Linux: open terminal in bot folder and execute command `npm install` and `npm install --save telegram-notify`
 
 ## How to start the bot
 - On windows: Execute `start.bat` in bot folder
@@ -78,9 +76,9 @@ Configuration with default values:
 
 - `USE_CLASSIC_BOT_PRIVATE_API=false` Set to false unless you have the private API from the original bot
 
-- `TELEGRAM_NOTIF=false` Set to false unless you create a Telegram bot for notification. 
+- `TELEGRAM_NOTIF=false` Disable/Enable to receive telegram notification for battle result. 
 
-- `TELEGRAM_TOKEN=` Ignore/Don't change unless you have your telegram bot token.
+- `TELEGRAM_TOKEN=` Ignore/Don't change unless you have other Telegram Token/Telegram Bot. 
 
 - `TELEGRAM_CHATID` telegram chat id for notify, get the id: https://t.me/get_id_bot
 
@@ -117,5 +115,5 @@ PASSWORD=password1,password2,POST_KEY3
 
 **Why I can't see the Telegram notification after setting it up?**
 
-1. Look for `@Battle_Result_Bot` on Telegram
+1. Look for the for the name of your bot in Telegram. 
 2. Type `/start` to receive notifcation once battle summary result is available. 
