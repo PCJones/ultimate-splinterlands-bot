@@ -13,7 +13,7 @@ const quests = require('./quests');
 const ask = require('./possibleTeams');
 const api = require('./api');
 const misc = require('./misc');
-const version = 0.41;
+const version = 0.42;
 const notify = new Telegram({token: process.env.TELEGRAM_TOKEN, chatId: process.env.TELEGRAM_CHATID});
 
 
@@ -269,24 +269,24 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     }
 	const curRating = await getElementText(page, 'span.number_text', 1000)
 	await misc.writeToLog('Current Rating is ' + chalk.yellow(curRating));
+	misc.writeToLog('Quest details: ' + chalk.yellow(JSON.stringify(quest)));	
 
     //if quest done claim reward
-    misc.writeToLog('Quest details: ' + chalk.yellow(JSON.stringify(quest)));	
 	try {
 		const claimButton = await page.waitForSelector('#quest_claim_btn', { timeout: 2500, visible: true });
 		if (claimButton) {
 			misc.writeToLog(chalk.green('Quest reward can be claimed!'));
 			if (claimQuestReward) {
+				misc.writeToLog(chalk.green('Claiming quest reward now...'));
 				await claimButton.click();
-				logSummary.push(" " + Object.values(quest)[1].toString() + " Quest: " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.yellow(' Quest reward claimed!'));
 				await page.waitForTimeout(60000);
 				await page.reload();
 				await page.waitForTimeout(10000);
+				questReward = 'true'
 			}
 		}
 	} catch (e) {
 		misc.writeToLog('No quest reward to be claimed waiting for the battle...')
-		logSummary.push(" " + Object.values(quest)[1].toString()  + " Quest: " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.red(' No quest reward...'));
 	}
 
 	if (!page.url().includes("battle_history")) {
@@ -472,8 +472,20 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 			logSummary.push(chalk.blueBright(' Could not find winner - draw?'));
 		}
 		await clickOnElement(page, '.btn--done', 2000, 2500);
-
 		await page.waitForTimeout(5000)	
+
+		// after battle quest reward log
+		try {
+			if (claimButton, questReward !== 'true') {
+				misc.writeToLog(chalk.green('Claiming quest reward...'));
+				if (claimQuestReward) {
+					await claimButton.click().then(()=>logSummary.push(" " + Object.values(quest)[1].toString() + " Quest: " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.yellow(' Quest reward claimed!')), 60000).then(()=>page.reload());
+				}
+			}
+		} catch (e) {
+			logSummary.push(" " + Object.values(quest)[1].toString()  + " Quest: " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.red(' No quest reward...'));
+		}
+
 		try {
 			if (!page.url().includes("battle_history")) {
 				await page.reload()
@@ -610,7 +622,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 					message = message + ' \n' + ' Next battle in '+ sleepingTime / 1000 / 60 + ' minutes at ' + new Date(Date.now() +sleepingTime).toLocaleString();
 
 					await notify.send(message);
-					console.log(chalk.green(' Battle result sent to telegram'));
+					console.log(chalk.green(' \n' + ' Battle result sent to telegram'));
 					message = '';	
 				}
 				catch (e) {

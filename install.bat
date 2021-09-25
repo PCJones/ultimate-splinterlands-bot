@@ -7,4 +7,22 @@ call npm install --save telegram-notify
 cd node_modules/puppeteer
 call node install
 cd ..\..\ 
+ECHO.
 ECHO Installation complete!
+ECHO.
+:start
+SET choice=
+SET /p choice=Want to start bot now? [N]: 
+IF NOT '%choice%'=='' SET choice=%choice:~0,1%
+IF /i '%choice%'=='Y' GOTO yes
+IF /i '%choice%'=='N' GOTO yes
+IF '%choice%'=='' GOTO no
+ECHO "%choice%" is not valid
+ECHO.
+GOTO start
+:no
+EXIT
+
+:yes
+ECHO Starting bot
+call start.bat
