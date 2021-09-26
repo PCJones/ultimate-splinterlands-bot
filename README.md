@@ -24,6 +24,8 @@ Feel free to give suggestions for features/code refurbishing via github or on di
 - New battle log summary after all battles
 - New DEC log after battle. 
 - Receive Battle log summary notification via Telegram 
+- **Coming Soon**: Sleep function for ERC regeneration (virgaux)
+- **Coming Soon**: Telegram notification if bot had an error/stop running (virgaux)
 - **Coming Soon**: Individual wait time for each account (right now it will battle with all accounts and wait after that) (aka **Multithreading**)
 - **Coming Soon**: Statistics on how each account is performing
 - Any suggestions?
