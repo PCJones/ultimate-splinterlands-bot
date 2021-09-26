@@ -16,7 +16,6 @@ const misc = require('./misc');
 const version = 0.42;
 const notify = new Telegram({token: process.env.TELEGRAM_TOKEN, chatId: process.env.TELEGRAM_CHATID});
 
-
 async function checkForUpdate() {
 	await misc.writeToLogNoUsername('------------------------------------------------------------------------------------------------');
 	await fetch('http://jofri.pf-control.de/prgrms/splnterlnds/version.txt')
@@ -130,12 +129,11 @@ async function createBrowsers(count, headless) {
 	let browsers = [];
 	for (let i = 0; i < count; i++) {
 		const browser = await puppeteer.launch({
+			product: 'chrome',
 			headless: headless,
 			args: process.env.CHROME_NO_SANDBOX === 'true' ? ["--no-sandbox"] : ['--disable-web-security',
-			'--disable-features=IsolateOrigins', 
-			' --disable-site-isolation-trials'],
-			product: "chrome",
-			//executablePath:"/Program Files/BraveSoftware/Brave-Browser/Application/brave",
+            '--disable-features=IsolateOrigins', 
+            ' --disable-site-isolation-trials'],
 		});
 		const page = await browser.newPage();
 		await page.setDefaultNavigationTimeout(500000);
@@ -227,19 +225,18 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             throw new Error('Login Error');
         });
     }
-	//decRaw = await getElementText(page, 'div.balance', 1000);
-
+	
 	await waitUntilLoaded(page);
-	const erc = (await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 100)).split('%')[0];
+	const erc = (await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 100)).split('.')[0];
 	if (erc >= 50){
 		misc.writeToLog('Current Energy Capture Rate is ' + chalk.green(erc + "%"));
 	}
 	else {
 		misc.writeToLog('Current Energy Capture Rate is ' + chalk.red(erc+ "%"));
 	}
-
+	
 	if (parseInt(erc) < ercThreshold) {
-		misc.writeToLog('ERC is below threshold of ' + ercThreshold + '- skipping this account');
+		logSummary.push(misc.writeToLog(chalk.red(+ ecr +'/' + ercThreshold + '% - skipping this account')));
 		logSummary.push(' Account skipped: ERC is below threshold of ' + ercThreshold )
 		return;
 	}
@@ -267,15 +264,18 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             misc.writeToLog('no season reward to be claimed');
         }
     }
-	const curRating = await getElementText(page, 'span.number_text', 1000)
-	await misc.writeToLog('Current Rating is ' + chalk.yellow(curRating));
-	misc.writeToLog('Quest details: ' + chalk.yellow(JSON.stringify(quest)));	
-
+	
+	let curRating = await getElementText(page, 'span.number_text', 2000);
+    await misc.writeToLog('Current Rating is ' + chalk.yellow(curRating));
+	misc.writeToLog('Quest details: ' + chalk.yellow(JSON.stringify(quest)));
+	
     //if quest done claim reward
+	
+	
 	try {
-		 claimButton = await page.waitForSelector('#quest_claim_btn', { timeout: 2500, visible: true });
+		const claimButton = await page.waitForSelector('#quest_claim_btn', { timeout: 2500, visible: true });
 		if (claimButton) {
-			misc.writeToLog(chalk.green('Quest reward can be claimed!'));
+			logSummary.push(misc.writeToLog(chalk.yellow('Quest reward can be claimed!')));
 			if (claimQuestReward) {
 				misc.writeToLog(chalk.green('Claiming quest reward now...'));
 				await claimButton.click();
@@ -283,7 +283,6 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 				await page.waitForTimeout(60000);
 				await page.reload();
 				await page.waitForTimeout(10000);
-				questReward = 'true'
 			}
 		}
 	} catch (e) {
@@ -314,15 +313,14 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             .then(()=>misc.writeToLog('start the match'))
             .catch(async (e)=> {
             misc.writeErrorToLog('[Error while waiting for battle]');
-				misc.writeToLog('Clicking fight menu button again');
-				await clickMenuFightButton(page);
-				misc.writeToLog('Clicking battle button again');
-				await page.waitForXPath("//button[contains(., 'BATTLE')]", { timeout: 3000 })
+			misc.writeToLog('Clicking fight menu button again');
+			await clickMenuFightButton(page);
+			misc.writeToLog('Clicking battle button again');
+			await page.waitForXPath("//button[contains(., 'BATTLE')]", { timeout: 3000 })
             .then(button => {
-					misc.writeToLog('Battle button clicked'); button.click()
-					})
+				misc.writeToLog('Battle button clicked'); button.click()
+				})
             .catch(e=>misc.writeErrorToLog('[ERROR] waiting for Battle button. is Splinterlands in maintenance?'));
-
             misc.writeErrorToLog('Refreshing the page and retrying to retrieve a battle');
             await page.waitForTimeout(5000);
             await page.reload();
@@ -347,7 +345,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     } catch(e) {
         misc.writeErrorToLog('[Battle cannot start]:', e)
 		logSummary.push(chalk.red(' No records due to battle error'));
-        throw new Error('The battle cannot start');
+        throw new Error('The Battle cannot start');
 
     }
     await page.waitForTimeout(10000);
@@ -362,10 +360,10 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         rules: rules,
         splinters: splinters,
         myCards: myCards,
-			quest: (prioritizeQuest && quest && (quest.total != quest.completed)) ? quest : '',
-     }
+		quest: (prioritizeQuest && quest && (quest.total != quest.completed)) ? quest : '',
+    }
 	
-    await page.waitForTimeout(1000);   
+    await page.waitForTimeout(2000);   
     //TEAM SELECTION
     let teamToPlay;
 	misc.writeToLog(chalk.green('starting team selection'));
@@ -392,7 +390,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 			}
 			else {
 				misc.writeToLog('API failed, using local history with most cards used tactic');
-			}	
+			}
 			const possibleTeams = await ask.possibleTeams(matchDetails).catch(e=>misc.writeToLog('Error from possible team API call: ',e));
 	
 			if (possibleTeams && possibleTeams.length) {
@@ -449,11 +447,14 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             await page.click('.btn-green')[0]; //start fight
         }
         await page.waitForTimeout(5000);
-        await page.waitForSelector('#btnRumble', { timeout: 160000 }).then(()=>misc.writeToLog('btnRumble visible')).catch(()=>misc.writeToLog('btnRumble not visible'));
+        await page.waitForSelector('#btnRumble', { timeout: 90000 }).then(()=>misc.writeToLog('btnRumble visible')).catch(()=>misc.writeToLog('btnRumble not visible'));
         await page.waitForTimeout(5000);
         await page.$eval('#btnRumble', elem => elem.click()).then(()=>misc.writeToLog('btnRumble clicked')).catch(()=>misc.writeToLog('btnRumble didnt click')); //start rumble
         await page.waitForSelector('#btnSkip', { timeout: 10000 }).then(()=>misc.writeToLog('btnSkip visible')).catch(()=>misc.writeToLog('btnSkip not visible'));
         await page.$eval('#btnSkip', elem => elem.click()).then(()=>misc.writeToLog('btnSkip clicked')).catch(()=>misc.writeToLog('btnSkip not visible')); //skip rumble
+		await page.waitForTimeout(2000);
+		
+	try {
 		try {
 			const winner = await getElementText(page, 'section.player.winner .bio__name__display', 15000);
 			if (winner.trim() == process.env.ACCUSERNAME.trim()) {
@@ -473,11 +474,11 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 			misc.writeToLog(chalk.blueBright('Could not find winner - draw?'));
 			logSummary.push(chalk.blueBright(' Could not find winner - draw?'));
 		}
-		await clickOnElement(page, '.btn--done', 2000, 2500);
+		await clickOnElement(page, '.btn--done', 1000, 2500);
 		await page.waitForTimeout(5000)	
 
 		// after battle quest reward log		
-		try {
+		
 			if (!page.url().includes("battle_history")) {
 				await page.goto('https://splinterlands.com/?p=battle_history');
 				await page.waitForTimeout(5000)	
@@ -518,7 +519,6 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 		}
     } catch (e) {
         throw new Error(e);
-
     }
 
 
@@ -582,8 +582,9 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 				misc.writeToLog('getting user quest info from splinterlands API...');
 				const quest = await getQuest();
 				if(!quest) {
-					misc.writeToLog('Error for quest details. Splinterlands API didnt work or you used incorrect username')
+					misc.writeToLog('Error for quest details. Splinterlands API didnt work or you used incorrect username');
 				}
+				
 				await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary)
 					.then(() => {
 						misc.writeToLog('Closing battle');
@@ -591,7 +592,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 					.catch((e) => {
 						misc.writeToLog(e)
 					})
-
+				
 				await page.waitForTimeout(5000);
 				if (keepBrowserOpen) {
 					await page.goto('about:blank');	
@@ -599,6 +600,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 					let pages = await browsers[0].pages();
 					await Promise.all(pages.map(page =>page.close()));
 					await browsers[0].close();
+					//browsers[0].process().kill('SIGKILL');
 				}
 			}
 			// battle result summary
@@ -608,9 +610,9 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 			console.log('--------------------------Battle Results Summary:----------------------');
 			console.log(tet);
 			if (accounts.length > 1) {
+				misc.writeToLog("Fighting summary:");
 				logSummary.forEach(x => console.log(x));
-			};
-
+			}
 			// telegram notification 
 			if (process.env.TELEGRAM_NOTIF === 'true') {
 				try {
@@ -630,16 +632,12 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 				}
 			}
 			console.log('-----------------------------------------------------------------------');
-
-			console.log(' Waiting for the next battle in ' + chalk.yellow(sleepingTime / 1000 / 60) + ' minutes at ' + new Date(Date.now() +sleepingTime).toLocaleString() );
-			console.log(chalk.green(' Interested in a bot that transfers all cards, dec and sps to your main account? Visit the discord or telegram!'));
-			console.log(' Join the telegram group https://t.me/ultimatesplinterlandsbot and discord https://discord.gg/hwSr7KNGs9')
-			console.log('--------------------------End of Battle--------------------------------');
+			
+			await misc.writeToLog('Waiting for the next battle in', sleepingTime / 1000 / 60 , ' minutes at ', new Date(Date.now() +sleepingTime).toLocaleString() );
+			await misc.writeToLog('Join the telegram group https://t.me/ultimatesplinterlandsbot and discord https://discord.gg/hwSr7KNGs9');
 			await new Promise(r => setTimeout(r, sleepingTime));
 		}
 	} catch (e) {
 		console.log('Routine error at: ', new Date().toLocaleString(), e)
-
 	}
-	
 })();
