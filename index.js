@@ -484,19 +484,19 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 			}
 				// after battle quest reward log
 			try {
-				let quest = await getQuest();
+				Newquest = await getQuest();
 				let claimButton = await page.waitForSelector('#quest_claim_btn', { timeout: 2500, visible: true });
-				if (claimButton && questReward !== 'true') {
+				if (claimButton) {
 					misc.writeToLog(chalk.green('Claiming quest reward...'));
 					if (claimQuestReward) {
-						await claimButton.click().then(()=>logSummary.push(" " + Object.values(quest)[1].toString()  + " Quest: " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.Green(' Quest reward claimed!')), 60000).then(()=>page.reload());
+						await claimButton.click().then(()=>logSummary.push(" " + Object.values(Newquest)[1].toString()  + " Quest: " + chalk.yellow(Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString()) + chalk.Green(' Quest reward claimed!')), 60000).then(()=>page.reload());
 					}
 				}
 			} catch (e) {
-				misc.writeToLog('Updated Quest Details:' + Object.values(quest)[1].toString()  + " Quest: " + Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString())
-				logSummary.push(" " + Object.values(quest)[1].toString()  + " Quest: " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.red(' No quest reward...'));
+				misc.writeToLog('Updated Quest Details:' + Object.values(quest)[1].toString()  + " Quest: " + Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString())
+				logSummary.push(" " + Object.values(Newquest)[1].toString()  + " Quest: " + chalk.yellow(Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString()) + chalk.red(' No quest reward...'));
 			}
-			decRaw = await getElementText(page, 'div.balance', 2000);
+			const decRaw = await getElementText(page, 'div.balance', 2000);
 			let UpDateDec = parseFloat(Math.round((parseFloat(decRaw * 100)).toFixed(2)) / 100 ).toFixed(2);
 			let curRating = await getElementText(page, 'span.number_text', 2000);
 			let newERC = (await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 2000)).split('%')[0];
@@ -509,9 +509,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 				}
 				else {
 					logSummary.push(' Remaining ERC: ' + chalk.red(newERC + '%'));
-				}
-
-				
+				}				
 		} catch (e){
 			misc.writeToLog(e);
 			misc.writeToLog(chalk.blueBright('Unable to get new rating'));
@@ -582,7 +580,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 					.then((x)=>{misc.writeToLog('cards retrieved'); return x})
 					.catch(()=>misc.writeToLog('cards collection api didnt respond. Did you use username? avoid email!'));
 				misc.writeToLog('getting user quest info from splinterlands API...');
-				quest = await getQuest();
+				const quest = await getQuest();
 				if(!quest) {
 					misc.writeToLog('Error for quest details. Splinterlands API didnt work or you used incorrect username')
 				}
