@@ -641,7 +641,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                 if (!quest) {
                     misc.writeToLog('Error for quest details. Splinterlands API didnt work or you used incorrect username');
                 }
-                await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, ercRegen, logSummary)
+                await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary)
                 .then(() => {
                     misc.writeToLog('Closing battle');
                 })
