@@ -10,7 +10,9 @@ function battlesummary(logSummary,tet,sleepingTime){
             message = message + logSummary[i].replace(/\u001b[^m]*?m/g,"") +' \n';
 
         }
-        message = message + ' \n' + ' Next battle in '+ sleepingTime / 1000 / 60 + ' minutes at ' + new Date(Date.now() +sleepingTime).toLocaleString();
+        message = message + ' \n' + ' Next battle in '+ sleepingTime / 1000 / 60 + ' minutes at ' + new Date(Date.now() +sleepingTime).toLocaleString() + ' \n';
+
+        message = message + ' \n' +'Telegram group https://t.me/ultimatesplinterlandsbot' + ' \n' + 'Discord https://discord.gg/hwSr7KNGs9'
 
          notify.send(message);
         console.log(chalk.green(' \n' + ' Battle result sent to telegram'));

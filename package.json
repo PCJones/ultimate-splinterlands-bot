@@ -17,9 +17,10 @@
     "minimist": ">=1.2.3",
     "node-fetch": "^2.6.1",
     "pg": "^8.0.3",
-    "puppeteer": "^10.1.0"
+    "puppeteer": "^10.1.0",
+    "slimbot": "^5.1.0",
+    "telegram-notify": "^1.3.2"
   },
-  "devDependencies": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/PCJones/ultimate-splinterlands-bot.git"

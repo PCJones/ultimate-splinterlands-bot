@@ -3,7 +3,6 @@ ECHO Bot created by PC Jones (based on bot by alfficcadenti) - have fun
 ECHO Press any key to start the installation
 PAUSE
 call npm install
-call npm install --save telegram-notify
 cd node_modules/puppeteer
 if exist .local-chromium (
   cd ..\..\ 
@@ -16,7 +15,7 @@ ECHO Installation complete!
 ECHO.
 :start
 SET choice=
-SET /p choice=Want to start bot now? [Y/N]: 
+SET /p choice=Want to start the bot now? [Y/N]: 
 IF NOT '%choice%'=='' SET choice=%choice:~0,1%
 IF /i '%choice%'=='Y' GOTO yes
 IF /i '%choice%'=='N' GOTO yes
@@ -29,5 +28,5 @@ GOTO start
 EXIT
 
 :yes
-ECHO Starting bot
+ECHO Starting bot - have fun!
 call start.bat

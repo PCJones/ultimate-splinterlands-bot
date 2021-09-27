@@ -1,4 +1,4 @@
-# Ultimate Splinterlands Bot by PC Jones
+# Ultimate Splinterlands Bot V1 by PC Jones
 A fast, free, multi-account splinderlands bot
 
 Based on https://github.com/alfficcadenti/splinterlands-bot
@@ -24,8 +24,8 @@ Feel free to give suggestions for features/code refurbishing via github or on di
 - New battle log summary after all battles
 - New DEC log after battle. 
 - Receive Battle log summary notification via Telegram 
-- **Coming Soon**: Sleep function for ERC regeneration (virgaux)
-- **Coming Soon**: Telegram notification if bot had an error/stop running (virgaux)
+- **Updated Feature**: Accurate battle summary (virgaux)
+- **Coming Soon**: Telegram notification if bot had an error/stop running. Call to function on telegram. (virgaux)
 - **Coming Soon**: Individual wait time for each account (right now it will battle with all accounts and wait after that) (aka **Multithreading**)
 - **Coming Soon**: Statistics on how each account is performing
 - Any suggestions?
@@ -56,6 +56,8 @@ Configuration with default values:
 
 - `MINUTES_BATTLES_INTERVAL=30` Sleep time before the bot will fight with all accounts again. Subtract 2-3 minutes per account
 
+- `ERC_THRESHOLD=80` If your energy capture rate goes below this the bot will stop fighting with this account until it's above again. Set to 0 to disable 
+  
 - `CLAIM_SEASON_REWARD=false` Disable/Enable season reward claiming
 
 - `CLAIM_QUEST_REWARD=true` Disable/Enable quest reward claiming
@@ -118,5 +120,5 @@ PASSWORD=password1,password2,POST_KEY3
 
 **Why I can't see the Telegram notification after setting it up?**
 
-1. Look for the for the name of your bot in Telegram. 
+1. Look for `@Battle_Result_Bot` or the for the name of your bot in Telegram. 
 2. Type `/start` to receive notifcation once battle summary result is available. 

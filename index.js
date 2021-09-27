@@ -3,6 +3,7 @@ require('dotenv').config()
 const puppeteer = require('puppeteer');
 const fetch = require("node-fetch");
 const chalk = require('chalk');
+const fs = require('fs');	
 
 const splinterlandsPage = require('./splinterlandsPage');
 const user = require('./user');
@@ -14,17 +15,25 @@ const api = require('./api');
 const misc = require('./misc');
 const tn = require('./telnotif');
 const nq = require('./newquests');
+const fnAllCardsDetails  = ('./data/cardsDetails.json');
 const version = 0.42;
 
+ function readJSONFile(fn){
+    const jsonString = fs.readFileSync(fn);
+    const ret = JSON.parse(jsonString);
+    return ret;
+}	
+  
 async function checkForUpdate() {
     await misc.writeToLogNoUsername('------------------------------------------------------------------------------------------------');
     await fetch('http://jofri.pf-control.de/prgrms/splnterlnds/version.txt')
     .then(response => response.json())
     .then(newestVersion => {
         if (newestVersion > version) {
-            misc.writeToLogNoUsername('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot');
-            misc.writeToLogNoUsername('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot');
-            misc.writeToLogNoUsername('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot');
+            tn.sender('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot')
+            misc.writeToLogNoUsername(chalk.green('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot'));
+            misc.writeToLogNoUsername(chalk.green('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot'));
+            misc.writeToLogNoUsername(chalk.green('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot'));
         } else {
             misc.writeToLogNoUsername('No update available');
         }
@@ -34,44 +43,53 @@ async function checkForUpdate() {
 
 async function checkForMissingConfigs() {
     if (!process.env.TELEGRAM_NOTIF) {
-		misc.writeToLogNoUsername("Missing TELEGRAM_NOTIF parameter in .env - see updated .env-example!");
+		misc.writeToLogNoUsername(chalk.red("Missing TELEGRAM_NOTIF parameter in .env - see updated .env-example!"));
+        tn.sender("ALERT: Missing TELEGRAM_NOTIF parameter in .env - see updated .env-example!")
 		await sleep(60000);
 	}
     if (!process.env.LOGIN_VIA_EMAIL) {
-        misc.writeToLogNoUsername("Missing LOGIN_VIA_EMAIL parameter in .env - see updated .env-example!");
+        misc.writeToLogNoUsername(chalk.red("Missing LOGIN_VIA_EMAIL parameter in .env - see updated .env-example!"));
+        tn.sender("ALERT: Missing LOGIN_VIA_EMAIL parameter in .env - see updated .env-example!")
         await sleep(60000);
     }
     if (!process.env.HEADLESS) {
-        misc.writeToLogNoUsername("Missing HEADLESS parameter in .env - see updated .env-example!");
+        misc.writeToLogNoUsername(chalk.red("Missing HEADLESS parameter in .env - see updated .env-example!"));
+        tn.sender("ALERT: Missing HEADLESS parameter in .env - see updated .env-example!")
         await sleep(60000);
     }
     if (!process.env.KEEP_BROWSER_OPEN) {
-        misc.writeToLogNoUsername("Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!");
+        misc.writeToLogNoUsername(chalk.red("Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!"));
+        tn.sender("ALERT: Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!");
         await sleep(60000);
     }
     if (!process.env.CLAIM_QUEST_REWARD) {
-        misc.writeToLogNoUsername("Missing CLAIM_QUEST_REWARD parameter in .env - see updated .env-example!");
+        misc.writeToLogNoUsername(chalk.red("Missing CLAIM_QUEST_REWARD parameter in .env - see updated .env-example!"));
+        tn.sender("ALERT: Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!");
         await sleep(60000);
     }
     if (!process.env.USE_CLASSIC_BOT_PRIVATE_API) {
-        misc.writeToLogNoUsername("Missing USE_CLASSIC_BOT_PRIVATE_API parameter in .env - see updated .env-example!");
+        misc.writeToLogNoUsername(chalk.red("Missing USE_CLASSIC_BOT_PRIVATE_API parameter in .env - see updated .env-example!"));
+        tn.sender("ALERT: Missing USE_CLASSIC_BOT_PRIVATE_API parameter in .env - see updated .env-example!");
         await sleep(60000);
     }
     if (!process.env.USE_API) {
-        misc.writeToLogNoUsername("Missing USE_API parameter in .env - see updated .env-example!");
+        misc.writeToLogNoUsername(chalk.red("Missing USE_API parameter in .env - see updated .env-example!"));
+        tn.sender("ALERT: Missing USE_API parameter in .env - see updated .env-example!");
         await sleep(60000);
     }
     if (!process.env.API_URL || (process.env.USE_API === 'true' && !process.env.API_URL.includes('http'))) {
-        misc.writeToLogNoUsername("Missing API_URL parameter in .env - see updated .env-example!");
+        misc.writeToLogNoUsername(chalk.red("Missing API_URL parameter in .env - see updated .env-example!"));
+        tn.sender("ALERT: Missing API_URL parameter in .env - see updated .env-example!");
         await sleep(60000);
     }
-
     if (process.env.USE_API === 'true' && process.env.USE_CLASSIC_BOT_PRIVATE_API === 'true') {
-        misc.writeToLogNoUsername('Please only set USE_API or USE_CLASSIC_BOT_PRIVATE_API to true');
+        misc.writeToLogNoUsername(chalk.red('Please only set USE_API or USE_CLASSIC_BOT_PRIVATE_API to true'));
+        tn.sender('ALERT: Please only set USE_API or USE_CLASSIC_BOT_PRIVATE_API to true');
         await sleep(60000);
     }
     if (!process.env.ERC_THRESHOLD) {
-        misc.writeToLogNoUsername("Missing ERC_THRESHOLD parameter in .env - see updated .env-example!");
+        misc.writeToLogNoUsername(chalk.red("Missing ERC_THRESHOLD parameter in .env - see updated .env-example!"));
+        tn.sender("ALERT: Missing ERC_THRESHOLD parameter in .env - see updated .env-example!");
         await sleep(60000);
     }
 }
@@ -213,6 +231,7 @@ async function selectCorrectBattleType(page) {
 async function startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary) {
 
     const ercThreshold = process.env.ERC_THRESHOLD;
+    const allCardDetails = readJSONFile(fnAllCardsDetails);
     logSummary.push(' \n' + ' -----' + process.env.ACCUSERNAME + '-----')
     if (myCards) {
         misc.writeToLog('Deck size: ' + myCards.length)
@@ -226,7 +245,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         deviceScaleFactor: 1,
     });
 
-    await page.goto('https://splinterlands.com/?p=battle_history');
+    await page.goto('https://splinterlands.io');
     await page.waitForTimeout(4000);
 
     let username = await getElementText(page, '.dropdown-toggle .bio__name__display', 10000);
@@ -250,10 +269,9 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         misc.writeToLog('Current Energy Capture Rate is ' + chalk.red(erc + "%"));
         
     }
-
     if (erc < ercThreshold) {
-        misc.writeToLog('ERC is below threshold of ' + ercThreshold + '% - skipping this account');
-        logSummary.push(' Account skipped: ERC is below threshold of ' + ercThreshold )
+        misc.writeToLog('ERC is below threshold of ' + chalk.red(ercThreshold + '% ') + '- Skipping this account');
+        logSummary.push(' Account skipped: ' + chalk.red('ERC is below threshold of ' + ercThreshold))
         return;
     }
     await page.waitForTimeout(1000);
@@ -274,10 +292,10 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             })
             .then(async(button) => {
                 button.click();
-                misc.writeToLog(`claiming the season reward. you can check them here https://peakmonsters.com/@${process.env.ACCUSERNAME}/explorer`);
+                misc.writeToLog('claiming the season reward. you can check them here https://peakmonsters.com/@'+ process.env.ACCUSERNAME + '/explorer');
                 await page.waitForTimeout(20000);
             })
-            .catch(() => misc.writeToLog('no season reward to be claimed, but you can still check your data here https://peakmonsters.com/@${process.env.ACCUSERNAME}/explorer'));
+            .catch(() => misc.writeToLog('no season reward to be claimed, but you can still check your data here https://peakmonsters.com/@' + process.env.ACCUSERNAME + '/explorer'));
         } catch (e) {
             misc.writeToLog('no season reward to be claimed');
         }
@@ -471,12 +489,19 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             .then(selector => selector.click())
         }
         await page.waitForTimeout(5000);
+        misc.writeToLog('summoner: ' + teamToPlay.summoner.toString().padStart(3) + ' - ' + allCardDetails[(parseInt(teamToPlay.summoner))-1].name.toString());
         for (i = 1; i <= 6; i++) {
-            misc.writeToLog('play: ' + teamToPlay.cards[i].toString())
-            await teamToPlay.cards[i] ? page.waitForXPath(`//div[@card_detail_id="${teamToPlay.cards[i].toString()}"]`, {
-                timeout: 10000
-            })
-            .then(selector => selector.click()) : misc.writeToLog('nocard ' + i);
+            let strCard = 'nocard';
+			if(teamToPlay.cards[i] != ''){ strCard = allCardDetails[(parseInt(teamToPlay.cards[i]))-1].name.toString(); }
+			misc.writeToLog('play ' + i + '  : ' + teamToPlay.cards[i].toString().padStart(3) + ' - ' + strCard);
+			if (teamToPlay.cards[i]){
+				await page.waitForXPath(`//div[@card_detail_id="${teamToPlay.cards[i].toString()}"]`, {timeout: 10000})
+				.then(selector => selector.click())
+			}
+            //await teamToPlay.cards[i] ? page.waitForXPath(`//div[@card_detail_id="${teamToPlay.cards[i].toString()}"]`, {
+            //    timeout: 10000
+            //})
+            //.then(selector => selector.click()) : misc.writeToLog('nocard ' + i);
             await page.waitForTimeout(1000);
         }
 
@@ -512,15 +537,21 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                 }
             }
         } catch (e) {
-            misc.writeToLog(e);
-            misc.writeToLog(chalk.blueBright('Could not find winner - draw?'));
-			logSummary.push(chalk.blueBright(' Could not find winner - draw?'));
+            const draw = await getElementText(page, 'section.player.draw .bio__name__display', 15000);
+            if (draw.trim() == process.env.ACCUSERNAME.trim()) {
+                misc.writeToLog(chalk.yellow("It's a draw"));
+                logSummary.push(' Battle result:' + chalk.blueBright(' Draw'));
+            } else {
+                misc.writeToLog(e);
+                misc.writeToLog(chalk.blueBright('Could not find winner'));
+                logSummary.push(chalk.blueBright(' Could not find winner'));
+                }
         }
         await clickOnElement(page, '.btn--done', 1000, 2500);
 
         try {
             const Newquest = await getQuest();	
-			nq.newquestUpdate(Newquest,logSummary);
+			nq.newquestUpdate(Newquest,claimQuestReward,logSummary);
 			const decRaw = await getElementText(page, 'div.balance', 2000);
 			let UpDateDec = parseFloat(Math.round((parseFloat(decRaw * 100)).toFixed(2)) / 100 ).toFixed(2);
             let newERC = (await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 2000)).split('%')[0];
@@ -610,7 +641,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                 if (!quest) {
                     misc.writeToLog('Error for quest details. Splinterlands API didnt work or you used incorrect username');
                 }
-                await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary)
+                await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, ercRegen, logSummary)
                 .then(() => {
                     misc.writeToLog('Closing battle');
                 })
