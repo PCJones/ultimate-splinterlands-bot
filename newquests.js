@@ -1,13 +1,16 @@
 const misc = require('./misc');
 const chalk = require('chalk');
 
-function newquestUpdate (Newquest,logSummary){
+async function newquestUpdate (Newquest, claimQuestReward, page, logSummary){
     try {
-        let claimButton =  page.waitForSelector('#quest_claim_btn', { timeout: 2500, visible: true });
+        const claimButton =  await page.waitForSelector('#quest_claim_btn', { timeout: 5000, visible: true });
         if (claimButton) {
-            misc.writeToLog(chalk.green('Claiming quest reward...'));
             if (claimQuestReward) {
-                 claimButton.click().then(()=>logSummary.push(" " + Object.values(Newquest)[1].toString()  + " Quest: " + chalk.yellow(Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString()) + chalk.Green(' Quest reward claimed!')), 60000).then(()=>page.reload());
+                await claimButton.click();
+                misc.writeToLog(chalk.green('Claiming quest reward...'));
+                logSummary.push(" " + Object.values(Newquests)[1].toString()  + " Quest: " + chalk.yellow(Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString()) + chalk.yellow(' Quest reward claimed!'));
+                await page.waitForTimeout(60000);
+                await page.reload();
             }
         }
     } catch (e) {
@@ -15,4 +18,8 @@ function newquestUpdate (Newquest,logSummary){
         logSummary.push(" " + Object.values(Newquest)[1].toString()  + " Quest: " + chalk.yellow(Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString()) + chalk.red(' No quest reward...'));
     }
 }  
+
+
+
+
 exports.newquestUpdate = newquestUpdate;
