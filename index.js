@@ -154,7 +154,7 @@ async function createBrowsers(count, headless) {
     let browsers = [];
     for (let i = 0; i < count; i++) {
         const browser = await puppeteer.launch({
-                //product: 'chrome',
+                product: 'chrome',
                 headless: headless,
                 args: process.env.CHROME_NO_SANDBOX === 'true' ? ["--no-sandbox"] : ['--disable-web-security',
                     '--disable-features=IsolateOrigins',
@@ -311,8 +311,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                 visible: true
             });
         if (claimButton) {
-            misc.writeToLog(chalk.green('Quest reward can be claimed!'));
-            
+            misc.writeToLog(chalk.green('Quest reward can be claimed!'));          
             if (claimQuestReward) {
                 await claimButton.click();
                 logSummary.push(" " + Object.values(quest)[1].toString()  + " Quest: " + chalk.yellow(Object.values(quest)[3].toString() + "/" + Object.values(quest)[2].toString()) + chalk.yellow(' Quest reward claimed!'));
@@ -430,20 +429,23 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                 cards: [Object.values(apiResponse)[1], Object.values(apiResponse)[3], Object.values(apiResponse)[5], Object.values(apiResponse)[7], Object.values(apiResponse)[9],
                     Object.values(apiResponse)[11], Object.values(apiResponse)[13], Object.values(apiResponse)[15]]
             };
-
+            apiSelect = 'true';
             misc.writeToLog(chalk.cyan('Team picked by API: ' + JSON.stringify(teamToPlay)));
             // TEMP, testing
             if (Object.values(apiResponse)[1] == '') {
                 misc.writeToLog('Seems like the API found no possible team - using local history');
                 const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
                 teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
+                apiSelect = 'false'   
             }
         } else {
             if (apiResponse && JSON.stringify(apiResponse).includes('api limit reached')) {
                 misc.writeToLog('API limit per hour reached, using local backup!');
                 misc.writeToLog('Visit discord or telegram group to learn more about API limits: https://t.me/ultimatesplinterlandsbot and https://discord.gg/hwSr7KNGs9');
+                apiSelect = 'false'  
             } else {
                 misc.writeToLog('API failed, using local history with most cards used tactic');
+                
             }
             const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
 
@@ -456,10 +458,11 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             }
             teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
             useAPI = false;
+            apiSelect = 'false'  
         }
     } else {
         const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
-
+        apiSelect = 'false'  
         if (possibleTeams && possibleTeams.length) {
             //misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
             misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);
@@ -489,22 +492,28 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             .then(selector => selector.click())
         }
         await page.waitForTimeout(5000);
-        misc.writeToLog('summoner: ' + teamToPlay.summoner.toString().padStart(3) + ' - ' + allCardDetails[(parseInt(teamToPlay.summoner))-1].name.toString());
+        if (apiSelect === 'true') {
+            misc.writeToLog('summoner: ' + teamToPlay.summoner.toString().padStart(3) + ' - ' + allCardDetails[(parseInt(teamToPlay.summoner))-1].name.toString());
         for (i = 1; i <= 6; i++) {
-            let strCard = 'nocard';
-			if(teamToPlay.cards[i] != ''){ strCard = allCardDetails[(parseInt(teamToPlay.cards[i]))-1].name.toString(); }
-			misc.writeToLog('play ' + i + '  : ' + teamToPlay.cards[i].toString().padStart(3) + ' - ' + strCard);
-			if (teamToPlay.cards[i]){
-				await page.waitForXPath(`//div[@card_detail_id="${teamToPlay.cards[i].toString()}"]`, {timeout: 10000})
-				.then(selector => selector.click())
-			}
-            //await teamToPlay.cards[i] ? page.waitForXPath(`//div[@card_detail_id="${teamToPlay.cards[i].toString()}"]`, {
-            //    timeout: 10000
-            //})
-            //.then(selector => selector.click()) : misc.writeToLog('nocard ' + i);
-            await page.waitForTimeout(1000);
-        }
-
+                let strCard = 'nocard';
+                if(teamToPlay.cards[i] != ''){ strCard = allCardDetails[(parseInt(teamToPlay.cards[i]))-1].name.toString(); }
+                misc.writeToLog('play ' + i + '  : ' + teamToPlay.cards[i].toString().padStart(3) + ' - ' + strCard);
+                if (teamToPlay.cards[i]){
+                    await page.waitForXPath(`//div[@card_detail_id="${teamToPlay.cards[i].toString()}"]`, {timeout: 10000})
+                    .then(selector => selector.click())
+                }
+                await page.waitForTimeout(1000);
+            }
+        } else {
+            for (i = 1; i <= 6; i++) {
+                misc.writeToLog('play: ' + teamToPlay.cards[i].toString())
+                await teamToPlay.cards[i] ? page.waitForXPath(`//div[@card_detail_id="${teamToPlay.cards[i].toString()}"]`, {
+                timeout: 10000
+                })
+                .then(selector => selector.click()) : misc.writeToLog('nocard ' + i);
+                await page.waitForTimeout(1000);
+            }
+        }    
         await page.waitForTimeout(5000);
         try {
             await page.click('.btn-green')[0]; //start fight
@@ -551,7 +560,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 
         try {
             const Newquest = await getQuest();	
-			nq.newquestUpdate(Newquest,claimQuestReward,logSummary);
+			await nq.newquestUpdate(Newquest, claimQuestReward, page, logSummary);
 			const decRaw = await getElementText(page, 'div.balance', 2000);
 			let UpDateDec = parseFloat(Math.round((parseFloat(decRaw * 100)).toFixed(2)) / 100 ).toFixed(2);
             let newERC = (await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 2000)).split('%')[0];
