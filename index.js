@@ -23,7 +23,8 @@ const version = 0.42;
     const ret = JSON.parse(jsonString);
     return ret;
 }	
-  
+   
+
 async function checkForUpdate() {
     await misc.writeToLogNoUsername('------------------------------------------------------------------------------------------------');
     await fetch('http://jofri.pf-control.de/prgrms/splnterlnds/version.txt')
@@ -492,19 +493,21 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             .then(selector => selector.click())
         }
         await page.waitForTimeout(5000);
-        if (apiSelect === 'true') {
-            misc.writeToLog('summoner: ' + teamToPlay.summoner.toString().padStart(3) + ' - ' + allCardDetails[(parseInt(teamToPlay.summoner))-1].name.toString());
-        for (i = 1; i <= 6; i++) {
-                let strCard = 'nocard';
-                if(teamToPlay.cards[i] != ''){ strCard = allCardDetails[(parseInt(teamToPlay.cards[i]))-1].name.toString(); }
-                misc.writeToLog('play ' + i + '  : ' + teamToPlay.cards[i].toString().padStart(3) + ' - ' + strCard);
-                if (teamToPlay.cards[i]){
-                    await page.waitForXPath(`//div[@card_detail_id="${teamToPlay.cards[i].toString()}"]`, {timeout: 10000})
-                    .then(selector => selector.click())
-                }
-                await page.waitForTimeout(1000);
+        try {
+            if (apiSelect === 'true') {
+                misc.writeToLog('summoner: ' + teamToPlay.summoner.toString().padStart(3) + ' - ' + allCardDetails[(parseInt(teamToPlay.summoner))-1].name.toString());
+            for (i = 1; i <= 6; i++) {
+                    let strCard = 'nocard';
+                    if(teamToPlay.cards[i] != ''){ strCard = allCardDetails[(parseInt(teamToPlay.cards[i]))-1].name.toString(); }
+                    misc.writeToLog('play ' + i + '  : ' + teamToPlay.cards[i].toString().padStart(3) + ' - ' + strCard);
+                    if (teamToPlay.cards[i]){
+                        await page.waitForXPath(`//div[@card_detail_id="${teamToPlay.cards[i].toString()}"]`, {timeout: 10000})
+                        .then(selector => selector.click())}
+                    await page.waitForTimeout(1000);
+                 }
             }
-        } else {
+        } catch(e) {
+            misc.writeToLog(chalk.red(e + ' will revert to old team pick setting.'));
             for (i = 1; i <= 6; i++) {
                 misc.writeToLog('play: ' + teamToPlay.cards[i].toString())
                 await teamToPlay.cards[i] ? page.waitForXPath(`//div[@card_detail_id="${teamToPlay.cards[i].toString()}"]`, {
