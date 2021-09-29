@@ -16,6 +16,7 @@ const misc = require('./misc');
 const tn = require('./telnotif');
 const nq = require('./newquests');
 const fnAllCardsDetails  = ('./data/cardsDetails.json');
+const battles = require('./auto-gather');
 const version = 0.42;
 
  function readJSONFile(fn){
@@ -145,6 +146,10 @@ async function getCards() {
         return myCards;
 }
 
+async function getBattles() {
+    return battles.battlesList(process.env.ACCUSERNAME).then(x=>x)
+}
+
 async function getQuest() {
     return quests.getPlayerQuest(process.env.ACCUSERNAME.split('@')[0])
     .then(x => x)
@@ -189,7 +194,7 @@ async function getElementTextByXpath(page, selector, timeout = 20000) {
     return text;
 }
 
-async function clickOnElement(page, selector, timeout = 20000, delayBeforeClicking = 0) {
+async function clickOnElement(page, selector, timeout = 20000, delayBeforeClicking = 300) {
     try {
         const elem = await page.waitForSelector(selector, {
                 timeout: timeout
@@ -229,7 +234,7 @@ async function selectCorrectBattleType(page) {
     }
 }
 
-async function startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary) {
+async function startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary, battlesList) {
 
     const ercThreshold = process.env.ERC_THRESHOLD;
     const allCardDetails = readJSONFile(fnAllCardsDetails);
@@ -421,112 +426,98 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     let teamToPlay;
     misc.writeToLog(chalk.green('starting team selection'));
     if (useAPI) {
-        try{
-            const apiResponse = await api.getPossibleTeams(matchDetails,{timeout: 90000});
-            if (apiResponse && !JSON.stringify(apiResponse).includes('api limit reached')) {
-                misc.writeToLog(chalk.magenta('API Response: ' + JSON.stringify(apiResponse)));
+        const apiResponse = await api.getPossibleTeams(matchDetails, { timeout: 90000 });
+        if (apiResponse && !JSON.stringify(apiResponse).includes('api limit reached')) {
+            misc.writeToLog(chalk.magenta('API Response: ' + JSON.stringify(apiResponse)));
 
-                teamToPlay = {
-                    summoner: Object.values(apiResponse)[1],
-                    cards: [Object.values(apiResponse)[1], Object.values(apiResponse)[3], Object.values(apiResponse)[5], Object.values(apiResponse)[7], Object.values(apiResponse)[9],
-                        Object.values(apiResponse)[11], Object.values(apiResponse)[13], Object.values(apiResponse)[15]]
-                };
-                apiSelect = true;
-                misc.writeToLog(chalk.cyan('Team picked by API: ' + JSON.stringify(teamToPlay)));
-                // TEMP, testing
-                if (Object.values(apiResponse)[1] == '') {
-                    misc.writeToLog('Seems like the API found no possible team - using local history');
-                    const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
-                    teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);  
-                }
-            } else {
-                if (apiResponse && JSON.stringify(apiResponse).includes('api limit reached')) {
-                    misc.writeToLog('API limit per hour reached, using local backup!');
-                    misc.writeToLog('Visit discord or telegram group to learn more about API limits: https://t.me/ultimatesplinterlandsbot and https://discord.gg/hwSr7KNGs9');
-                    apiSelect = 'false'  
-                } else {
-                    misc.writeToLog('API failed, using local history with most cards used tactic');
-                    
-                }
+            teamToPlay = {
+                summoner: Object.values(apiResponse)[1],
+                cards: [Object.values(apiResponse)[1], Object.values(apiResponse)[3], Object.values(apiResponse)[5], Object.values(apiResponse)[7], Object.values(apiResponse)[9],
+                    Object.values(apiResponse)[11], Object.values(apiResponse)[13], Object.values(apiResponse)[15]]
+            };
+            apiSelect = true;
+            misc.writeToLog(chalk.cyan('Team picked by API: ' + JSON.stringify(teamToPlay)));
+            // TEMP, testing
+            if (Object.values(apiResponse)[1] == '') {
+                misc.writeToLog('Seems like the API found no possible team - using local history');
                 const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
-
-                if (possibleTeams && possibleTeams.length) {
-                    //misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
-                    misc.writeToLog('Possible Teams based on your cards: ' + possibleTeams.length);
-                } else {
-                    misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
-                    throw new Error('NO TEAMS available to be played');
-                }
-                teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
-                useAPI = false;
-            }  
-         }catch (e) {
-            misc.writeToLog('API call time out will use historyback up') 
+                teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);  
+            }
+        } else {
+            if (apiResponse && JSON.stringify(apiResponse).includes('api limit reached')) {
+                misc.writeToLog('API limit per hour reached, using local backup!');
+                misc.writeToLog('Visit discord or telegram group to learn more about API limits: https://t.me/ultimatesplinterlandsbot and https://discord.gg/hwSr7KNGs9');
+                apiSelect = 'false'  
+            } else {
+                misc.writeToLog('API failed, using local history with most cards used tactic');
+                
+            }
             const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
+
             if (possibleTeams && possibleTeams.length) {
                 //misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
-                misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);
+                misc.writeToLog('Possible Teams based on your cards: ' + possibleTeams.length);
             } else {
                 misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
                 throw new Error('NO TEAMS available to be played');
             }
             teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
             useAPI = false;
-        }       
+        }         
+} else {
+    const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
+    if (possibleTeams && possibleTeams.length) {
+        //misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
+        misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);
     } else {
-        const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
-        if (possibleTeams && possibleTeams.length) {
-            //misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
-            misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);
-        } else {
-            misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
-            throw new Error('NO TEAMS available to be played');
-        }
-        teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
-        useAPI = false;
+        misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
+        throw new Error('NO TEAMS available to be played');
     }
+    teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
+    useAPI = false;
+}
 
-    if (teamToPlay) {
-        page.click('.btn--create-team')[0];
-    } else {
-        throw new Error('Team Selection error');
+if (teamToPlay) {
+    page.click('.btn--create-team')[0];
+} else {
+    throw new Error('Team Selection error');
+}
+await page.waitForTimeout(5000);
+try {
+    await sleep(300);
+    await page.waitForXPath(`//div[@card_detail_id="${teamToPlay.summoner}"]`, {
+        timeout: 15000
+    }).then(summonerButton => summonerButton.click());
+    if (card.color(teamToPlay.cards[0]) === 'Gold') {
+        misc.writeToLog('Dragon play TEAMCOLOR ' + helper.teamActualSplinterToPlay(teamToPlay.cards.slice(0, 6)))
+        await page.waitForXPath(`//div[@data-original-title="${helper.teamActualSplinterToPlay(teamToPlay.cards.slice(0, 6))}"]`, {
+            timeout: 8000
+        })
+        .then(selector => selector.click())
     }
-    await page.waitForTimeout(5000);
-    try {
-        await page.waitForXPath(`//div[@card_detail_id="${teamToPlay.summoner}"]`, {
-            timeout: 15000
-        }).then(summonerButton => summonerButton.click());
-        if (card.color(teamToPlay.cards[0]) === 'Gold') {
-            misc.writeToLog('Dragon play TEAMCOLOR ' + helper.teamActualSplinterToPlay(teamToPlay.cards.slice(0, 6)))
-            await page.waitForXPath(`//div[@data-original-title="${helper.teamActualSplinterToPlay(teamToPlay.cards.slice(0, 6))}"]`, {
-                timeout: 8000
-            })
-            .then(selector => selector.click())
-        }
-        await page.waitForTimeout(5000);
-        
-            try {
-                misc.writeToLog('summoner: ' + teamToPlay.summoner.toString().padStart(3) + ' - ' + allCardDetails[(parseInt(teamToPlay.summoner))-1].name.toString());
-                for (i = 1; i <= 6; i++) {
-                        let strCard = 'nocard';
-                        if(teamToPlay.cards[i] != ''){ strCard = allCardDetails[(parseInt(teamToPlay.cards[i]))-1].name.toString(); }
-                        misc.writeToLog('play ' + i + '  : ' + teamToPlay.cards[i].toString().padStart(3) + ' - ' + strCard);
-                        if (teamToPlay.cards[i]){
-                            await page.waitForXPath(`//div[@card_detail_id="${teamToPlay.cards[i].toString()}"]`, {timeout: 10000})
-                            .then(selector => selector.click())}
-                        await page.waitForTimeout(1000);
-                    }
-            } catch (e) {            
-                misc.writeToLog(chalk.red(e + ' will revert to old team pick setting.'));
-                for (i = 1; i <= 6; i++) {
-                    misc.writeToLog('play: ' + teamToPlay.cards[i].toString())
-                    await teamToPlay.cards[i] ? page.waitForXPath(`//div[@card_detail_id="${teamToPlay.cards[i].toString()}"]`, {
-                    timeout: 10000
-                    })
-                    .then(selector => selector.click()) : misc.writeToLog('nocard ' + i);
+    await page.waitForTimeout(10000);
+            misc.writeToLog('summoner: ' + teamToPlay.summoner.toString().padStart(3) + ' - ' + allCardDetails[(parseInt(teamToPlay.summoner))-1].name.toString());
+            for (i = 1; i <= 6; i++) {
+                    await sleep(300);
+                    let strCard = 'nocard';
+                    if(teamToPlay.cards[i] != ''){ strCard = allCardDetails[(parseInt(teamToPlay.cards[i]))-1].name.toString(); }
+                    misc.writeToLog('play ' + i + '  : ' + teamToPlay.cards[i].toString().padStart(3) + ' - ' + strCard);
+                    if (teamToPlay.cards[i]){
+                        await page.waitForXPath(`//div[@card_detail_id="${teamToPlay.cards[i].toString()}"]`, {timeout: 20000})
+                        .then(selector => selector.click())}
                     await page.waitForTimeout(1000);
                 }
-            }    
+                 
+           // for (i = 1; i <= 6; i++) {
+                //misc.writeToLog('play: ' + teamToPlay.cards[i].toString())
+               // await teamToPlay.cards[i] ? page.waitForXPath(`//div[@card_detail_id="${teamToPlay.cards[i].toString()}"]`, {
+                //timeout: 10000
+                //})
+                //.then(selector => selector.click()) : misc.writeToLog('nocard ' + i);
+                //await page.waitForTimeout(1000);
+            //}
+          
+         
         await page.waitForTimeout(5000);
         try {
             await page.click('.btn-green')[0]; //start fight
@@ -660,10 +651,11 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                     .catch(() => misc.writeToLog('cards collection api didnt respond. Did you use username? avoid email!'));
                 misc.writeToLog('getting user quest info from splinterlands API...');
                 const quest = await getQuest();
+                const battlesList = await getBattles();
                 if (!quest) {
                     misc.writeToLog('Error for quest details. Splinterlands API didnt work or you used incorrect username');
                 }
-                await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary)
+                await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary, battlesList)
                 .then(() => {
                     misc.writeToLog('Closing battle');
                 })
