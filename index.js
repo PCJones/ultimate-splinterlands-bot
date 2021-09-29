@@ -101,7 +101,16 @@ function sleep(ms) {
         setTimeout(resolve, ms);
     });
 }
-
+const withTimeout = (millis, promise) => {
+    const timeout = new Promise((resolve, reject) =>
+        setTimeout(
+            () => reject(`Timed out after ${millis} ms.`),
+            millis));
+    return Promise.race([
+        promise,
+        timeout
+    ]);
+};
 // Close popups by Jones
 async function closePopups(page) {
     if (await clickOnElement(page, '.close', 4000))
@@ -147,8 +156,8 @@ async function getCards() {
 }
 
 async function getBattles() {
-    return battles.battlesList(process.env.ACCUSERNAME).then(x=>x)
-}
+     return battles.battlesList(process.env.ACCUSERNAME).then(x=>x)
+ }
 
 async function getQuest() {
     return quests.getPlayerQuest(process.env.ACCUSERNAME.split('@')[0])
@@ -234,7 +243,7 @@ async function selectCorrectBattleType(page) {
     }
 }
 
-async function startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary, battlesList) {
+async function startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary, battlesList, getDataLocal) {
 
     const ercThreshold = process.env.ERC_THRESHOLD;
     const allCardDetails = readJSONFile(fnAllCardsDetails);
@@ -426,37 +435,51 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     let teamToPlay;
     misc.writeToLog(chalk.green('starting team selection'));
     if (useAPI) {
-        const apiResponse = await api.getPossibleTeams(matchDetails, { timeout: 90000 });
-        if (apiResponse && !JSON.stringify(apiResponse).includes('api limit reached')) {
-            misc.writeToLog(chalk.magenta('API Response: ' + JSON.stringify(apiResponse)));
+        try {
+            const apiResponse = await withTimeout(90000, await api.getPossibleTeams(matchDetails));
+            if (apiResponse && !JSON.stringify(apiResponse).includes('api limit reached')) {
+                misc.writeToLog(chalk.magenta('API Response: ' + JSON.stringify(apiResponse)));
 
-            teamToPlay = {
-                summoner: Object.values(apiResponse)[1],
-                cards: [Object.values(apiResponse)[1], Object.values(apiResponse)[3], Object.values(apiResponse)[5], Object.values(apiResponse)[7], Object.values(apiResponse)[9],
-                    Object.values(apiResponse)[11], Object.values(apiResponse)[13], Object.values(apiResponse)[15]]
-            };
-            apiSelect = true;
-            misc.writeToLog(chalk.cyan('Team picked by API: ' + JSON.stringify(teamToPlay)));
-            // TEMP, testing
-            if (Object.values(apiResponse)[1] == '') {
-                misc.writeToLog('Seems like the API found no possible team - using local history');
-                const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
-                teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);  
-            }
-        } else {
-            if (apiResponse && JSON.stringify(apiResponse).includes('api limit reached')) {
-                misc.writeToLog('API limit per hour reached, using local backup!');
-                misc.writeToLog('Visit discord or telegram group to learn more about API limits: https://t.me/ultimatesplinterlandsbot and https://discord.gg/hwSr7KNGs9');
-                apiSelect = 'false'  
+                teamToPlay = {
+                    summoner: Object.values(apiResponse)[1],
+                    cards: [Object.values(apiResponse)[1], Object.values(apiResponse)[3], Object.values(apiResponse)[5], Object.values(apiResponse)[7], Object.values(apiResponse)[9],
+                        Object.values(apiResponse)[11], Object.values(apiResponse)[13], Object.values(apiResponse)[15]]
+                };
+                apiSelect = true;
+                misc.writeToLog(chalk.cyan('Team picked by API: ' + JSON.stringify(teamToPlay)));
+                // TEMP, testing
+                if (Object.values(apiResponse)[1] == '') {
+                    misc.writeToLog('Seems like the API found no possible team - using local history');
+                    const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
+                    teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);  
+                }
             } else {
-                misc.writeToLog('API failed, using local history with most cards used tactic');
-                
-            }
-            const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
+                if (apiResponse && JSON.stringify(apiResponse).includes('api limit reached')) {
+                    misc.writeToLog('API limit per hour reached, using local backup!');
+                    misc.writeToLog('Visit discord or telegram group to learn more about API limits: https://t.me/ultimatesplinterlandsbot and https://discord.gg/hwSr7KNGs9');
+                    apiSelect = 'false'  
+                } else {
+                    misc.writeToLog('API failed, using local history with most cards used tactic');
+                    
+                }
+                const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
 
+                if (possibleTeams && possibleTeams.length) {
+                    //misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
+                    misc.writeToLog('Possible Teams based on your cards: ' + possibleTeams.length);
+                } else {
+                    misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
+                    throw new Error('NO TEAMS available to be played');
+                }
+                teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
+                useAPI = false;
+            }
+        } catch (e){
+            misc.writeToLog('API taking too long. Reverting to use local history' + e);
+            const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
             if (possibleTeams && possibleTeams.length) {
                 //misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
-                misc.writeToLog('Possible Teams based on your cards: ' + possibleTeams.length);
+                misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);
             } else {
                 misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
                 throw new Error('NO TEAMS available to be played');
@@ -610,11 +633,13 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
         const claimQuestReward = JSON.parse(process.env.CLAIM_QUEST_REWARD.toLowerCase());
         const prioritizeQuest = JSON.parse(process.env.QUEST_PRIORITY.toLowerCase());
         const teleNotif = JSON.parse(process.env.TELEGRAM_NOTIF.toLowerCase());
+        const getDataLocal = JSON.parse(process.env.GET_DATA_FOR_LOCAL.toLowerCase());
 
         let browsers = [];
         misc.writeToLogNoUsername('Headless: ' + headless);
         misc.writeToLogNoUsername('Keep Browser Open: ' + keepBrowserOpen);
         misc.writeToLogNoUsername('Login via Email: ' + loginViaEmail);
+        misc.writeToLogNoUsername('Get data for local history: ' + getDataLocal);
         misc.writeToLogNoUsername('Claim Quest Reward: ' + claimQuestReward);
         misc.writeToLogNoUsername('Prioritize Quests: ' + prioritizeQuest);
         misc.writeToLogNoUsername('Telegram Notification: ' + teleNotif);
@@ -655,7 +680,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                 if (!quest) {
                     misc.writeToLog('Error for quest details. Splinterlands API didnt work or you used incorrect username');
                 }
-                await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary, battlesList)
+                await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary, battlesList, getDataLocal)
                 .then(() => {
                     misc.writeToLog('Closing battle');
                 })
