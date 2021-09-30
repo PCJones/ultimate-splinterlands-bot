@@ -154,7 +154,7 @@ async function getCards() {
     const myCards = await user.getPlayerCards(process.env.ACCUSERNAME, new Date(Date.now() - 86400000)) // 86400000 = 1 day in milliseconds
         return myCards;
 }
-async function getBattles() {
+ function getBattles() {
     return battles.battlesList(process.env.ACCUSERNAME).then(x=>x)
 }   
 async function getQuest() {
@@ -677,7 +677,11 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                     .catch(() => misc.writeToLog('cards collection api didnt respond. Did you use username? avoid email!'));
                 misc.writeToLog('getting user quest info from splinterlands API...');
                 const quest = await getQuest();
-                const battlesList = await getBattles();
+                if (getDataLocal == true) {
+                battlesList = await getBattles();
+                } else {
+                    battlesList ='';
+                }
                 if (!quest) {
                     misc.writeToLog('Error for quest details. Splinterlands API didnt work or you used incorrect username');
                 }
