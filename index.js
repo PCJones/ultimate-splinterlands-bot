@@ -19,7 +19,7 @@ const fnAllCardsDetails  = ('./data/cardsDetails.json');
 const battles = require('./auto-gather');
 const version = 0.42;
 
- function readJSONFile(fn){
+async function readJSONFile(fn){
     const jsonString = fs.readFileSync(fn);
     const ret = JSON.parse(jsonString);
     return ret;
@@ -246,7 +246,7 @@ async function selectCorrectBattleType(page) {
 async function startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary, battlesList, getDataLocal) {
 
     const ercThreshold = process.env.ERC_THRESHOLD;
-    const allCardDetails = readJSONFile(fnAllCardsDetails);
+    const allCardDetails = await readJSONFile(fnAllCardsDetails);
     logSummary.push(' \n' + ' -----' + process.env.ACCUSERNAME + '-----')
     if (myCards) {
         misc.writeToLog('Deck size: ' + myCards.length)
@@ -676,7 +676,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                     .catch(() => misc.writeToLog('cards collection api didnt respond. Did you use username? avoid email!'));
                 misc.writeToLog('getting user quest info from splinterlands API...');
                 const quest = await getQuest();
-                const battlesList = await getBattles();
+                const battlesList = await getBattles(); 
                 if (!quest) {
                     misc.writeToLog('Error for quest details. Splinterlands API didnt work or you used incorrect username');
                 }

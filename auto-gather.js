@@ -16,7 +16,6 @@ function uniqueListByKey(arr, key) {
 
 async function getBattleHistory(player = '', data = {}) {
     //console.log('player', player);
-	console.log('Gathering data of player:' + player);
     const battleHistory = await fetch('https://api.steemmonsters.io/battle/history?player=' + player)
         .then((response) => {
             if (!response.ok) {
