@@ -1,6 +1,8 @@
 require('dotenv').config()
 const fetch = require("node-fetch");
 const fs = require('fs');
+const misc = require('./misc');
+const chalk = require('chalk');
 
 const distinct = (value, index, self) => {
     return self.indexOf(value) === index;
@@ -14,37 +16,39 @@ function uniqueListByKey(arr, key) {
   return [...new Map(arr.map(item => [item[key], item])).values()]
 }
 
-async function getBattleHistory(player = '', data = {}) {
-    //console.log('player', player);
-    const battleHistory = await fetch('https://api.steemmonsters.io/battle/history?player=' + player)
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok '+player);
-            }
-            return response;
-        })
-        .then((battleHistory) => {
-            return battleHistory.json();
-        })
-        .catch((error) => {
-			console.log('Failed to fetch battle data. Trying another api');
-            fetch('https://game-api.steemmonsters.io/battle/history?player=' + player)
-        .	then((response) => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok '+player);
-            }
-            return response;
-        })
-        .then((battleHistory) => {
-            return battleHistory.json();
-        })
-        .catch((error) => {
-            console.error('There has been a problem with your fetch operation:', error);
+  
+  async function getBattleHistory(player = '', data = {}) {
+      //console.log('player', player);
+      const battleHistory = await fetch('https://api.steemmonsters.io/battle/history?player=' + player)
+          .then((response) => {
+              if (!response.ok) {
+                  throw new Error('Network response was not ok '+player);
+              }
+              return response;
+          })
+          .then((battleHistory) => {
+              return battleHistory.json();
+          })
+          .catch((error) => {
+            misc.writeToLogNoUsername('Failed to fetch battle data. Trying another api');
+              fetch('https://game-api.steemmonsters.io/battle/history?player=' + player)
+          .	then((response) => {
+              if (!response.ok) {
+                  throw new Error('Network response was not ok '+player);
+              }
+              return response;
+          })
+          .then((battleHistory) => {
+              return battleHistory.json();
+          })
+          .catch((error) => {
+            misc.writeToLogNoUsername('There has been a problem with your fetch operation:', error);
+          });
         });
-       });
-    return battleHistory.battles;
-}
-
+        console.log.bind('Gathering data of players...');
+      return battleHistory.battles;
+      
+  }
 const extractGeneralInfo = (x) => {
     return {
         created_date: x.created_date ? x.created_date : '',
@@ -90,6 +94,7 @@ const extractMonster = (team) => {
 let battlesList = [];
 let promises = [];
 let min_rating = [];
+
 const battles = (player) => getBattleHistory(player)
   .then(u => u.map(x => {
     x.player_1 == process.env.ACCOUNT
@@ -136,21 +141,21 @@ const battles = (player) => getBattleHistory(player)
   }))
   .then(() => { return Promise.all(promises) })
   .then(() => { return new Promise((res,rej) => {
-	  console.log('Reading local battle history');
+	  misc.writeToLogNoUsername('Reading local battle history');
     fs.readFile(`./data/newHistory.json`, 'utf8', (err, data) => {
       if (err) {
-        console.log(`Error reading file from disk: ${err}`); rej(err)
+        misc.writeToLogNoUsername(`Error reading file from disk: ${err}`); rej(err)
       } else {
         battlesList = data ? [...battlesList, ...JSON.parse(data)] : battlesList;
       }
       battlesList = uniqueListByKey(battlesList.filter(x => x != undefined), "battle_queue_id")
-	  console.log('Adding data to battle history');
-      console.log(battlesList.length)
+      misc.writeToLogNoUsername('Adding data to battle history....');
+      misc.writeToLogNoUsername(battlesList.length)
       fs.writeFile(`data/newHistory.json`, JSON.stringify(battlesList), function (err) {
         if (err) {
-          console.log(err,'a'); rej(err);
+          misc.writeToLogNoUsername(err,'a'); rej(err);
         }
-		console.log('Success adding data.....');
+        misc.writeToLogNoUsername(chalk.green('Success adding data.....'));
       });
       res(battlesList)
     });
