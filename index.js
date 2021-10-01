@@ -17,6 +17,7 @@ const tn = require('./telnotif');
 const nq = require('./newquests');
 const fnAllCardsDetails  = ('./data/cardsDetails.json');
 const battles = require('./auto-gather');
+const { Console } = require('console');
 const version = 0.42;
 
 async function readJSONFile(fn){
@@ -274,7 +275,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         });
     }
     await waitUntilLoaded(page);
-    const erc = parseInt((await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 100)).split('%')[0]);
+    let erc = parseInt((await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 100)).split('%')[0]);
     if (erc >= 50) {
         misc.writeToLog('Current Energy Capture Rate is ' + chalk.green(erc + "%"));
   
@@ -431,6 +432,8 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     await page.waitForTimeout(1000);
     //TEAM SELECTION
     let teamToPlay;
+    misc.writeToLog(chalk.green('Battle details:'));  
+    misc.writeToLog ('Mana:'+  chalk.yellow(mana) + ' Rules:' + chalk.yellow(rules) + ' Splinters:' + chalk.yellow(splinters))
     misc.writeToLog(chalk.green('starting team selection'));
     if (useAPI) {
         try {
@@ -584,7 +587,7 @@ try {
                     }
             }
         } catch (e) {
-            const draw = await getElementText(page, 'section.player.draw .bio__name__display', 15000);
+            const draw = await getElementText(page, 'section.player.draw .bio__name__display', 20000);
             if (draw.trim() == process.env.ACCUSERNAME.trim()) {
                 misc.writeToLog(chalk.yellow("It's a draw"));
                 logSummary.push(' Battle result:' + chalk.blueBright(' Draw'));
@@ -609,13 +612,13 @@ try {
 			logSummary.push(' New DEC Balance: ' + chalk.cyan(UpDateDec + ' DEC'));
 			let e = parseInt(newERC);
 				if (e >= 50) {
-					logSummary.push(' Remaining ERC: ' + chalk.green(newERC + '%'));
-                    misc.writeToLog(' Remaining ERC: ' + chalk.green(newERC + '%'));
+                    newERC = chalk.green(newERC + '%')
 				}
 				else {
-					logSummary.push(' Remaining ERC: ' + chalk.red(newERC + '%'));
-                    misc.writeToLog(' Remaining ERC: ' + chalk.red(newERC + '%'));
-				}	
+                    newERC = chalk.red(newERC + '%')
+				}
+                logSummary.push(' Remaining ERC: ' + newERC);
+                misc.writeToLog('Remaining ERC: ' + newERC);	
         } catch (e) {
             misc.writeToLog(e);
             misc.writeToLog(chalk.blueBright(' Unable to get new rating'));
