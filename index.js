@@ -155,8 +155,9 @@ async function getCards() {
     const myCards = await user.getPlayerCards(process.env.ACCUSERNAME, new Date(Date.now() - 86400000)) // 86400000 = 1 day in milliseconds
         return myCards;
 }
- function getBattles() {
-    return battles.battlesList(process.env.ACCUSERNAME).then(x=>x)
+ function getBattles(winnerName) {
+    misc.writeToLog("Gathering winner's battle data for local history") 
+    return battles.battlesList(winnerName).then(x=>x)
 }   
 async function getQuest() {
     return quests.getPlayerQuest(process.env.ACCUSERNAME.split('@')[0])
@@ -168,7 +169,7 @@ async function createBrowsers(count, headless) {
     let browsers = [];
     for (let i = 0; i < count; i++) {
         const browser = await puppeteer.launch({
-                //product: 'chrome',
+                product: 'chrome',
                 headless: headless,
                 args: process.env.CHROME_NO_SANDBOX === 'true' ? ["--no-sandbox"] : ['--disable-web-security',
                     '--disable-features=IsolateOrigins',
@@ -567,25 +568,23 @@ try {
         await page.$eval('#btnSkip', elem => elem.click()).then(() => misc.writeToLog('btnSkip clicked')).catch(() => misc.writeToLog('btnSkip not visible')); //skip rumble
         try {
             const winner = await getElementText(page, 'section.player.winner .bio__name__display', 15000);
+            let winnerName = winner 
             if (winner.trim() == process.env.ACCUSERNAME.trim()) {
                 const decWon = await getElementText(page, '.player.winner span.dec-reward span', 100);
                 misc.writeToLog(chalk.green('You won! Reward: ' + decWon + ' DEC'));
 				logSummary.push(' Battle result:' + chalk.green(' Win Reward: ' + decWon + ' DEC'));
-                if (getDataLocal == true) {
-                    battlesList = await getBattles();
-                    } else {
-                        battlesList ='';
-                    }
             } else {
                 misc.writeToLog(chalk.red('You lost :('));
 				logSummary.push(' Battle result:' + chalk.red(' Lose'));
                 if (useAPI) {
                     api.reportLoss(winner);   
-                }
-                if (getDataLocal == true) {
-                    await battles.battlesList(winner).then(x=>x)
-                    }
+                } 
             }
+            if (getDataLocal == true) {
+                battlesList = await getBattles(winnerName);
+                } else {
+                    battlesList ='';
+                }   
         } catch (e) {
             const draw = await getElementText(page, 'section.player.draw .bio__name__display', 20000);
             if (draw.trim() == process.env.ACCUSERNAME.trim()) {
@@ -741,6 +740,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
             
         }
     } catch (e) {
+        tn.sender("Bot stops due to error. Please see logs for details.");
         console.log('Routine error at: ', new Date().toLocaleString(), e)
     }
 
