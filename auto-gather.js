@@ -95,8 +95,9 @@ let battlesList = [];
 let promises = [];
 let min_rating = [];
 
-const battles = (player) => getBattleHistory(player)
-  .then(u => u.map(x => {
+ battles = (player) => getBattleHistory(player)
+  .then(u => u.map(x => { 
+    
     x.player_1 == process.env.ACCOUNT
       ? min_rating.push(x.player_1_rating_final)
       : min_rating.push(x.player_2_rating_final);
@@ -150,7 +151,7 @@ const battles = (player) => getBattleHistory(player)
       }
       battlesList = uniqueListByKey(battlesList.filter(x => x != undefined), "battle_queue_id")
       misc.writeToLogNoUsername('Adding data to battle history....');
-      misc.writeToLogNoUsername(battlesList.length)
+      misc.writeToLogNoUsername(chalk.yellow(battlesList.length))
       fs.writeFile(`data/newHistory.json`, JSON.stringify(battlesList), function (err) {
         if (err) {
           misc.writeToLogNoUsername(err,'a'); rej(err);

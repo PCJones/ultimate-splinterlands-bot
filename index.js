@@ -167,7 +167,7 @@ async function createBrowsers(count, headless) {
     let browsers = [];
     for (let i = 0; i < count; i++) {
         const browser = await puppeteer.launch({
-                product: 'chrome',
+                //product: 'chrome',
                 headless: headless,
                 args: process.env.CHROME_NO_SANDBOX === 'true' ? ["--no-sandbox"] : ['--disable-web-security',
                     '--disable-features=IsolateOrigins',
@@ -241,7 +241,7 @@ async function selectCorrectBattleType(page) {
     }
 }
 
-async function startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary, battlesList, getDataLocal) {
+async function startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary, getDataLocal) {
 
     const ercThreshold = process.env.ERC_THRESHOLD;
     const allCardDetails = await readJSONFile(fnAllCardsDetails);
@@ -251,7 +251,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     } else {
         misc.writeToLog('Playing only basic cards')
     }
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36');
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61  Safari/537.36');
     await page.setViewport({
         width: 1800,
         height: 1500,
@@ -436,15 +436,15 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         try {
             const apiResponse = await withTimeout(90000, await api.getPossibleTeams(matchDetails));
             if (apiResponse && !JSON.stringify(apiResponse).includes('api limit reached')) {
-                misc.writeToLog(chalk.magenta('API Response: ' + JSON.stringify(apiResponse)));
-
+                misc.writeToLog(chalk.magenta('API Response Result: ')); 
+                console.log(apiResponse)    
                 teamToPlay = {
                     summoner: Object.values(apiResponse)[1],
                     cards: [Object.values(apiResponse)[1], Object.values(apiResponse)[3], Object.values(apiResponse)[5], Object.values(apiResponse)[7], Object.values(apiResponse)[9],
                         Object.values(apiResponse)[11], Object.values(apiResponse)[13], Object.values(apiResponse)[15]]
                 };
                 apiSelect = true;
-                misc.writeToLog(chalk.cyan('Team picked by API: ' + JSON.stringify(teamToPlay)));
+                console.log(chalk.cyan('Team picked by API: ' + JSON.stringify(teamToPlay)));
                 // TEMP, testing
                 if (Object.values(apiResponse)[1] == '') {
                     misc.writeToLog('Seems like the API found no possible team - using local history');
@@ -510,19 +510,23 @@ try {
         timeout: 15000
     }).then(summonerButton => summonerButton.click());
     if (card.color(teamToPlay.cards[0]) === 'Gold') {
-        misc.writeToLog('Dragon play TEAMCOLOR ' + helper.teamActualSplinterToPlay(teamToPlay.cards.slice(0, 6)))
+        misc.writeToLog(' Dragon play TEAMCOLOR ' + helper.teamActualSplinterToPlay(teamToPlay.cards.slice(0, 6)))
         await page.waitForXPath(`//div[@data-original-title="${helper.teamActualSplinterToPlay(teamToPlay.cards.slice(0, 6))}"]`, {
             timeout: 8000
         })
         .then(selector => selector.click())
     }
     await page.waitForTimeout(10000);
-            misc.writeToLog('summoner: ' + teamToPlay.summoner.toString().padStart(3) + ' - ' + allCardDetails[(parseInt(teamToPlay.summoner))-1].name.toString());
+            misc.writeToLog('Summoner: ' + chalk.yellow(teamToPlay.summoner.toString().padStart(3)) + ' Name: ' + chalk.green(allCardDetails[(parseInt(teamToPlay.summoner))-1].name.toString()));
             for (i = 1; i <= 6; i++) {
                     await sleep(300);
                     let strCard = 'nocard';
                     if(teamToPlay.cards[i] != ''){ strCard = allCardDetails[(parseInt(teamToPlay.cards[i]))-1].name.toString(); }
-                    misc.writeToLog('play ' + i + '  : ' + teamToPlay.cards[i].toString().padStart(3) + ' - ' + strCard);
+                      if(strCard !== 'nocard'){
+                        misc.writeToLog('Play: ' + chalk.yellow(teamToPlay.cards[i].toString().padStart(3)) + ' Name: ' + chalk.green(strCard));
+                      } else {
+                        misc.writeToLog(' ' + strCard);
+                      }  
                     if (teamToPlay.cards[i]){
                         await page.waitForXPath(`//div[@card_detail_id="${teamToPlay.cards[i].toString()}"]`, {timeout: 20000})
                         .then(selector => selector.click())}
@@ -541,6 +545,7 @@ try {
          
         await page.waitForTimeout(5000);
         try {
+            misc.writeToLog('Team submit. Please wait for the result.');
             await page.click('.btn-green')[0]; //start fight
         } catch {
             misc.writeToLog('Start Fight didnt work, waiting 5 sec and retry');
@@ -563,6 +568,11 @@ try {
                 const decWon = await getElementText(page, '.player.winner span.dec-reward span', 100);
                 misc.writeToLog(chalk.green('You won! Reward: ' + decWon + ' DEC'));
 				logSummary.push(' Battle result:' + chalk.green(' Win Reward: ' + decWon + ' DEC'));
+                if (getDataLocal == true) {
+                    battlesList = await getBattles();
+                    } else {
+                        battlesList ='';
+                    }
             } else {
                 misc.writeToLog(chalk.red('You lost :('));
 				logSummary.push(' Battle result:' + chalk.red(' Lose'));
@@ -587,8 +597,9 @@ try {
         await clickOnElement(page, '.btn--done', 1000, 2500);
 
         try {
-            const Newquest = await getQuest();	
-			await nq.newquestUpdate(Newquest, claimQuestReward, page, logSummary);
+            await page.goto('https://splinterlands.com/?p=battle_history');
+            await waitUntilLoaded(page);
+            await page.waitForTimeout(5000);
 			const decRaw = await getElementText(page, 'div.balance', 2000);
 			let UpDateDec = parseFloat(Math.round((parseFloat(decRaw * 100)).toFixed(2)) / 100 ).toFixed(2);
             let newERC = (await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 2000)).split('%')[0];
@@ -599,18 +610,23 @@ try {
 			let e = parseInt(newERC);
 				if (e >= 50) {
 					logSummary.push(' Remaining ERC: ' + chalk.green(newERC + '%'));
+                    misc.writeToLog(' Remaining ERC: ' + chalk.green(newERC + '%'));
 				}
 				else {
 					logSummary.push(' Remaining ERC: ' + chalk.red(newERC + '%'));
+                    misc.writeToLog(' Remaining ERC: ' + chalk.red(newERC + '%'));
 				}	
         } catch (e) {
             misc.writeToLog(e);
-            misc.writeToLog(chalk.blueBright('Unable to get new rating'));
+            misc.writeToLog(chalk.blueBright(' Unable to get new rating'));
+            misc.writeToLog(chalk.blueBright(' Unable to get remaining ERC'));
             logSummary.push(chalk.blueBright(' Unable to get new rating'));
             logSummary.push(chalk.blueBright(' Unable to get remaining ERC '));
         }
-
+        const Newquest = await getQuest();	
+		await nq.newquestUpdate(Newquest, claimQuestReward, page, logSummary);
     } catch (e) {
+        logSummary.push(chalk.red(' Unable to proceed due to error. Please see logs'));
         throw new Error(e);
     }
 
@@ -677,15 +693,10 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                     .catch(() => misc.writeToLog('cards collection api didnt respond. Did you use username? avoid email!'));
                 misc.writeToLog('getting user quest info from splinterlands API...');
                 const quest = await getQuest();
-                if (getDataLocal == true) {
-                battlesList = await getBattles();
-                } else {
-                    battlesList ='';
-                }
                 if (!quest) {
                     misc.writeToLog('Error for quest details. Splinterlands API didnt work or you used incorrect username');
                 }
-                await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary, battlesList, getDataLocal)
+                await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary, getDataLocal)
                 .then(() => {
                     misc.writeToLog('Closing battle');
                 })
@@ -702,7 +713,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                     });
                     //let pages = await browsers[0].pages();
                     //await Promise.all(pages.map(page =>page.close()));
-                    //await browsers[0].close();
+                   // await browsers[0].close();
                     //browsers[0].process().kill('SIGKILL');
                 }
             }

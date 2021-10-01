@@ -3,6 +3,7 @@ ECHO Bot created by PC Jones (based on bot by alfficcadenti) - have fun
 ECHO Press any key to start the installation
 PAUSE
 call npm install
+call npm update
 cd node_modules/puppeteer
 if exist .local-chromium (
   cd ..\..\ 
