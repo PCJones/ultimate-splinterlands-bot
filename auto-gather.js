@@ -95,9 +95,8 @@ let battlesList = [];
 let promises = [];
 let min_rating = [];
 
- battles = (player) => getBattleHistory(player)
+const battles = (player) => getBattleHistory(player)
   .then(u => u.map(x => { 
-    
     x.player_1 == process.env.ACCOUNT
       ? min_rating.push(x.player_1_rating_final)
       : min_rating.push(x.player_2_rating_final);
@@ -157,9 +156,13 @@ let min_rating = [];
           misc.writeToLogNoUsername(err,'a'); rej(err);
         }
         misc.writeToLogNoUsername(chalk.green('Success adding data.....'));
+        battlesList = [],
+        promises = []; 
+        min_rating = [];
       });
       res(battlesList)
     });
   }) })
 
+    
 module.exports.battlesList = battles;
