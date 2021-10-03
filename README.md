@@ -82,7 +82,7 @@ Configuration with default values:
 
 - `TELEGRAM_NOTIF=false` Disable/Enable to receive telegram notification for battle result. 
 
-- `TELEGRAM_TOKEN=` Ignore/Don't change unless you have other Telegram Token/Telegram Bot. 
+- `TELEGRAM_TOKEN=` your telegram bot token, create bot: https://t.me/BotFather
 
 - `TELEGRAM_CHATID` telegram chat id for notify, get the id: https://t.me/get_id_bot
 
@@ -120,5 +120,5 @@ PASSWORD=password1,password2,POST_KEY3
 
 **Why I can't see the Telegram notification after setting it up?**
 
-1. Look for `@Battle_Result_Bot` or the for the name of your bot in Telegram. 
+1. Look for the name of your bot in Telegram. 
 2. Type `/start` to receive notifcation once battle summary result is available. 
