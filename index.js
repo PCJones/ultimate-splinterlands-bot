@@ -154,11 +154,7 @@ async function clickMenuFightButton(page) {
 async function getCards() {
     const myCards = await user.getPlayerCards(process.env.ACCUSERNAME, new Date(Date.now() - 86400000)) // 86400000 = 1 day in milliseconds
         return myCards;
-}
- function getBattles(winnerName) {
-    misc.writeToLog("Gathering winner's battle data for local history") 
-    return battles.battlesList(winnerName).then(x=>x)
-}   
+} 
 async function getQuest() {
     return quests.getPlayerQuest(process.env.ACCUSERNAME.split('@')[0])
     .then(x => x)
@@ -581,9 +577,8 @@ try {
                 } 
             }
             if (getDataLocal == true) {
-                battlesList = await getBattles(winnerName);
-                } else {
-                    battlesList ='';
+                misc.writeToLog("Gathering winner's battle data for local history") 
+                   await battles.battlesList(process.env.ACCUSERNAME).then(x=>x)
                 }   
         } catch (e) {
             const draw = await getElementText(page, 'section.player.draw .bio__name__display', 20000);

@@ -4,6 +4,8 @@ const fs = require('fs');
 const misc = require('./misc');
 const chalk = require('chalk');
 
+
+
 const distinct = (value, index, self) => {
     return self.indexOf(value) === index;
 }
@@ -95,7 +97,7 @@ let battlesList = [];
 let promises = [];
 let min_rating = [];
 
-const battles = (player) => getBattleHistory(player)
+const battles = async (player) =>  getBattleHistory(player)
   .then(u => u.map(x => { 
     x.player_1 == process.env.ACCOUNT
       ? min_rating.push(x.player_1_rating_final)
@@ -141,21 +143,21 @@ const battles = (player) => getBattleHistory(player)
   }))
   .then(() => { return Promise.all(promises) })
   .then(() => { return new Promise((res,rej) => {
-	  misc.writeToLogNoUsername('Reading local battle history');
+	  misc.writeToLog('Reading local battle history');
     fs.readFile(`./data/newHistory.json`, 'utf8', (err, data) => {
       if (err) {
-        misc.writeToLogNoUsername(`Error reading file from disk: ${err}`); rej(err)
+        misc.writeToLog(`Error reading file from disk: ${err}`); rej(err)
       } else {
         battlesList = data ? [...battlesList, ...JSON.parse(data)] : battlesList;
       }
       battlesList = uniqueListByKey(battlesList.filter(x => x != undefined), "battle_queue_id")
-      misc.writeToLogNoUsername('Adding data to battle history....');
-      misc.writeToLogNoUsername(chalk.yellow(battlesList.length))
+      misc.writeToLog('Adding data to battle history....');
+      misc.writeToLog(chalk.yellow(battlesList.length))
       fs.writeFile(`data/newHistory.json`, JSON.stringify(battlesList), function (err) {
         if (err) {
-          misc.writeToLogNoUsername(err,'a'); rej(err);
+          misc.writeToLog(err,'a'); rej(err);
         }
-        misc.writeToLogNoUsername(chalk.green('Success adding data.....'));
+        misc.writeToLog(chalk.green('Success adding data.....')); 
         battlesList = [],
         promises = []; 
         min_rating = [];
@@ -164,5 +166,4 @@ const battles = (player) => getBattleHistory(player)
     });
   }) })
 
-    
 module.exports.battlesList = battles;
