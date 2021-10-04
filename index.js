@@ -3,6 +3,7 @@ require('dotenv').config()
 const puppeteer = require('puppeteer');
 const fetch = require("node-fetch");
 const chalk = require('chalk');
+const fs = require('fs');						 
 
 const splinterlandsPage = require('./splinterlandsPage');
 const user = require('./user');
@@ -12,12 +13,19 @@ const quests = require('./quests');
 const ask = require('./possibleTeams');
 const api = require('./api');
 const misc = require('./misc');
+const fnAllCardsDetails = ('./data/cardsDetails.json');
 const version = 0.42;
 let resultAll = [];
 let captureRateAll = [];
 let questRewardAll = [];
 let finalRateAll = [];
 
+function readJSONFile(fn){
+    const jsonString = fs.readFileSync(fn);
+    const ret = JSON.parse(jsonString);
+
+    return ret;
+}			   
 async function checkForUpdate() {
     await misc.writeToLogNoUsername('------------------------------------------------------------------------------------------------');
     await fetch('http://jofri.pf-control.de/prgrms/splnterlnds/version.txt')
@@ -210,6 +218,7 @@ async function selectCorrectBattleType(page) {
 async function startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI) {
 
     const ercThreshold = process.env.ERC_THRESHOLD;
+	const allCardDetails = readJSONFile(fnAllCardsDetails);
 
     if (myCards) {
         misc.writeToLog('Deck size: ' + myCards.length)
@@ -464,12 +473,19 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             .then(selector => selector.click())
         }
         await page.waitForTimeout(5000);
+		misc.writeToLog('summoner: ' + teamToPlay.summoner.toString().padStart(3) + ' - ' + allCardDetails[(parseInt(teamToPlay.summoner))-1].name.toString());
         for (i = 1; i <= 6; i++) {
-            misc.writeToLog('play: ' + teamToPlay.cards[i].toString())
-            await teamToPlay.cards[i] ? page.waitForXPath(`//div[@card_detail_id="${teamToPlay.cards[i].toString()}"]`, {
-                timeout: 10000
-            })
-            .then(selector => selector.click()) : misc.writeToLog('nocard ' + i);
+			let strCard = 'nocard';
+			if(teamToPlay.cards[i] != ''){ strCard = allCardDetails[(parseInt(teamToPlay.cards[i]))-1].name.toString(); }
+			misc.writeToLog('play ' + i + '  : ' + teamToPlay.cards[i].toString().padStart(3) + ' - ' + strCard);
+			if (teamToPlay.cards[i]){
+				await page.waitForXPath(`//div[@card_detail_id="${teamToPlay.cards[i].toString()}"]`, {timeout: 10000})
+				.then(selector => selector.click())
+			}
+            //await teamToPlay.cards[i] ? page.waitForXPath(`//div[@card_detail_id="${teamToPlay.cards[i].toString()}"]`, {
+            //    timeout: 10000
+            //})
+            //.then(selector => selector.click()) : misc.writeToLog('nocard ' + i);
             await page.waitForTimeout(1000);
         }
 
