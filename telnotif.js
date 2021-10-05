@@ -1,3 +1,4 @@
+if (process.env.TELEGRAM_NOTIF === 'true'){
 const fs = require('fs')
 const chalk = require('chalk');
 const TeleBot = require('telebot');
@@ -103,3 +104,4 @@ exports.sender =sender;
 exports.battlesummary = battlesummary;
 exports.tbotResponse = tbotResponse;
 
+}

@@ -176,9 +176,9 @@ async function createBrowsers(count, headless) {
                 headless: headless,
                 args: process.env.CHROME_NO_SANDBOX === 'true' ? ["--no-sandbox"] : [
                     '--incognito',
-                    '--disable-web-security',
-                    '--disable-features=IsolateOrigins',
-                    '--disable-site-isolation-trials'
+                   // '--disable-web-security',
+                   // '--disable-features=IsolateOrigins',
+                   // '--disable-site-isolation-trials'
                 ],
             });  
         const page = await browser.newPage();
@@ -270,16 +270,16 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     await page.waitForTimeout(4000);
 
     let username = await getElementText(page, '.dropdown-toggle .bio__name__display', 10000);
-
+    // let maintenance = await getElementText(page, '.maintenance .banner-text', 10000).catch(e => { maintenance = 'Not in maintenance'})
     if (username == process.env.ACCUSERNAME) {
         misc.writeToLog('Already logged in!');
     } else {
         misc.writeToLog('Login')
-        await splinterlandsPage.login(page).catch(e => {
-            misc.writeToLog(e);
-            logSummary.push(chalk.red(' No records due to login error'));
-            throw new Error('Login Error');
-        });
+            await splinterlandsPage.login(page).catch(e => {
+                misc.writeToLog(e);
+                logSummary.push(chalk.red(' No records due to login error'));
+                throw new Error('Login Error');
+            });
     }
     await waitUntilLoaded(page);
     let erc = parseInt((await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 1000)).split('%')[0]);
@@ -681,7 +681,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
         envStatus.push('Use API: ' + useAPI);
         envStatus.push('Accounts: ' + chalk.greenBright(accounts));
        
-        tn.tbotResponse(envStatus);
+        if (process.env.TELEGRAM_NOTIF === 'true'){ await tn.tbotResponse(envStatus)};
 
         while (true) {
             let logSummary = [];
