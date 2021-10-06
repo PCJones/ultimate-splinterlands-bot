@@ -525,8 +525,8 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             timeout: 15000
         }).then(summonerButton => summonerButton.click());
         if (card.color(teamToPlay.cards[0]) === 'Gold') {
-            misc.writeToLog(' Dragon play TEAMCOLOR ' + helper.teamActualSplinterToPlay(teamToPlay.cards.slice(0, 6)))
-            battledata.push(' Dragon play TEAMCOLOR ' + helper.teamActualSplinterToPlay(teamToPlay.cards.slice(0, 6)))
+            misc.writeToLog(' Dragon play TEAMCOLOR ' + helper.teamActualSplinterToPlay(splinters,teamToPlay.cards.slice(0, 6)))
+            battledata.push(' Dragon play TEAMCOLOR ' + helper.teamActualSplinterToPlay(splinters,teamToPlay.cards.slice(0, 6)))
             await page.waitForXPath(`//div[@data-original-title="${helper.teamActualSplinterToPlay(teamToPlay.cards.slice(0, 6))}"]`, {
                 timeout: 8000
             })
