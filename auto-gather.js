@@ -21,7 +21,7 @@ function uniqueListByKey(arr, key) {
   
   async function getBattleHistory(player = '', data = {}) {
       //console.log('player', player);
-      const battleHistory = await fetch('https://api.steemmonsters.io/battle/history?player=' + player)
+      const battleHistory = await fetch('https://game-api.splinterlands.io/battle/history?player=' + player)
           .then((response) => {
               if (!response.ok) {
                   throw new Error('Network response was not ok '+player);
@@ -33,7 +33,7 @@ function uniqueListByKey(arr, key) {
           })
           .catch((error) => {
             misc.writeToLogNoUsername('Failed to fetch battle data. Trying another api');
-              fetch('https://game-api.steemmonsters.io/battle/history?player=' + player)
+              fetch('https://api2.splinterlands.com/battle/history?player=' + player)
           .	then((response) => {
               if (!response.ok) {
                   throw new Error('Network response was not ok '+player);
