@@ -1,4 +1,4 @@
-# Ultimate Splinterlands Bot V1 by PC Jones
+# Ultimate Splinterlands Bot V1 by PC Jones (modified by virgaux)
 A fast, free, multi-account splinderlands bot
 
 Based on https://github.com/alfficcadenti/splinterlands-bot
@@ -90,7 +90,7 @@ Configuration with default values:
 
 In case you want to donate to me for updating this bot, I would be very happy! Please also consider donating to the original bot creator.
 
-- DEC into the game to the player **pcjones** 
+- DEC into the game to the player **pcjones** or **virgaux** 
 - Bitcoin 3KU85k1HFTqCC4geQz3XUFk84R6uekuzD8
 - Ethereum 0xcFE8c78F07e0190EBdD9077cF9d9E3A8DCED8d91 
 - WAX to account **lshru.wam** (please copy the name)
