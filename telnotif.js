@@ -10,8 +10,11 @@ const bot = new TeleBot({
 });
 bot.start();
 
+async function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-function battlesummary(logSummary,tet,sleepingTime){
+async function battlesummary(logSummary,tet,sleepingTime, sleep){
     try {
             message = 'Battle result summary: \n' + " " + new Date().toLocaleString() + ' \n' + tet.replace(/\u001b[^m]*?m/g,"") + ' \n';
             for (let i = 0; i < logSummary.length; i++) {
@@ -20,7 +23,18 @@ function battlesummary(logSummary,tet,sleepingTime){
             message = message + ' \n' + ' Next battle in '+ sleepingTime / 1000 / 60 + ' minutes at ' + new Date(Date.now() +sleepingTime).toLocaleString() + ' \n';
 
             message = message + ' \n' +'Telegram https://t.me/ultimatesplinterlandsbot' + ' \n' + 'Discord https://discord.gg/hwSr7KNGs9'
-            bot.sendMessage(process.env.TELEGRAM_CHATID, message);
+            const max_size = 4096
+            var messageString = message
+            var amount_sliced = messageString.length / max_size
+            var start = 0
+            var end = max_size
+            for (let i = 0; i < amount_sliced; i++) {
+                message = messageString.slice(start, end) 
+                bot.sendMessage(process.env.TELEGRAM_CHATID, message);
+                sleep(8000);
+                start = start + max_size
+                end = end + max_size
+            }
             //notify.send(message);
             console.log(chalk.green(' \n' + ' Battle result sent to telegram'));
 

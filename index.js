@@ -107,6 +107,41 @@ function sleep(ms) {
         setTimeout(resolve, ms);
     });
 }
+// boart2k added a function to convert Number Strings to Integer
+function convertToNumber(stringNum){
+    let ctnArr = stringNum.split(',');
+    let ctnTempNum = '';
+    ctnArr.forEach(x => ctnTempNum+=x);
+    return parseInt(ctnTempNum);
+}
+
+// searchFromJSON can handle key of type array with a max length of 2... For Now...
+function searchFromJSON(data,key,value){
+    let tempData;
+
+    if(Array.isArray(key)){
+        for(let x = 0; x < data.length-1; x++){
+            let temp = typeof data[x][key[0]] == 'string' ? JSON.parse(data[x][key[0]])[key[1]] : data[x][key[0][key[1]]];
+            if(temp == value){
+                tempData = data[x];
+                break;
+            }
+        }
+    }else{
+        // for now the codes below are not used
+        for(let x = 0; x < data.length-1; x++){
+            console.log(data[x][key]);
+            if(data[x][key] == value){
+                tempData = data[x];
+                break;
+            }
+        }    
+    }
+
+    return tempData;
+}
+// boart2k end
+
 const withTimeout = (millis, promise) => {
     const timeout = new Promise((resolve, reject) =>
         setTimeout(
@@ -117,6 +152,7 @@ const withTimeout = (millis, promise) => {
         timeout
     ]);
 };
+
 // Close popups by Jones
 async function closePopups(page) {
     if (await clickOnElement(page, '.close', 4000))
@@ -295,6 +331,20 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         logSummary.push(' Account skipped: ' + chalk.red('ERC is below threshold of ' + ercThreshold))
         return;
     }
+
+    // boart2k added
+    let powerRaw = await getElementTextByXpath(page, "//div[@id='power_progress']/div/span[2]", 100);
+    let power = convertToNumber(powerRaw);
+
+    if(power < powerThreshold){
+        misc.writeToLog('Collection Power: ' + chalk.red(powerRaw) + ' is lower than the ' + chalk.red(powerThresholdRaw) + ' you have set.');
+        logSummary.push(' Collection Power: ' + chalk.red(powerRaw) + ' is lower than the ' + chalk.red(powerThresholdRaw) + ' you have set.');
+    } else {
+        misc.writeToLog('Collection Power: ' + chalk.green(powerRaw));
+        logSummary.push(' Collection Power: ' + chalk.green(powerRaw));
+    }
+    // boart2k end
+    
     await page.waitForTimeout(1000);
     await closePopups(page);
     await page.waitForTimeout(2000);
@@ -596,7 +646,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             }
             if (getDataLocal == true) {
                 misc.writeToLog("Gathering winner's battle data for local history backup") 
-                 await battles.battlesList(process.env.ACCUSERNAME).then(x=>x)
+                 await battles.battlesList(process.env.ACCUSERNAME).then(x=>x).catch(() => misc.writeToLog('Unable to gather data for local.'));  
             }     
         } catch (e) {
                 misc.writeToLog(e);
@@ -630,7 +680,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             logSummary.push(chalk.blueBright(' Unable to get remaining ERC '));
         }
         let Newquest = await getQuest();	
-		await nq.newquestUpdate(Newquest, claimQuestReward, page, logSummary);
+		await nq.newquestUpdate(Newquest, claimQuestReward, page, logSummary, allCardDetails);
         teamToPlay = '';
     } catch (e) {
         logSummary.push(chalk.red(' Unable to proceed due to error. Please see logs'));
@@ -757,7 +807,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                     }
                 })
                 
-				tn.battlesummary(logSummary,tet,sleepingTime)
+				tn.battlesummary(logSummary,tet,sleepingTime, sleep)
 			}
                  
             console.log('----------------------------------------------------------------------');

@@ -1,11 +1,11 @@
 const misc = require('./misc');
 const chalk = require('chalk');
 
-async function newquestUpdate (Newquest, claimQuestReward, page, logSummary){
+async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, allCardDetails){
 
     const questElement = Object.values(Newquest)[1].toString();
     if (questElement === "life") {
-        coloredElement = chalk.bgWhite("Life");
+        coloredElement = chalk.white("Life");
     } else if (questElement === "water")  {
         coloredElement =chalk.cyanBright("Water");
     } else if (questElement === "earth")  {
@@ -33,6 +33,55 @@ async function newquestUpdate (Newquest, claimQuestReward, page, logSummary){
                 logSummary.push(" " + coloredElement  + " Quest: " + chalk.yellow(Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString()) + chalk.yellow(' Quest reward claimed!'));
                 await page.waitForTimeout(60000);
                 await page.reload();
+                // added by boart2k
+                await fetch('https://api.steemmonsters.io/players/history?username=' + process.env.ACCUSERNAME + '&types=claim_reward', {
+                    method: 'GET',
+                    headers: {'Content-Type': 'application/json'}
+                })
+                .then(response => response.json())
+                .then((data) => {
+                    let questRewards = JSON.parse(searchFromJSON(data,["data","type"],"quest").result).rewards[0];
+                    let questRewardsMessage = "";
+
+                    if(questRewards.type == "potion"){
+                        questRewardsMessage = ` Quest Reward: Recieved ${questRewards.quantity} ${questRewards.potion_type == 'gold' ? 'Alchemy' : 'Legendary'} Potion!`;
+                        misc.writeToLog( `You recieved ${questRewards.quantity} ${questRewards.potion_type == 'gold' ? 'Alchemy' : 'Legendary'} Potion!` )
+                    }
+
+                    if(questRewards.type == 'credits'){
+                        questRewardsMessage = ` Quest Reward: Recieved ${questRewards.quantity} Credits!`;
+                        misc.writeToLog(`You recieved ${questRewards.quantity} Credits!`);
+                    }
+
+                    if (questRewards.type === 'dec'){
+                        questRewardsMessage = ` Quest Reward: Recieved ${questRewards.quantity} DEC!`;
+                        misc.writeToLog(`You recieved ${questRewards.quantity} DEC!`);
+                    }   
+
+                    if(questRewards.type == 'reward_card'){
+                        let card_id = questRewards.card.card_detail_id;
+                        let cardName = allCardDetails[(parseInt(card_id))-1].name.toString();
+                        if(questRewards.card.gold){
+                            questRewardsMessage = " Quest Reward: Recieved " + chalk.yellow(`Gold Foil ${cardName}`) + " card!";
+                            misc.writeToLog( "You recieved " + chalk.yellow(`Gold Foil ${cardName}`) + " card!");
+                        }else{
+                            questRewardsMessage = " Quest Reward: Recieved " + chalk.grey(cardName) + " card!";
+                            misc.writeToLog( "You recieved " + chalk.grey(cardName) + " card!");
+                        }
+                    }
+
+                    logSummary.push(questRewardsMessage);
+                })
+                .catch(err=>{
+                    misc.writeToLog("Failed to get claim rewards information. " + err)
+                    logSummary.push(" Failed to get claim rewards information. ")
+                    
+                });
+                // boart2k end
+                await page.waitForTimeout(20000); 
+
+
+
             } 
         }
     } catch (e) {
