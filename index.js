@@ -295,7 +295,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     } else {
         misc.writeToLog('Playing only basic cards')
     }
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61  Safari/537.36');
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100  Safari/537.36');
     await page.setViewport({
         width: 1800,
         height: 1500,
@@ -318,8 +318,13 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             });
     }
     await waitUntilLoaded(page);
-    let erc = parseInt((await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 1000)).split('%')[0]);
-    if (erc >= 50) {
+    try {
+        erc = parseInt((await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 1000)).split('%')[0]);
+    } catch {
+        await page.goto('https://splinterlands.com/?p=battle_history');
+        erc = parseInt((await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 1000)).split('%')[0]);
+    }
+        if (erc >= 50) {
         misc.writeToLog('Current Energy Capture Rate is ' + chalk.green(erc + "%"));
   
     } else {
@@ -578,7 +583,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         if (card.color(teamToPlay.cards[0]) === 'Gold') {
             misc.writeToLog(' Dragon play TEAMCOLOR ' + helper.teamActualSplinterToPlay(splinters,teamToPlay.cards.slice(0, 6)))
             battledata.push(' Dragon play TEAMCOLOR ' + helper.teamActualSplinterToPlay(splinters,teamToPlay.cards.slice(0, 6)))
-            await page.waitForXPath(`//div[@data-original-title="${helper.teamActualSplinterToPlay(teamToPlay.cards.slice(0, 6))}"]`, {
+            await page.waitForXPath(`//div[@data-original-title="${helper.teamActualSplinterToPlay(splinters,teamToPlay.cards.slice(0, 6))}"]`, {
                 timeout: 8000
             })
             .then(selector => selector.click())
@@ -802,13 +807,12 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                 
                 new fs.writeFile('data/BattleHistoryData.json', JSON.stringify(battledata), err => {
                     if (err) {
-                        console.log('Error writing file', err)
+                        misc.writeToLogNoUsername('Error writing file', err)
                     } else {
-                        console.log('Successfully wrote file')
+                        misc.writeToLogNoUsername('Successfully wrote file')
                         battledata = [];
                     }
-                })
-                
+                })                
 				tn.battlesummary(logSummary,tet,sleepingTime, sleep)
 			}
                  
