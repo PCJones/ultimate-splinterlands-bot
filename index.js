@@ -333,6 +333,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     }
 
     // boart2k added
+    const powerThreshold = process.env.POWER_THRESHOLD;
     let powerRaw = await getElementTextByXpath(page, "//div[@id='power_progress']/div/span[2]", 100);
     let power = convertToNumber(powerRaw);
 
@@ -707,6 +708,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
         const prioritizeQuest = JSON.parse(process.env.QUEST_PRIORITY.toLowerCase());
         const teleNotif = JSON.parse(process.env.TELEGRAM_NOTIF.toLowerCase());
         const getDataLocal = JSON.parse(process.env.GET_DATA_FOR_LOCAL.toLowerCase());
+        
 
         let browsers = [];
         let envStatus = [];
