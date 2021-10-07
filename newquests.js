@@ -1,7 +1,7 @@
 const misc = require('./misc');
 const chalk = require('chalk');
 
-async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, allCardDetails){
+async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, allCardDetails, searchFromJSON){
 
     const questElement = Object.values(Newquest)[1].toString();
     if (questElement === "life") {

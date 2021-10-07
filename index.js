@@ -680,7 +680,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             logSummary.push(chalk.blueBright(' Unable to get remaining ERC '));
         }
         let Newquest = await getQuest();	
-		await nq.newquestUpdate(Newquest, claimQuestReward, page, logSummary, allCardDetails);
+		await nq.newquestUpdate(Newquest, claimQuestReward, page, logSummary, allCardDetails, searchFromJSON);
         teamToPlay = '';
     } catch (e) {
         logSummary.push(chalk.red(' Unable to proceed due to error. Please see logs'));
