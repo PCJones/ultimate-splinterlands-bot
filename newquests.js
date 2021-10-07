@@ -33,6 +33,7 @@ async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, all
                 logSummary.push(" " + coloredElement  + " Quest: " + chalk.yellow(Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString()) + chalk.yellow(' Quest reward claimed!'));
                 await page.waitForTimeout(60000);
                 await page.reload();
+                await page.waitForTimeout(10000);
                 // added by boart2k
                 await fetch('https://api.steemmonsters.io/players/history?username=' + process.env.ACCUSERNAME + '&types=claim_reward', {
                     method: 'GET',
@@ -78,7 +79,6 @@ async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, all
                     
                 });
                 // boart2k end
-                await page.waitForTimeout(20000); 
 
 
 
