@@ -32,6 +32,7 @@ async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, all
                 misc.writeToLog(chalk.green('Claiming quest reward...'));
                 logSummary.push(" " + coloredElement  + " Quest: " + chalk.yellow(Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString()) + chalk.yellow(' Quest reward claimed!'));
                 await page.waitForTimeout(60000);
+                misc.writeToLog('Checking quest reward chest. Please wait....')
                 await page.reload();
                 await page.waitForTimeout(10000);
                 // added by boart2k
