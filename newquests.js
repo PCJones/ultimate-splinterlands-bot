@@ -1,5 +1,7 @@
+require('dotenv').config()
 const misc = require('./misc');
 const chalk = require('chalk');
+const fetch = require("node-fetch");
 
 async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, allCardDetails, searchFromJSON){
 
@@ -29,12 +31,12 @@ async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, all
         if (claimButton) {
             if (claimQuestReward) {
                 await claimButton.click();
-                misc.writeToLog(chalk.green('Claiming quest reward...'));
-                logSummary.push(" " + coloredElement  + " Quest: " + chalk.yellow(Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString()) + chalk.yellow(' Quest reward claimed!'));
+                misc.writeToLog(chalk.green('Claiming quest reward. This will take 1.7 minutes.'));
                 await page.waitForTimeout(60000);
                 misc.writeToLog('Checking quest reward chest. Please wait....')
                 await page.reload();
                 await page.waitForTimeout(10000);
+
                 // added by boart2k
                 await fetch('https://api.steemmonsters.io/players/history?username=' + process.env.ACCUSERNAME + '&types=claim_reward', {
                     method: 'GET',
@@ -72,12 +74,11 @@ async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, all
                         }
                     }
 
-                    logSummary.push(questRewardsMessage);
+                    logSummary.push(" " + coloredElement  + " Quest: " + chalk.yellow(Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString()) + chalk.yellow(' Quest reward claimed!') + ' \n' + questRewardsMessage);
                 })
                 .catch(err=>{
                     misc.writeToLog("Failed to get claim rewards information. " + err)
-                    logSummary.push(" Failed to get claim rewards information. ")
-                    
+                    logSummary.push(" " + coloredElement  + " Quest: " + chalk.yellow(Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString()) + chalk.yellow(' Quest reward claimed but failed to get claim rewards information.') );  
                 });
                 // boart2k end
 
