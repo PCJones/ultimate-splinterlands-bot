@@ -1,7 +1,7 @@
-# Ultimate Splinterlands Bot V1 by PC Jones (modified by virgaux)
+# Ultimate Splinterlands Bot V1 (Modified version)
 A fast, free, multi-account splinderlands bot
 
-Based on https://github.com/alfficcadenti/splinterlands-bot
+Based on https://github.com/PCJones/ultimate-splinterlands-bot
 
 ## Preamble 
 Right now the code is a mess - I just hacked something together so I can release this asap. I'm planning on updating the code soon. 
@@ -24,10 +24,10 @@ Feel free to give suggestions for features/code refurbishing via github or on di
 - New battle log summary after all battles
 - New DEC log after battle. 
 - Receive Battle log summary notification via Telegram 
-- **Updated Feature**: Accurate battle summary (virgaux)
+- **Updated Feature**: Accurate battle summary 
+- **Updated Feature**: Power Threshold and claimed reward log 
+- **Updated Feature**: Auto gather the battle history for local back.(In case supported API is down)
 - **Coming Soon**: Telegram notification if bot had an error/stop running. Call to function on telegram. (virgaux)
-- **Coming Soon**: Individual wait time for each account (right now it will battle with all accounts and wait after that) (aka **Multithreading**)
-- **Coming Soon**: Statistics on how each account is performing
 - Any suggestions?
 
 # Support / Community
@@ -39,10 +39,10 @@ https://discord.gg/hwSr7KNGs9)
 
 ## How to install
 - Download and install [NodeJs](https://nodejs.org/it/download/)
-- Download the [bot](https://github.com/PCJones/ultimate-splinterlands-bot/archive/refs/heads/master.zip) (extract if its .zip)
+- Download the [bot](https://github.com/virgaux/ultimate-splinterlands-bot/archive/refs/heads/master.zip) (extract if its .zip)
 - Create .env file (see .env-example)
 - On windows: Execute `install.bat` in bot folder
-- On MacOS/Linux: open terminal in bot folder and execute command `npm install` and `npm install --save telegram-notify`
+- On MacOS/Linux: open terminal in bot folder and execute command `npm install` 
 
 ## How to start the bot
 - On windows: Execute `start.bat` in bot folder
@@ -58,6 +58,10 @@ Configuration with default values:
 
 - `ERC_THRESHOLD=80` If your energy capture rate goes below this the bot will stop fighting with this account until it's above again. Set to 0 to disable 
   
+- `ERC_REGEN=true` Disable/Enable ERC regeneration function.
+
+- `ERC_REGEN_LIMIT=100` If your energy capture rate is not yet above this, the bot will not fight with this account until it's reach the pre-set parameter.
+
 - `CLAIM_SEASON_REWARD=false` Disable/Enable season reward claiming
 
 - `CLAIM_QUEST_REWARD=true` Disable/Enable quest reward claiming
@@ -82,7 +86,7 @@ Configuration with default values:
 
 - `TELEGRAM_NOTIF=false` Disable/Enable to receive telegram notification for battle result. 
 
-- `TELEGRAM_TOKEN=` your telegram bot token, create bot: https://t.me/BotFather
+- `TELEGRAM_TOKEN=` API TOKEN from telegram which will send you the notification. This is private key. DO NOT GIVE IT TO ANYONE. [how to get telegram token](https://www.siteguarding.com/en/how-to-get-telegram-bot-api-token)
 
 - `TELEGRAM_CHATID` telegram chat id for notify, get the id: https://t.me/get_id_bot
 
@@ -90,11 +94,15 @@ Configuration with default values:
 
 In case you want to donate to me for updating this bot, I would be very happy! Please also consider donating to the original bot creator.
 
-- DEC into the game to the player **pcjones** or **virgaux** 
+- DEC into the game to the player **pcjones** or **virgaux**
 - Bitcoin 3KU85k1HFTqCC4geQz3XUFk84R6uekuzD8
 - Ethereum 0xcFE8c78F07e0190EBdD9077cF9d9E3A8DCED8d91 
 - WAX to account **lshru.wam** (please copy the name)
 - Text me on Discord or Telegram for anything other
+                    or 
+- DEC into the game to the player **virgaux**
+- Metamask wallet address: 0x6b11890566077AAC2B7fA7511d484f50Ec1335f6 
+- Hive wallet address: @virgaux
 
 # FAQ
 **Can I have some accounts that login via email and some via username?**
