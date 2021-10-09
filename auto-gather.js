@@ -96,13 +96,14 @@ const extractMonster = (team) => {
 let battlesList = [];
 let promises = [];
 
+
+
+
 const battles = async (player) =>  getBattleHistory(player)
   .then(u => u.map(x => { 
-    //x.player_1 == process.env.ACCOUNT
-      //? min_rating.push(x.player_1_rating_final)
-      //: min_rating.push(x.player_2_rating_final);
+      x.player_1 == process.env.ACCOUNT
     return [x.player_1, x.player_2] 
-  }).flat().filter(distinct))
+  }).reduce((acc, val) => acc.concat(val), []).filter(distinct))
   .then(ul => ul.map(user => {
     promises.push(
       getBattleHistory(user)
