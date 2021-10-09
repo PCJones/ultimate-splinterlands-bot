@@ -99,7 +99,7 @@ In case you want to donate to me for updating this bot, I would be very happy! P
 - Ethereum 0xcFE8c78F07e0190EBdD9077cF9d9E3A8DCED8d91 
 - WAX to account **lshru.wam** (please copy the name)
 - Text me on Discord or Telegram for anything other
-                    or 
+- or 
 - DEC into the game to the player **virgaux**
 - Metamask wallet address: 0x6b11890566077AAC2B7fA7511d484f50Ec1335f6 
 - Hive wallet address: @virgaux
