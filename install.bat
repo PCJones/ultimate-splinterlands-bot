@@ -19,7 +19,7 @@ SET choice=
 SET /p choice=Want to start the bot now? [Y/N]: 
 IF NOT '%choice%'=='' SET choice=%choice:~0,1%
 IF /i '%choice%'=='Y' GOTO yes
-IF /i '%choice%'=='N' GOTO yes
+IF /i '%choice%'=='N' GOTO no
 IF '%choice%'=='' GOTO no
 ECHO "%choice%" is not valid
 ECHO.
