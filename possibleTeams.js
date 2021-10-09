@@ -234,7 +234,7 @@ const teamSelection = async (possibleTeams, matchDetails, quest) => {
         console.log(left + ' battles left for the '+quest.splinter+' quest')
         console.log('play for the quest ',quest.splinter,'? ',questCheck)
         if(left > 0 && filteredTeams && filteredTeams.length > 10 && splinters.includes(quest.splinter)) {
-            console.log('PLAY for the quest with Teams: ',filteredTeams.length , filteredTeams)
+            console.log('PLAY for the quest with Teams: ',filteredTeams.length)
             const res = await mostWinningSummonerTankCombo(filteredTeams, matchDetails);
             console.log('Play this for the quest:', res)
             if (res[0] && res[1]) {
