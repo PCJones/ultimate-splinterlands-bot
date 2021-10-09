@@ -7,6 +7,7 @@ const distinct = (value, index, self) => {
 }
 
 async function getBattleHistory(player = '', data = {}) {
+    console.log('Gathering player battle history of ' + player )
     const battleHistory = await fetch('https://game-api.splinterlands.io/battle/history?player=' + player)
         .then((response) => {
             if (!response.ok) {
