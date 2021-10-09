@@ -343,8 +343,8 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     let power = convertToNumber(powerRaw);
 
     if(power < powerThreshold){
-        misc.writeToLog('Collection Power: ' + chalk.red(powerRaw) + ' is lower than the ' + chalk.red(powerThresholdRaw) + ' you have set.');
-        logSummary.push(' Collection Power: ' + chalk.red(powerRaw) + ' is lower than the ' + chalk.red(powerThresholdRaw) + ' you have set.');
+        misc.writeToLog('Collection Power: ' + chalk.red(powerRaw) + ' is lower than the ' + chalk.red(powerThreshold) + ' you have set.');
+        logSummary.push(' Collection Power: ' + chalk.red(powerRaw) + ' is lower than the ' + chalk.red(powerThreshold) + ' you have set.');
     } else {
         misc.writeToLog('Collection Power: ' + chalk.green(powerRaw));
         logSummary.push(' Collection Power: ' + chalk.green(powerRaw));
