@@ -716,7 +716,6 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
         
 
         let browsers = [];
-        let envStatus = [];
         misc.writeToLogNoUsername('Headless: ' + headless);
         misc.writeToLogNoUsername('Keep Browser Open: ' + keepBrowserOpen);
         misc.writeToLogNoUsername('Login via Email: ' + loginViaEmail);
@@ -727,18 +726,6 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
         misc.writeToLogNoUsername('Use API: ' + useAPI);
         misc.writeToLogNoUsername('Loaded ' + chalk.yellow(accounts.length) + ' Accounts');
         misc.writeToLogNoUsername('Accounts: ' + chalk.greenBright(accounts));
-
-        envStatus.push('Headless: ' + headless);
-        envStatus.push('Keep Browser Open: ' + keepBrowserOpen);
-        envStatus.push('Login via Email: ' + loginViaEmail);
-        envStatus.push('Get data for local history: ' + getDataLocal);
-        envStatus.push('Claim Quest Reward: ' + claimQuestReward);
-        envStatus.push('Prioritize Quests: ' + prioritizeQuest);
-        envStatus.push('Telegram Notification: ' + teleNotif);
-        envStatus.push('Use API: ' + useAPI);
-        envStatus.push('Accounts: ' + chalk.greenBright(accounts));
-       
-        if (process.env.TELEGRAM_NOTIF === 'true'){ await tn.tbotResponse(envStatus)};
 
         while (true) {
             let logSummary = [];
