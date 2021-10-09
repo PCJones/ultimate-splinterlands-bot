@@ -33,7 +33,7 @@ async function checkForUpdate() {
     .then(response => response.json())
     .then(newestVersion => {
         if (newestVersion > version) {
-            tn.sender('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot')
+            tn.tbotResponse('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot')
             misc.writeToLogNoUsername(chalk.green('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot'));
             misc.writeToLogNoUsername(chalk.green('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot'));
             misc.writeToLogNoUsername(chalk.green('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot'));
@@ -47,57 +47,57 @@ async function checkForUpdate() {
 async function checkForMissingConfigs() {
     if (!process.env.TELEGRAM_NOTIF) {
 		misc.writeToLogNoUsername(chalk.red("Missing TELEGRAM_NOTIF parameter in .env - see updated .env-example!"));
-        tn.sender("ALERT: Missing TELEGRAM_NOTIF parameter in .env - see updated .env-example!")
+        tn.tbotResponse("ALERT: Missing TELEGRAM_NOTIF parameter in .env - see updated .env-example!")
 		await sleep(60000);
 	}
     if (!process.env.LOGIN_VIA_EMAIL) {
         misc.writeToLogNoUsername(chalk.red("Missing LOGIN_VIA_EMAIL parameter in .env - see updated .env-example!"));
-        tn.sender("ALERT: Missing LOGIN_VIA_EMAIL parameter in .env - see updated .env-example!")
+        tn.tbotResponse("ALERT: Missing LOGIN_VIA_EMAIL parameter in .env - see updated .env-example!")
         await sleep(60000);
     }
     if (!process.env.HEADLESS) {
         misc.writeToLogNoUsername(chalk.red("Missing HEADLESS parameter in .env - see updated .env-example!"));
-        tn.sender("ALERT: Missing HEADLESS parameter in .env - see updated .env-example!")
+        tn.tbotResponse("ALERT: Missing HEADLESS parameter in .env - see updated .env-example!")
         await sleep(60000);
     }
     if (!process.env.KEEP_BROWSER_OPEN) {
         misc.writeToLogNoUsername(chalk.red("Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!"));
-        tn.sender("ALERT: Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!");
+        tn.tbotResponse("ALERT: Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!");
         await sleep(60000);
     }
     if (!process.env.CLAIM_QUEST_REWARD) {
         misc.writeToLogNoUsername(chalk.red("Missing CLAIM_QUEST_REWARD parameter in .env - see updated .env-example!"));
-        tn.sender("ALERT: Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!");
+        tn.tbotResponse("ALERT: Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!");
         await sleep(60000);
     }
     if (!process.env.USE_CLASSIC_BOT_PRIVATE_API) {
         misc.writeToLogNoUsername(chalk.red("Missing USE_CLASSIC_BOT_PRIVATE_API parameter in .env - see updated .env-example!"));
-        tn.sender("ALERT: Missing USE_CLASSIC_BOT_PRIVATE_API parameter in .env - see updated .env-example!");
+        tn.tbotResponse("ALERT: Missing USE_CLASSIC_BOT_PRIVATE_API parameter in .env - see updated .env-example!");
         await sleep(60000);
     }
     if (!process.env.USE_API) {
         misc.writeToLogNoUsername(chalk.red("Missing USE_API parameter in .env - see updated .env-example!"));
-        tn.sender("ALERT: Missing USE_API parameter in .env - see updated .env-example!");
+        tn.tbotResponse("ALERT: Missing USE_API parameter in .env - see updated .env-example!");
         await sleep(60000);
     }
     if (!process.env.API_URL || (process.env.USE_API === 'true' && !process.env.API_URL.includes('http'))) {
         misc.writeToLogNoUsername(chalk.red("Missing API_URL parameter in .env - see updated .env-example!"));
-        tn.sender("ALERT: Missing API_URL parameter in .env - see updated .env-example!");
+        tn.tbotResponse("ALERT: Missing API_URL parameter in .env - see updated .env-example!");
         await sleep(60000);
     }
     if (process.env.USE_API === 'true' && process.env.USE_CLASSIC_BOT_PRIVATE_API === 'true') {
         misc.writeToLogNoUsername(chalk.red('Please only set USE_API or USE_CLASSIC_BOT_PRIVATE_API to true'));
-        tn.sender('ALERT: Please only set USE_API or USE_CLASSIC_BOT_PRIVATE_API to true');
+        tn.tbotResponse('ALERT: Please only set USE_API or USE_CLASSIC_BOT_PRIVATE_API to true');
         await sleep(60000);
     }
     if (!process.env.ERC_THRESHOLD) {
         misc.writeToLogNoUsername(chalk.red("Missing ERC_THRESHOLD parameter in .env - see updated .env-example!"));
-        tn.sender("ALERT: Missing ERC_THRESHOLD parameter in .env - see updated .env-example!");
+        tn.tbotResponse("ALERT: Missing ERC_THRESHOLD parameter in .env - see updated .env-example!");
         await sleep(60000);
     }
     if (!process.env.GET_DATA_FOR_LOCAL) {
         misc.writeToLogNoUsername(chalk.red("process.env.GET_DATA_FOR_LOCAL parameter in .env - see updated .env-example!"));
-        tn.sender("ALERT: Missing process.env.GET_DATA_FOR_LOCAL parameter in .env - see updated .env-example!");
+        tn.tbotResponse("ALERT: Missing process.env.GET_DATA_FOR_LOCAL parameter in .env - see updated .env-example!");
         await sleep(60000);
     }
 }
@@ -744,7 +744,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
             let logSummary = [];
             let battledata = [];
 			startTimer = new Date().getTime();
-			if (process.env.TELEGRAM_NOTIF === 'true'){ await tn.sender(' Bot Initiated: Battle now starting.' + ' \n' + ' Please wait for the battle results.')};
+			if (process.env.TELEGRAM_NOTIF === 'true'){ await tn.tbotResponse(' Bot Initiated: Battle now starting.' + ' \n' + ' Please wait for the battle results.')};
             for (let i = 0; i < accounts.length; i++) {
                 process.env['EMAIL'] = accounts[i];
                 process.env['PASSWORD'] = passwords[i];
@@ -825,7 +825,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
             
         }
     } catch (e) {
-        tn.sender("Bot stops due to error. Please see logs for details.");
+        tn.tbotResponse("Bot stops due to error. Please see logs for details.");
         console.log('Routine error at: ', new Date().toLocaleString(), e)
     }
 })();
