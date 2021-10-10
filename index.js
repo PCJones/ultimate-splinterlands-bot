@@ -33,7 +33,7 @@ async function checkForUpdate() {
     .then(response => response.json())
     .then(newestVersion => {
         if (newestVersion > version) {
-            tn.sender('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot')
+            if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot')}
             misc.writeToLogNoUsername(chalk.green('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot'));
             misc.writeToLogNoUsername(chalk.green('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot'));
             misc.writeToLogNoUsername(chalk.green('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot'));
@@ -47,57 +47,57 @@ async function checkForUpdate() {
 async function checkForMissingConfigs() {
     if (!process.env.TELEGRAM_NOTIF) {
 		misc.writeToLogNoUsername(chalk.red("Missing TELEGRAM_NOTIF parameter in .env - see updated .env-example!"));
-        tn.sender("ALERT: Missing TELEGRAM_NOTIF parameter in .env - see updated .env-example!")
+        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("ALERT: Missing TELEGRAM_NOTIF parameter in .env - see updated .env-example!")}
 		await sleep(60000);
 	}
     if (!process.env.LOGIN_VIA_EMAIL) {
         misc.writeToLogNoUsername(chalk.red("Missing LOGIN_VIA_EMAIL parameter in .env - see updated .env-example!"));
-        tn.sender("ALERT: Missing LOGIN_VIA_EMAIL parameter in .env - see updated .env-example!")
+        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("ALERT: Missing LOGIN_VIA_EMAIL parameter in .env - see updated .env-example!")}
         await sleep(60000);
     }
     if (!process.env.HEADLESS) {
         misc.writeToLogNoUsername(chalk.red("Missing HEADLESS parameter in .env - see updated .env-example!"));
-        tn.sender("ALERT: Missing HEADLESS parameter in .env - see updated .env-example!")
+        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("ALERT: Missing HEADLESS parameter in .env - see updated .env-example!")}
         await sleep(60000);
     }
     if (!process.env.KEEP_BROWSER_OPEN) {
         misc.writeToLogNoUsername(chalk.red("Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!"));
-        tn.sender("ALERT: Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!");
+        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("ALERT: Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!")};
         await sleep(60000);
     }
     if (!process.env.CLAIM_QUEST_REWARD) {
         misc.writeToLogNoUsername(chalk.red("Missing CLAIM_QUEST_REWARD parameter in .env - see updated .env-example!"));
-        tn.sender("ALERT: Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!");
+        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("ALERT: Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!")};
         await sleep(60000);
     }
     if (!process.env.USE_CLASSIC_BOT_PRIVATE_API) {
         misc.writeToLogNoUsername(chalk.red("Missing USE_CLASSIC_BOT_PRIVATE_API parameter in .env - see updated .env-example!"));
-        tn.sender("ALERT: Missing USE_CLASSIC_BOT_PRIVATE_API parameter in .env - see updated .env-example!");
+        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("ALERT: Missing USE_CLASSIC_BOT_PRIVATE_API parameter in .env - see updated .env-example!")};
         await sleep(60000);
     }
     if (!process.env.USE_API) {
         misc.writeToLogNoUsername(chalk.red("Missing USE_API parameter in .env - see updated .env-example!"));
-        tn.sender("ALERT: Missing USE_API parameter in .env - see updated .env-example!");
+        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("ALERT: Missing USE_API parameter in .env - see updated .env-example!")};
         await sleep(60000);
     }
     if (!process.env.API_URL || (process.env.USE_API === 'true' && !process.env.API_URL.includes('http'))) {
         misc.writeToLogNoUsername(chalk.red("Missing API_URL parameter in .env - see updated .env-example!"));
-        tn.sender("ALERT: Missing API_URL parameter in .env - see updated .env-example!");
+        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("ALERT: Missing API_URL parameter in .env - see updated .env-example!")};
         await sleep(60000);
     }
     if (process.env.USE_API === 'true' && process.env.USE_CLASSIC_BOT_PRIVATE_API === 'true') {
         misc.writeToLogNoUsername(chalk.red('Please only set USE_API or USE_CLASSIC_BOT_PRIVATE_API to true'));
-        tn.sender('ALERT: Please only set USE_API or USE_CLASSIC_BOT_PRIVATE_API to true');
+        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender('ALERT: Please only set USE_API or USE_CLASSIC_BOT_PRIVATE_API to true')};
         await sleep(60000);
     }
     if (!process.env.ERC_THRESHOLD) {
         misc.writeToLogNoUsername(chalk.red("Missing ERC_THRESHOLD parameter in .env - see updated .env-example!"));
-        tn.sender("ALERT: Missing ERC_THRESHOLD parameter in .env - see updated .env-example!");
+        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("ALERT: Missing ERC_THRESHOLD parameter in .env - see updated .env-example!")};
         await sleep(60000);
     }
     if (!process.env.GET_DATA_FOR_LOCAL) {
         misc.writeToLogNoUsername(chalk.red("process.env.GET_DATA_FOR_LOCAL parameter in .env - see updated .env-example!"));
-        tn.sender("ALERT: Missing process.env.GET_DATA_FOR_LOCAL parameter in .env - see updated .env-example!");
+        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("ALERT: Missing process.env.GET_DATA_FOR_LOCAL parameter in .env - see updated .env-example!")};
         await sleep(60000);
     }
 }
@@ -512,12 +512,28 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                 };
                 apiSelect = true;
                 console.log(chalk.cyan('Team picked by API: ' + JSON.stringify(teamToPlay)));
-                battledata.push(' API was used for this battle.')
-                // TEMP, testing
-                if (Object.values(apiResponse)[1] == '') {
-                    misc.writeToLog('Seems like the API found no possible team - using local history');
+                battledata.push(' Battle data used: API')
+                battledata.push(' Element used: ' + Object.values(apiResponse)[15].toString())
+                let subElement = helper.teamActualSplinterToPlay(splinters,teamToPlay.cards.slice(0, 6))
+                    // TEMP, testing
+                    if (Object.values(apiResponse)[1] == '') {
+                        misc.writeToLog('Seems like the API found no possible team - using local history');
+                        const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
+                        teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);  
+                    }
+                if (splinters.includes(subElement) == false ) {
+                    misc.writeToLog('API choose inappropriate splinter sub-element. Reverting to local history.');
                     const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
-                    teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);  
+                    if (possibleTeams && possibleTeams.length) {
+                        //misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
+                        misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);
+                    } else {
+                        misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
+                        throw new Error('NO TEAMS available to be played');
+                    }
+                    teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
+                    battledata.push( ' Battle data used: Local history')
+                    useAPI = false;   
                 }
             } else {
                 if (apiResponse && JSON.stringify(apiResponse).includes('api limit reached')) {
@@ -538,7 +554,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                     throw new Error('NO TEAMS available to be played');
                 }
                 teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
-                battledata.push( 'Local History was used for this battle.')
+                battledata.push( ' Battle data used: Local history')
                 useAPI = false;
             }
         } catch (e){
@@ -812,7 +828,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
             
         }
     } catch (e) {
-        tn.sender("Bot stops due to error. Please see logs for details.");
+        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("Bot stops due to error. Please see logs for details.")};
         console.log('Routine error at: ', new Date().toLocaleString(), e)
     }
 })();
