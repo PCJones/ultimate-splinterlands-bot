@@ -503,8 +503,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         try {
             const apiResponse = await withTimeout(100000, api.getPossibleTeams(matchDetails));
             if (apiResponse && !JSON.stringify(apiResponse).includes('api limit reached')) {
-                misc.writeToLog(chalk.magenta('API Response Result: ')); 
-                console.log(apiResponse)    
+                misc.writeToLog(chalk.magenta('API Response Result: '));    
                 teamToPlay = {
                     summoner: Object.values(apiResponse)[1],
                     cards: [Object.values(apiResponse)[1], Object.values(apiResponse)[3], Object.values(apiResponse)[5], Object.values(apiResponse)[7], Object.values(apiResponse)[9],
@@ -529,7 +528,20 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 
                 } else {
                     apiSelect = true;
-                    console.log(chalk.cyan('Team picked by API: ' + JSON.stringify(teamToPlay)));
+                    console.log(chalk.cyan('Team picked by API: '));
+                    console.table({
+                        Play_for_quest: Object.values(apiResponse)[0],
+                        Team_Rank: Object.values(apiResponse)[16],
+                        Win_Percentage : (Object.values(apiResponse)[2].replace(',','.')* 100).toFixed(2) + '%',   
+                        Element : Object.values(apiResponse)[15],  
+                        Summoner: Object.values(apiResponse)[1],
+                        Cards_1: Object.values(apiResponse)[3], 
+                        Cards_2: Object.values(apiResponse)[5],
+                        Cards_3: Object.values(apiResponse)[7],
+                        Cards_4: Object.values(apiResponse)[9],
+                        Cards_5: Object.values(apiResponse)[11],
+                        Cards_6:  Object.values(apiResponse)[13]         
+                    });
                     battledata.push(' Battle data used: API')
                     battledata.push(' Element used: ' + Object.values(apiResponse)[15].toString())
                         // TEMP, testing
