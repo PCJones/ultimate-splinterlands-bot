@@ -510,7 +510,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                     cards: [Object.values(apiResponse)[1], Object.values(apiResponse)[3], Object.values(apiResponse)[5], Object.values(apiResponse)[7], Object.values(apiResponse)[9],
                         Object.values(apiResponse)[11], Object.values(apiResponse)[13], Object.values(apiResponse)[15]]
                 };
-                let subElement = helper.teamActualSplinterToPlay(splinters,teamToPlay.cards.slice(0, 6))
+                let subElement = helper.teamActualSplinterToPlay(splinters,teamToPlay.cards.slice(0, 6)).toLowerCase()
                 
                 if (Object.values(apiResponse)[15] === 'dragon' && splinters.includes(subElement) == false ) {
 
