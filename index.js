@@ -511,7 +511,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                         Object.values(apiResponse)[11], Object.values(apiResponse)[13], Object.values(apiResponse)[15]]
                 };
                 let subElement = helper.teamActualSplinterToPlay(splinters,teamToPlay.cards.slice(0, 6))
-                    console.log(subElement)
+                
                 if (Object.values(apiResponse)[15] === 'dragon' && splinters.includes(subElement) == false ) {
 
                     misc.writeToLog('API choose inappropriate splinter sub-element. Reverting to local history.');
