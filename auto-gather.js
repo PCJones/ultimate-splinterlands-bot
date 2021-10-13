@@ -71,24 +71,17 @@ const extractMonster = (team) => {
 
     return {
         summoner_id: team.summoner.card_detail_id,
-        summoner_level: team.summoner.level,
         monster_1_id: monster1 ? monster1.card_detail_id : '',
-        monster_1_level: monster1 ? monster1.level : '',
         monster_1_abilities: monster1 ? monster1.abilities : '',
         monster_2_id: monster2 ? monster2.card_detail_id : '',
-        monster_2_level: monster2 ? monster2.level : '',
         monster_2_abilities: monster2 ? monster2.abilities : '',
         monster_3_id: monster3 ? monster3.card_detail_id : '',
-        monster_3_level: monster3 ? monster3.level : '',
         monster_3_abilities: monster3 ? monster3.abilities : '',
         monster_4_id: monster4 ? monster4.card_detail_id : '',
-        monster_4_level: monster4 ? monster4.level : '',
         monster_4_abilities: monster4 ? monster4.abilities : '',
         monster_5_id: monster5 ? monster5.card_detail_id : '',
-        monster_5_level: monster5 ? monster5.level : '',
         monster_5_abilities: monster5 ? monster5.abilities : '',
         monster_6_id: monster6 ? monster6.card_detail_id : '',
-        monster_6_level: monster6 ? monster6.level : '',
         monster_6_abilities: monster6 ? monster6.abilities : ''
     }
 }
@@ -101,7 +94,7 @@ let promises = [];
 
 const battles = async (player) =>  getBattleHistory(player)
   .then(u => u.map(x => { 
-      x.player_1 == process.env.ACCOUNT
+      //x.player_1 == process.env.ACCUSERNAME
     return [x.player_1, x.player_2] 
   }).reduce((acc, val) => acc.concat(val), []).filter(distinct))
   .then(ul => ul.map(user => {
