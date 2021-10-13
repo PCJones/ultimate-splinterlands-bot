@@ -539,7 +539,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                     cards: [Object.values(apiResponse)[1], Object.values(apiResponse)[3], Object.values(apiResponse)[5], Object.values(apiResponse)[7], Object.values(apiResponse)[9],
                         Object.values(apiResponse)[11], Object.values(apiResponse)[13], Object.values(apiResponse)[15]]
                 };
-                
+
                 if (Object.values(apiResponse)[15] === 'dragon' && splinters.includes(subElement) == false ) {
                     misc.writeToLog('Sub-element is ' + subElement + ' but not included on available splinters.')
                     misc.writeToLog('API choose inappropriate splinter sub-element. Reverting to local history.');
@@ -555,7 +555,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                     useAPI = false;  
 
                 } else {
-                if  (winPercent>=50 && process.env.AUTO_SWITCH.toLowerCase() == 'true') {  // auto-select to local if win percentage is below 50%
+                if  (winPercent>=50 && JSON.parse(process.env.AUTO_SWITCH.toLowerCase()) == 'true') {  // auto-select to local if win percentage is below 50%
                         apiSelect = true;
 
                         // TEMP, testing
