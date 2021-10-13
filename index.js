@@ -518,29 +518,9 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             const apiResponse = await withTimeout(100000, api.getPossibleTeams(matchDetails));
             if (apiResponse && !JSON.stringify(apiResponse).includes('api limit reached')) {
                 misc.writeToLog(chalk.magenta('API Response Result: ')); 
-                teamToPlay = {
-                    summoner: Object.values(apiResponse)[1],
-                    cards: [Object.values(apiResponse)[1], Object.values(apiResponse)[3], Object.values(apiResponse)[5], Object.values(apiResponse)[7], Object.values(apiResponse)[9],
-                        Object.values(apiResponse)[11], Object.values(apiResponse)[13], Object.values(apiResponse)[15]]
-                };
+                console.log(chalk.cyan(' Team picked by API: '));
+                let winPercent = (Object.values(apiResponse)[2].replace(',','.')* 100).toFixed(2)
                 let subElement = helper.teamActualSplinterToPlay(splinters,teamToPlay.cards.slice(0, 6)).toLowerCase()
-                if (Object.values(apiResponse)[15] === 'dragon' && splinters.includes(subElement) == false ) {
-
-                    misc.writeToLog('API choose inappropriate splinter sub-element. Reverting to local history.');
-                    const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
-                    if (possibleTeams && possibleTeams.length) {
-                        //misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
-                        misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);
-                    } else {
-                        misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
-                        throw new Error('NO TEAMS available to be played');
-                    }
-                    teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
-                    useAPI = false;  
-
-                } else {
-                    apiSelect = true;
-                    console.log(chalk.cyan('Team picked by API: '));
                     console.table({
                         'Play for quest': Object.values(apiResponse)[0],
                         'Team Rank': Object.values(apiResponse)[16],
@@ -554,12 +534,49 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                         'Cards 5': Object.values(apiResponse)[11],
                         'Cards 6': Object.values(apiResponse)[13]         
                     });
+                teamToPlay = {
+                    summoner: Object.values(apiResponse)[1],
+                    cards: [Object.values(apiResponse)[1], Object.values(apiResponse)[3], Object.values(apiResponse)[5], Object.values(apiResponse)[7], Object.values(apiResponse)[9],
+                        Object.values(apiResponse)[11], Object.values(apiResponse)[13], Object.values(apiResponse)[15]]
+                };
+                
+                if (Object.values(apiResponse)[15] === 'dragon' && splinters.includes(subElement) == false ) {
+                    misc.writeToLog('Sub-element is ' + subElement + ' but not included on available splinters.')
+                    misc.writeToLog('API choose inappropriate splinter sub-element. Reverting to local history.');
+                    const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
+                    if (possibleTeams && possibleTeams.length) {
+                        //misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
+                        misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);
+                    } else {
+                        misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
+                        throw new Error('NO TEAMS available to be played');
+                    }
+                    teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
+                    useAPI = false;  
+
+                } else {
+                if  (winPercent>=50 && process.env.AUTO_SWITCH.toLowerCase() == 'true') {  // auto-select to local if win percentage is below 50%
+                        apiSelect = true;
+
                         // TEMP, testing
                         if (Object.values(apiResponse)[1] == '') {
                             misc.writeToLog('Seems like the API found no possible team - using local history');
                             const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
                             teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);  
                         }
+                    } else {
+                        misc.writeToLog('API choose low winning percentage splinter . Reverting to local history.');
+                        const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
+                        if (possibleTeams && possibleTeams.length) {
+                            //misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
+                            misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);
+                        } else {
+                            misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
+                            throw new Error('NO TEAMS available to be played');
+                        }
+                        teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
+                        useAPI = false;  
+                    }    
                 }
             } else {
                 if (apiResponse && JSON.stringify(apiResponse).includes('api limit reached')) {
