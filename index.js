@@ -519,8 +519,6 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             if (apiResponse && !JSON.stringify(apiResponse).includes('api limit reached')) {
                 misc.writeToLog(chalk.magenta('API Response Result: ')); 
                 console.log(chalk.cyan(' Team picked by API: '));
-                let winPercent = (Object.values(apiResponse)[2].replace(',','.')* 100).toFixed(2)
-                let subElement = helper.teamActualSplinterToPlay(splinters,teamToPlay.cards.slice(0, 6)).toLowerCase()
                     console.table({
                         'Play for quest': Object.values(apiResponse)[0],
                         'Team Rank': Object.values(apiResponse)[16],
@@ -539,7 +537,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                     cards: [Object.values(apiResponse)[1], Object.values(apiResponse)[3], Object.values(apiResponse)[5], Object.values(apiResponse)[7], Object.values(apiResponse)[9],
                         Object.values(apiResponse)[11], Object.values(apiResponse)[13], Object.values(apiResponse)[15]]
                 };
-
+                   subElement = helper.teamActualSplinterToPlay(splinters,teamToPlay.cards.slice(0, 6)).toLowerCase()
                 if (Object.values(apiResponse)[15] === 'dragon' && splinters.includes(subElement) == false ) {
                     misc.writeToLog('Sub-element is ' + subElement + ' but not included on available splinters.')
                     misc.writeToLog('API choose inappropriate splinter sub-element. Reverting to local history.');
@@ -555,6 +553,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                     useAPI = false;  
 
                 } else {
+                     winPercent = (Object.values(apiResponse)[2].replace(',','.')* 100).toFixed(2)    
                 if  (winPercent>=50 && JSON.parse(process.env.AUTO_SWITCH.toLowerCase()) == 'true') {  // auto-select to local if win percentage is below 50%
                         apiSelect = true;
 
