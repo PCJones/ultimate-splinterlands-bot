@@ -285,13 +285,12 @@ async function selectCorrectBattleType(page) {
     }
 }
 
-async function startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary, getDataLocal, battledata, logSummary1) {
+async function startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary, getDataLocal, logSummary1) {
     newlogvisual = {};
     const ercThreshold = process.env.ERC_THRESHOLD;
     const allCardDetails = await readJSONFile(fnAllCardsDetails);
     logSummary.push(' \n -----' + process.env.ACCUSERNAME + '-----')
     logSummary1[process.env.ACCUSERNAME] = newlogvisual
-    battledata.push(' \n -----' + process.env.ACCUSERNAME + '-----')
     if (myCards) {
         misc.writeToLog('Deck size: ' + myCards.length)
     } else {
@@ -537,7 +536,6 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                         throw new Error('NO TEAMS available to be played');
                     }
                     teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
-                    battledata.push( ' Battle data used: Local history')
                     useAPI = false;  
 
                 } else {
@@ -556,8 +554,6 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                         'Cards 5': Object.values(apiResponse)[11],
                         'Cards 6': Object.values(apiResponse)[13]         
                     });
-                    battledata.push(' Battle data used: API')
-                    battledata.push(' Element used: ' + Object.values(apiResponse)[15].toString())
                         // TEMP, testing
                         if (Object.values(apiResponse)[1] == '') {
                             misc.writeToLog('Seems like the API found no possible team - using local history');
@@ -584,7 +580,6 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                     throw new Error('NO TEAMS available to be played');
                 }
                 teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
-                battledata.push( ' Battle data used: Local history')
                 useAPI = false;
             }
         } catch (e){
@@ -626,7 +621,6 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         }).then(summonerButton => summonerButton.click());
         if (card.color(teamToPlay.cards[0]) === 'Gold') {
             misc.writeToLog(' Dragon play TEAMCOLOR ' + helper.teamActualSplinterToPlay(splinters,teamToPlay.cards.slice(0, 6)))
-            battledata.push(' Dragon play TEAMCOLOR ' + helper.teamActualSplinterToPlay(splinters,teamToPlay.cards.slice(0, 6)))
             await page.waitForXPath(`//div[@data-original-title="${helper.teamActualSplinterToPlay(splinters,teamToPlay.cards.slice(0, 6))}"]`, {
                 timeout: 8000
             })
@@ -680,15 +674,12 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                 misc.writeToLog(chalk.green('You won! Reward: ' + decWon));
 				logSummary.push(' Battle result:' + chalk.green(' Win Reward: ' + decWon));
                 newlogvisual['Battle Result'] = 'Win ' + decWon
-                battledata.push(' Battle result: Won');
             } else if (draw.trim() == "Draw") {
                 misc.writeToLog(chalk.yellow("It's a draw"));
-                battledata.push(' Battle result: Draw');
                 logSummary.push(' Battle result:' + chalk.blueBright(' Draw'));
                 newlogvisual['Battle Result'] = 'Draw'
             } else {
                 misc.writeToLog(chalk.red('You lost :('));
-                battledata.push(' Battle result: Lost');
 				logSummary.push(' Battle result:' + chalk.red(' Lose'));
                 newlogvisual['Battle Result'] = 'Lose'
                 if (useAPI) {
@@ -697,12 +688,11 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             }
             if (getDataLocal == true) {
                 misc.writeToLog("Gathering winner's battle data for local history backup") 
-                battles.battlesList(process.env.ACCUSERNAME).then(x=>x).catch(() => misc.writeToLog('Unable to gather data for local.'));  
+                await battles.battlesList(process.env.ACCUSERNAME).then(x=>x).catch(() => misc.writeToLog('Unable to gather data for local.'));  
             }  
         } catch (e) {
                 misc.writeToLog(e);
                 misc.writeToLog(chalk.blueBright('Could not find winner'));
-                battledata.push(' Could not find winner');
                 logSummary.push(chalk.blueBright(' Could not find winner'));
                 newlogvisual['Battle Result'] = 'Could not find winner' 
         }
@@ -811,7 +801,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                 if (!quest) {
                     misc.writeToLog('Error for quest details. Splinterlands API didnt work or you used incorrect username');
                 }
-                await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary, getDataLocal , battledata, logSummary1)
+                await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary, getDataLocal , logSummary1)
                 .then(() => {
                     misc.writeToLog('Closing battle');
                 })
