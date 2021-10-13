@@ -18,7 +18,7 @@ const nq = require('./newquests');
 const fnAllCardsDetails  = ('./data/cardsDetails.json');
 const battles = require('./auto-gather');
 const version = 0.42;
-const unitverstion = 'PC'
+const unitverstion = 'desktop'
 
 async function readJSONFile(fn){
     const jsonString = fs.readFileSync(fn);
@@ -764,7 +764,6 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
         const prioritizeQuest = JSON.parse(process.env.QUEST_PRIORITY.toLowerCase());
         const teleNotif = JSON.parse(process.env.TELEGRAM_NOTIF.toLowerCase());
         const getDataLocal = JSON.parse(process.env.GET_DATA_FOR_LOCAL.toLowerCase());
-        const logDisplay = process.env.NEW_LOG_DISPLAY.toLowerCase();
 
 
         let browsers = [];
@@ -775,7 +774,6 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
         misc.writeToLogNoUsername('Claim Quest Reward: ' + claimQuestReward);
         misc.writeToLogNoUsername('Prioritize Quests: ' + prioritizeQuest);
         misc.writeToLogNoUsername('Telegram Notification: ' + teleNotif);
-        misc.writeToLogNoUsername('Log Display: ' + logDisplay);
         misc.writeToLogNoUsername('Use API: ' + useAPI);
         misc.writeToLogNoUsername('Loaded ' + chalk.yellow(accounts.length) + ' Accounts');
         misc.writeToLogNoUsername('Accounts: ' + chalk.greenBright(accounts));
@@ -839,14 +837,14 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 			let tet = ' Total execution time: ' + chalk.green((totalTime / 1000 / 60).toFixed(2) + ' mins')
             console.log('--------------------------Battle Result Summary:----------------------');
             console.log(tet);
-			if (logDisplay == 'default'){
+			if (unitverstion == 'default'){
                 if (accounts.length > 1) {
                     logSummary.forEach(x => console.log(x));
                 }
-            } else if (logDisplay == 'desktop') {
+            } else if (unitverstion == 'desktop') {
                 console.table(logSummary1)
 
-            } else if (logDisplay == 'mobile') {
+            } else if (unitverstion == 'mobile') {
                 console.table(logSummary1,["Power",'Battle Result','Rating','DEC Balance'])
                 console.table(logSummary1,['ERC', 'Quest','Reward'])
             }
