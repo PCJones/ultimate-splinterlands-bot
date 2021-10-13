@@ -81,7 +81,7 @@ async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, all
 
                     logSummary.push(" " + coloredElement  + " Quest: " + chalk.yellow(Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString()) + chalk.yellow(' Quest reward claimed!') + ' \n' + questRewardsMessage);
 
-                    newlogvisual['Quest'] = coloredElement + Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString()
+                    newlogvisual['Quest'] = coloredElement.replace(/\u001b[^m]*?m/g,"") + Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString()
                     newlogvisual['Reward'] = forNLV
                 })
                 .catch(err=>{
