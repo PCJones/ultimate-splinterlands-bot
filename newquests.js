@@ -3,7 +3,7 @@ const misc = require('./misc');
 const chalk = require('chalk');
 const fetch = require("node-fetch");
 
-async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, allCardDetails, searchFromJSON){
+async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, allCardDetails, searchFromJSON, newlogvisual){
 
     const questElement = Object.values(Newquest)[1].toString();
     if (questElement === "life") {
@@ -49,16 +49,19 @@ async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, all
 
                     if(questRewards.type == "potion"){
                         questRewardsMessage = ` Quest Reward: Recieved ${questRewards.quantity} ${questRewards.potion_type == 'gold' ? 'Alchemy' : 'Legendary'} Potion!`;
+                        forNLV =  `${questRewards.quantity} ${questRewards.potion_type == 'gold' ? 'Alchemy' : 'Legendary'} Potion`
                         misc.writeToLog( `You recieved ${questRewards.quantity} ${questRewards.potion_type == 'gold' ? 'Alchemy' : 'Legendary'} Potion!` )
                     }
 
                     if(questRewards.type == 'credits'){
                         questRewardsMessage = ` Quest Reward: Recieved ${questRewards.quantity} Credits!`;
+                        forNLV =  questRewards.quantity + ' Credits'
                         misc.writeToLog(`You recieved ${questRewards.quantity} Credits!`);
                     }
 
                     if (questRewards.type === 'dec'){
                         questRewardsMessage = ` Quest Reward: Recieved ${questRewards.quantity} DEC!`;
+                        forNLV =  questRewards.quantity + ' DEC'
                         misc.writeToLog(`You recieved ${questRewards.quantity} DEC!`);
                     }   
 
@@ -67,18 +70,25 @@ async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, all
                         let cardName = allCardDetails[(parseInt(card_id))-1].name.toString();
                         if(questRewards.card.gold){
                             questRewardsMessage = " Quest Reward: Recieved " + chalk.yellow(`Gold Foil ${cardName}`) + " card!";
+                            forNLV = 'Gold foil ' + cardName
                             misc.writeToLog( "You recieved " + chalk.yellow(`Gold Foil ${cardName}`) + " card!");
                         }else{
                             questRewardsMessage = " Quest Reward: Recieved " + chalk.grey(cardName) + " card!";
+                            forNLV = cardName
                             misc.writeToLog( "You recieved " + chalk.grey(cardName) + " card!");
                         }
                     }
 
                     logSummary.push(" " + coloredElement  + " Quest: " + chalk.yellow(Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString()) + chalk.yellow(' Quest reward claimed!') + ' \n' + questRewardsMessage);
+
+                    newlogvisual['Quest'] = coloredElement + Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString()
+                    newlogvisual['Reward'] = forNLV
                 })
                 .catch(err=>{
                     misc.writeToLog("Failed to get claim rewards information. " + err)
                     logSummary.push(" " + coloredElement  + " Quest: " + chalk.yellow(Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString()) + chalk.yellow(' Quest reward claimed but failed to get claim rewards information.') );  
+                    newlogvisual['Quest'] = coloredElement.replace(/\u001b[^m]*?m/g,"") + ' ' + Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString()
+                    newlogvisual['Reward'] = 'Reward claimed, no info'
                 });
                 // boart2k end
 
@@ -89,6 +99,8 @@ async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, all
     } catch (e) {
         misc.writeToLog('Updated Quest Details:' + coloredElement  + " Quest: " + Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString());
         logSummary.push(" " + coloredElement  + " Quest: " + chalk.yellow(Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString()) + chalk.red(' No quest reward...'));
+        newlogvisual['Quest'] = coloredElement.replace(/\u001b[^m]*?m/g,"") + ' ' + Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString()
+        newlogvisual['Reward'] = 'No quest reward'
     }
 }  
 
