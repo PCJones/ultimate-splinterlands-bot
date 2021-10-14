@@ -31,9 +31,9 @@ function uniqueListByKey(arr, key) {
           .then((battleHistory) => {
               return battleHistory.json();
           })
-          .catch((error) => {
+          .catch(async (error) => {
             misc.writeToLogNoUsername('Failed to fetch battle data. Trying another api');
-              fetch('https://api2.splinterlands.com/battle/history?player=' + player)
+             await fetch('https://api2.splinterlands.com/battle/history?player=' + player)
           .	then((response) => {
               if (!response.ok) {
                   throw new Error('Network response was not ok '+player);
@@ -92,7 +92,7 @@ let promises = [];
 
 
 
-const battles = async (player) =>  getBattleHistory(player)
+const battles = async (player) =>  await getBattleHistory(player)
   .then(u => u.map(x => { 
       //x.player_1 == process.env.ACCUSERNAME
     return [x.player_1, x.player_2] 
