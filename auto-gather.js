@@ -6,6 +6,7 @@ const chalk = require('chalk');
 
 
 
+
 const distinct = (value, index, self) => {
     return self.indexOf(value) === index;
 }
@@ -21,7 +22,7 @@ function uniqueListByKey(arr, key) {
   
   async function getBattleHistory(player = '', data = {}) {
       //console.log('player', player);
-      const battleHistory = await fetch('https://game-api.splinterlands.io/battle/history?player=' + player)
+      const battleHistory = await fetch(`https://game-api.splinterlands.io/battle/history?player=${player}`)
           .then((response) => {
               if (!response.ok) {
                   throw new Error('Network response was not ok '+player);
@@ -33,8 +34,19 @@ function uniqueListByKey(arr, key) {
           })
           .catch(async (error) => {
             misc.writeToLogNoUsername('Failed to fetch battle data. Trying another api');
-             await fetch('https://api2.splinterlands.com/battle/history?player=' + player)
-          .	then((response) => {
+            await fetch(`https://game-api.splinterlands.io/battle/history?player=${player}`)
+             .then((response) => {
+              if (!response.ok) {
+                  throw new Error('Network response was not ok '+player);
+              }
+              return response;
+          })
+          .then((battleHistory) => {
+              return battleHistory.json();
+          }) .catch(async (error) => {
+            misc.writeToLogNoUsername('Failed to fetch battle data. Trying another api');
+            await fetch(`https://cache-api.splinterlands.io/battle/history?player=${player}`)
+             .then((response) => {
               if (!response.ok) {
                   throw new Error('Network response was not ok '+player);
               }
@@ -47,10 +59,13 @@ function uniqueListByKey(arr, key) {
             misc.writeToLogNoUsername('There has been a problem with your fetch operation:', error);
           });
         });
+      });
         console.log.bind('Gathering data of players...');
       return battleHistory.battles;
       
   }
+ 
+
 const extractGeneralInfo = (x) => {
     return {
         //created_date: x.created_date ? x.created_date : '',
