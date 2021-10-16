@@ -28,12 +28,15 @@ async function battlesummary(logSummary,tet,sleepingTime, sleep){
             var amount_sliced = messageString.length / max_size
             var start = 0
             var end = max_size
-            for (let i = 0; i < amount_sliced; i++) {
-                message = messageString.slice(start, end) 
-                bot.sendMessage(process.env.TELEGRAM_CHATID, message);
-                sleep(8000);
-                start = start + max_size
-                end = end + max_size
+            if (amount_sliced>1) {
+                for (let i = 0; i < amount_sliced; i++) {
+                    message = messageString.slice(start, end) 
+                    await bot.sendMessage(process.env.TELEGRAM_CHATID, message)
+                    start = start + max_size
+                    end = end + max_size
+                }
+            } else {
+                await bot.sendMessage(process.env.TELEGRAM_CHATID, message)
             }
             //notify.send(message);
             console.log(chalk.green(' \n' + ' Battle result sent to telegram'));
