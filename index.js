@@ -18,7 +18,7 @@ const nq = require('./newquests');
 const fnAllCardsDetails  = ('./data/cardsDetails.json');
 const battles = require('./auto-gather');
 const version = 0.42;
-const unitverstion = 'desktop'
+const unitVersion = 'desktop'
 
 async function readJSONFile(fn){
     const jsonString = fs.readFileSync(fn);
@@ -813,19 +813,19 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 			let tet = ' Total execution time: ' + chalk.green((totalTime / 1000 / 60).toFixed(2) + ' mins')
             console.log('--------------------------Battle Result Summary:----------------------');
             console.log(tet);
-			if (unitverstion == 'default'){
+			if (unitVersion == 'default'){
                 if (accounts.length > 1) {
                     logSummary.forEach(x => console.log(x));
                 }
-            } else if (unitverstion == 'desktop') {
+            } else if (unitVersion == 'desktop') {
                 console.table(logSummary1)
-                if (seasonRewards){
+                if (seasonRewards.length > 0){
                     console.table(seasonRewards)
                }
-            } else if (unitverstion == 'mobile') {
+            } else if (unitVersion == 'mobile') {
                 console.table(logSummary1,["Power",'Battle Result','Rating','DEC Balance'])
                 console.table(logSummary1,['ERC', 'Quest','Reward'])
-                if (seasonRewards){
+                if (seasonRewards.length > 0){
                     console.table(seasonRewards)
                }
             }
