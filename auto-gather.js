@@ -1,9 +1,8 @@
 require('dotenv').config()
-const fetch = require("node-fetch");
+const fetch = require('cross-fetch');
 const fs = require('fs');
 const misc = require('./misc');
 const chalk = require('chalk');
-
 
 
 
@@ -19,11 +18,25 @@ function uniqueListByKey(arr, key) {
   return [...new Map(arr.map(item => [item[key], item])).values()]
 }
 
-  
+async function delay() {
+  return new Promise(resolve => {resolve()})
+}
+//const twirlTimer = (function() {
+  //var P = ["Processing |", "Processing /", "Processing -", "Processing \\"];
+  //var x = 0;
+  //return setInterval(function() {
+    //process.stdout.write("\r" + P[x++]);
+    //x &= 3;
+  //}, 250);
+//})();
+
   async function getBattleHistory(player = '', data = {}) {
-      //console.log('player', player);
+    process.stdout.write("gathering data of " + player)
+    process.readline.clearLine();
+    process.readline.cursorTo(0);
       const battleHistory = await fetch(`https://game-api.splinterlands.io/battle/history?player=${player}`)
-          .then((response) => {
+          .then(async (response) => {
+              await delay();
               if (!response.ok) {
                   throw new Error('Network response was not ok '+player);
               }
@@ -34,7 +47,8 @@ function uniqueListByKey(arr, key) {
           })
           .catch(async (error) => {
             misc.writeToLogNoUsername('Failed to fetch battle data. Trying another api');
-            await fetch(`https://game-api.splinterlands.io/battle/history?player=${player}`)
+            await fetch(`https://game-api.splinterlands.io/battle/history?player=${player}`, {
+              mode: 'no-cors'})
              .then((response) => {
               if (!response.ok) {
                   throw new Error('Network response was not ok '+player);
@@ -45,7 +59,8 @@ function uniqueListByKey(arr, key) {
               return battleHistory.json();
           }) .catch(async (error) => {
             misc.writeToLogNoUsername('Failed to fetch battle data. Trying another api');
-            await fetch(`https://cache-api.splinterlands.io/battle/history?player=${player}`)
+            await fetch(`https://cache-api.splinterlands.io/battle/history?player=${player}`, {
+              mode: 'no-cors'})
              .then((response) => {
               if (!response.ok) {
                   throw new Error('Network response was not ok '+player);
@@ -60,7 +75,7 @@ function uniqueListByKey(arr, key) {
           });
         });
       });
-        console.log.bind('Gathering data of players...');
+        
       return battleHistory.battles;
       
   }
@@ -169,5 +184,7 @@ const battles = async (player) =>  await getBattleHistory(player)
       res(battlesList)
     });
   }) })
-
-module.exports.battlesList = battles;
+    //clearInterval(twirlTimer)
+    //process.stdout.clearLine();
+    //process.stdout.cursorTo(0);
+exports.battlesList = battles;
