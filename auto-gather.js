@@ -31,9 +31,6 @@ async function delay() {
 //})();
 
   async function getBattleHistory(player = '', data = {}) {
-    process.stdout.write("gathering data of " + player)
-    process.readline.clearLine();
-    process.readline.cursorTo(0);
       const battleHistory = await fetch(`https://game-api.splinterlands.io/battle/history?player=${player}`)
           .then(async (response) => {
               await delay();
@@ -42,8 +39,8 @@ async function delay() {
               }
               return response;
           })
-          .then((battleHistory) => {
-              return battleHistory.json();
+          .then(async (battleHistory) => {
+              return await battleHistory.json();
           })
           .catch(async (error) => {
             misc.writeToLogNoUsername('Failed to fetch battle data. Trying another api');
@@ -55,8 +52,8 @@ async function delay() {
               }
               return response;
           })
-          .then((battleHistory) => {
-              return battleHistory.json();
+          .then(async (battleHistory) => {
+              return await battleHistory.json();
           }) .catch(async (error) => {
             misc.writeToLogNoUsername('Failed to fetch battle data. Trying another api');
             await fetch(`https://cache-api.splinterlands.io/battle/history?player=${player}`, {
@@ -67,8 +64,8 @@ async function delay() {
               }
               return response;
           })
-          .then((battleHistory) => {
-              return battleHistory.json();
+          .then(async (battleHistory) => {
+              return await battleHistory.json();
           })
           .catch((error) => {
             misc.writeToLogNoUsername('There has been a problem with your fetch operation:', error);
@@ -76,7 +73,7 @@ async function delay() {
         });
       });
         
-      return battleHistory.battles;
+      return await battleHistory.battles;
       
   }
  
