@@ -1,3 +1,4 @@
+require('dotenv').config()
 if (process.env.TELEGRAM_NOTIF === 'true'){
 const fs = require('fs')
 const chalk = require('chalk');
@@ -8,13 +9,12 @@ const bot = new TeleBot({
         proxy: ''
     } 
 });
-bot.start();
-
-async function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+function startTG() {
+    return bot.start();
 }
 
-async function battlesummary(logSummary,tet,sleepingTime, sleep){
+
+async function battlesummary(logSummary,tet,sleepingTime){
     try {
             message = 'Battle result summary: \n' + " " + new Date().toLocaleString() + ' \n' + tet.replace(/\u001b[^m]*?m/g,"") + ' \n';
             for (let i = 0; i < logSummary.length; i++) {
@@ -44,6 +44,7 @@ async function battlesummary(logSummary,tet,sleepingTime, sleep){
         } catch (e) {
                 console.log(chalk.red(' [ERROR] Unable to send battle result to Telegram. Please make sure telegram setting is correct.'));
                 bot.sendMessage(ChatId, ' [ERROR] Unable to send battle result to Telegram. Please make sure telegram setting is correct.');
+                return;
         }   
         message = '';	
 }
@@ -55,8 +56,7 @@ function sender (logMessage) {
    return 
 }
 
-
+module.exports.startTG = startTG;
 exports.sender =sender; 
 exports.battlesummary = battlesummary;
-
 }

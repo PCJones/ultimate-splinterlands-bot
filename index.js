@@ -210,15 +210,16 @@ async function createBrowsers(count, headless) {
                 product: 'chrome',
                 headless: headless,
                 args: process.env.CHROME_NO_SANDBOX === 'true' ? ["--no-sandbox"] : [
-                    '--incognito',
+                    //'--incognito',
+                    //'--disable-features=BlockInsecurePrivateNetworkRequests',
                     //'--disable-web-security',
                     //'--disable-features=IsolateOrigins',
                     //'--disable-site-isolation-trials'
                 ],
             });
         const page = await browser.newPage();
-        await page.setDefaultNavigationTimeout(500000);
-        await page.on('dialog', async dialog => {
+        page.setDefaultNavigationTimeout(500000);
+        page.on('dialog', async dialog => {
             await dialog.accept();
         });
 
@@ -285,7 +286,7 @@ async function selectCorrectBattleType(page) {
 }
 
 async function startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary, getDataLocal, logSummary1, seasonRewards) {
-    newlogvisual = {};
+    let newlogvisual = {};
     const ercThreshold = process.env.ERC_THRESHOLD;
     const allCardDetails = await readJSONFile(fnAllCardsDetails);
     logSummary.push(' \n -----' + process.env.ACCUSERNAME + '-----')
@@ -302,11 +303,11 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         deviceScaleFactor: 1,
     });
 
-    await page.goto('https://splinterlands.com/?p=battle_history');
+    await page.goto('https://splinterlands.io/?p=battle_history');
     await page.waitForTimeout(4000);
 
     let username = await getElementText(page, '.dropdown-toggle .bio__name__display', 10000).catch(async () => {
-        await page.goto('https://splinterlands.com/?p=battle_history');
+        await page.goto('https://splinterlands.io');
         await page.waitForTimeout(4000);
         await getElementText(page, '.dropdown-toggle .bio__name__display', 10000)
     });
@@ -317,14 +318,14 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         misc.writeToLog('Login')
         await splinterlandsPage.login(page).catch(async () => {
             misc.writeToLog('Unable to login. Trying to reload page again.');
-            await page.goto('https://splinterlands.com/?p=battle_history');
+            await page.goto('https://splinterlands.io/?p=battle_history');
             await page.waitForTimeout(4000);
             await getElementText(page, '.dropdown-toggle .bio__name__display', 10000)
                 await splinterlandsPage.login(page).catch(e => {
                 misc.writeToLog(e);
                 logSummary.push(chalk.red(' No records due to login error'));
                 misc.writeToLog('Skipping this account due to to login error. \n');
-                throw new Error(e);
+                return;
                 });
         });
     }
@@ -332,7 +333,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     try {
         erc = parseInt((await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 1000)).split('%')[0]);
     } catch {
-        await page.goto('https://splinterlands.com/?p=battle_history');
+        await page.goto('https://splinterlands.io/?p=battle_history');
         erc = parseInt((await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 1000)).split('%')[0]);
     }
     if (erc >= 50) {
@@ -380,9 +381,8 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         await page.waitForTimeout(3000);
     }
 
-    let curRating = await getElementText(page, 'span.number_text', 2000);
+    let curRating = await getElementText(page, 'span.number_text', 2000).catch(() => {misc.writeToLog('Unable to get current Rating')} );
     misc.writeToLog('Current Rating is ' + chalk.yellow(curRating));
-    logSummary.push('Current Rating is ' + chalk.yellow(curRating));
 
     if (!page.url().includes("battle_history")) {
         misc.writeToLog("Seems like battle button menu didn't get clicked correctly - try again");
@@ -436,7 +436,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             .then(() => misc.writeToLog('start the match'))
             .catch(async() => {
                 misc.writeToLog('second attempt failed reloading from homepage...');
-                await page.goto('https://splinterlands.com/?p=battle_history');
+                await page.goto('https://splinterlands.io/?p=battle_history');
                 await page.waitForTimeout(5000);
                 await page.waitForXPath("//button[contains(., 'BATTLE')]", {
                     timeout: 20000
@@ -450,14 +450,16 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                 .then(() => misc.writeToLog('start the match'))
                 .catch((e) => {
                     misc.writeToLog('third attempt failed');
-                    throw new Error(e);
+                    misc.writeToLog('Skipping account due to error')
+                    logSummary.push(' Skipping account due to error')
+                    return;
                 })
             })
         })
     } catch (e) {
         misc.writeErrorToLog('[Battle cannot start]:', e)
         logSummary.push(chalk.red(' No records due to battle error'));
-        throw new Error('The Battle cannot start');
+        return;
 
     }
     await page.waitForTimeout(10000);
@@ -515,7 +517,8 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                         misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);
                     } else {
                         misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
-                        throw new Error('NO TEAMS available to be played');
+                        logSummary.push(' NO TEAMS available to be played')
+                        return ('NO TEAMS available to be played');
                     }
                     teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
                     useAPI = false;  
@@ -530,7 +533,8 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                             misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);
                         } else {
                             misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
-                            throw new Error('NO TEAMS available to be played');
+                            logSummary.push(' NO TEAMS available to be played')
+                            return;
                         }
                         teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
                         useAPI = false; 
@@ -560,6 +564,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                     misc.writeToLog('Possible Teams based on your cards: ' + possibleTeams.length);
                 } else {
                     misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
+                    logSummary.push(' NO TEAMS available to be played')
                     throw new Error('NO TEAMS available to be played');
                 }
                 teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
@@ -573,7 +578,8 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                 misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);
             } else {
                 misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
-                throw new Error('NO TEAMS available to be played');
+                logSummary.push(' NO TEAMS available to be played');
+                throw new Error(' NO TEAMS available to be played');
             }
             teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
             useAPI = false;
@@ -585,29 +591,53 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);
         } else {
             misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
-            throw new Error('NO TEAMS available to be played');
+            logSummary.push(' NO TEAMS available to be played')
+            throw new Error(' NO TEAMS available to be played');
         }
         teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
         useAPI = false;
     }
 
     if (teamToPlay) {
-        page.click('.btn--create-team')[0];
+        await page.click('.btn--create-team')[0];
     } else {
-        throw new Error('Team Selection error');
+        await page.reload().then(() =>{
+        await page.waitForTimeout(5000); 
+        await page.click('.btn--create-team')[0];   
+        }).catch((e) => {
+            logSummary.push('Team Selection error')
+            throw new Error('Team Selection error');
+        })
     }
     await page.waitForTimeout(5000);
     try {
         await sleep(300);
         await page.waitForXPath(`//div[@card_detail_id="${teamToPlay.summoner}"]`, {
             timeout: 15000
-        }).then(summonerButton => summonerButton.click());
+        }).then(summonerButton => summonerButton.click()).catch( async (error) =>{ 
+          await page.reload()
+          await page.waitForTimeout(5000);
+          page.click('.btn--create-team')[0];
+          await page.waitForTimeout(5000);
+          await page.waitForXPath(`//div[@card_detail_id="${teamToPlay.summoner}"]`, {
+            timeout: 30000
+            }).then(summonerButton => summonerButton.click())
+        });
         if (card.color(teamToPlay.cards[0]) === 'Gold') {
             misc.writeToLog(' Dragon play TEAMCOLOR ' + helper.teamActualSplinterToPlay(splinters,teamToPlay.cards.slice(0, 6)))
             await page.waitForXPath(`//div[@data-original-title="${helper.teamActualSplinterToPlay(splinters,teamToPlay.cards.slice(0, 6))}"]`, {
                 timeout: 8000
             })
+            .then(selector => selector.click()).catch( async (error) =>{ 
+                await page.reload()
+                await page.waitForTimeout(5000);
+                page.click('.btn--create-team')[0];
+                await page.waitForTimeout(5000);
+                await page.waitForXPath(`//div[@data-original-title="${helper.teamActualSplinterToPlay(splinters,teamToPlay.cards.slice(0, 6))}"]`, {
+                timeout: 30000
+            })
             .then(selector => selector.click())
+            }); 
         }
         await page.waitForTimeout(10000);
         misc.writeToLog('Summoner: ' + chalk.yellow(teamToPlay.summoner.toString().padStart(3)) + ' Name: ' + chalk.green(allCardDetails[(parseInt(teamToPlay.summoner))-1].name.toString()));
@@ -647,13 +677,16 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 
         try {
             misc.writeToLog('Getting battle result...');
-            await page.goto('https://splinterlands.com/?p=battle_history');
+            await page.goto('https://splinterlands.io/?p=battle_history');
             await waitUntilLoaded(page);
             await page.waitForTimeout(5000);
-            const winner = await await getElementText(page, '.battle-log-entry .battle-log-entry__team.win  .bio__name__display', 15000);
-            const draw = await getElementText(page, '.battle-log-entry .battle-log-entry__vs .conflict__title', 15000);
+            const winner = await getElementText(page, '.battle-log-entry .battle-log-entry__team.win  .bio__name__display', 15000).catch( async () =>{
+                await getElementText(page, '.battle-log-entry .battle-log-entry__team.win  .bio__name__display', 15000)});
+            const draw = await getElementText(page, '.battle-log-entry .battle-log-entry__vs .conflict__title', 15000).catch( async () =>{
+                await getElementText(page, '.battle-log-entry .battle-log-entry__vs .conflict__title', 15000)});
             if (winner.trim() == process.env.ACCUSERNAME.trim()) {
-                const decWon = await getElementText(page, '.battle-log-entry .battle-log-entry__vs.win  .conflict__dec', 1000);
+                const decWon = await getElementText(page, '.battle-log-entry .battle-log-entry__vs.win  .conflict__dec', 1000).catch( async () =>{
+                    await getElementText(page, '.battle-log-entry .battle-log-entry__vs.win  .conflict__dec', 1000)});
                 misc.writeToLog(chalk.green('You won! Reward: ' + decWon));
 				logSummary.push(' Battle result:' + chalk.green(' Win Reward: ' + decWon));
                 newlogvisual['Battle Result'] = 'Win ' + decWon
@@ -714,7 +747,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         teamToPlay = '';
     } catch (e) {
         logSummary.push(chalk.red(' Unable to proceed due to error. Please see logs'));
-        throw new Error(e);
+        return;
     }
 }
 
@@ -724,6 +757,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 
 (async() => {
     try {
+        tn.startTG()
         await checkForUpdate();
         await checkForMissingConfigs();
         const loginViaEmail = JSON.parse(process.env.LOGIN_VIA_EMAIL.toLowerCase());
