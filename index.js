@@ -601,7 +601,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     if (teamToPlay) {
         await page.click('.btn--create-team')[0];
     } else {
-        await page.reload().then(() =>{
+        await page.reload().then(async () =>{
         await page.waitForTimeout(5000); 
         await page.click('.btn--create-team')[0];   
         }).catch((e) => {
