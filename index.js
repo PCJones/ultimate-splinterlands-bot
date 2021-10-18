@@ -286,6 +286,7 @@ async function selectCorrectBattleType(page) {
 }
 
 async function startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary, getDataLocal, logSummary1, seasonRewards) {
+  try{
     let newlogvisual = {};
     const ercThreshold = process.env.ERC_THRESHOLD;
     const allCardDetails = await readJSONFile(fnAllCardsDetails);
@@ -325,7 +326,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                 misc.writeToLog(e);
                 logSummary.push(chalk.red(' No records due to login error'));
                 misc.writeToLog('Skipping this account due to to login error. \n');
-                return;
+                throw new Error;
                 });
         });
     }
@@ -334,7 +335,14 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         erc = parseInt((await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 1000)).split('%')[0]);
     } catch {
         await page.goto('https://splinterlands.io/?p=battle_history');
-        erc = parseInt((await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 1000)).split('%')[0]);
+        try{
+            erc = parseInt((await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 1000)).split('%')[0]);
+        } catch (e){
+            misc.writeToLog('Unable to get ERC - Skipping this account');
+            logSummary.push(' Unable to get ERC - Skipping this account');
+            battledata.push('Unable to get ERC, account skipped');
+            return;
+        } 
     }
     if (erc >= 50) {
         misc.writeToLog('Current Energy Capture Rate is ' + chalk.green(erc + "%"));
@@ -452,7 +460,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                     misc.writeToLog('third attempt failed');
                     misc.writeToLog('Skipping account due to error')
                     logSummary.push(' Skipping account due to error')
-                    return;
+                    throw new Error;
                 })
             })
         })
@@ -480,6 +488,11 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     await page.waitForTimeout(1000);
     //TEAM SELECTION
     let teamToPlay;
+    if (!mana) { 
+        logSummary.push(' No Mana error. Skipping account.')
+        battledata.push(' No Mana error. Skipping account.')
+        throw new Error(" No mana. Game server error.");
+    }
     misc.writeToLog(chalk.green('Battle details:'));  
     misc.writeToLog('Mana:'+  chalk.yellow(mana) + ' Rules:' + chalk.yellow(rules) + ' Splinters:' + chalk.yellow(splinters))
     misc.writeToLog(chalk.green('starting team selection'));
@@ -518,7 +531,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                     } else {
                         misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
                         logSummary.push(' NO TEAMS available to be played')
-                        return ('NO TEAMS available to be played');
+                        throw new Error ('NO TEAMS available to be played');
                     }
                     teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
                     useAPI = false;  
@@ -534,7 +547,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                         } else {
                             misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
                             logSummary.push(' NO TEAMS available to be played')
-                            return;
+                            throw new Error (' NO TEAMS available to be played');
                         }
                         teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
                         useAPI = false; 
@@ -565,7 +578,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                 } else {
                     misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
                     logSummary.push(' NO TEAMS available to be played')
-                    return ('NO TEAMS available to be played');
+                    throw new Error ('NO TEAMS available to be played');
                 }
                 teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
                 useAPI = false;
@@ -579,7 +592,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             } else {
                 misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
                 logSummary.push(' NO TEAMS available to be played');
-                return (' NO TEAMS available to be played');
+                throw new Error (' NO TEAMS available to be played');
             }
             teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
             useAPI = false;
@@ -592,7 +605,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         } else {
             misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
             logSummary.push(' NO TEAMS available to be played')
-            return (' NO TEAMS available to be played');
+            throw new Error (' NO TEAMS available to be played');
         }
         teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
         useAPI = false;
@@ -606,7 +619,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         await page.click('.btn--create-team')[0];   
         }).catch((e) => {
             logSummary.push('Team Selection error')
-            return ('Team Selection error');
+            throw new Error ('Team Selection error');
         })
     }
     await page.waitForTimeout(5000);
@@ -749,6 +762,9 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         logSummary.push(chalk.red(' Unable to proceed due to error. Please see logs'));
         return;
     }
+ } catch {
+     return;
+ } 
 }
 
 // 30 MINUTES INTERVAL BETWEEN EACH MATCH (if not specified in the .env file)
