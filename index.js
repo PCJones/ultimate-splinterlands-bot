@@ -717,7 +717,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             }
             if (getDataLocal == true) {
                 misc.writeToLog("Gathering winner's battle data for local history backup") 
-                await battles.battlesList(winner).then(x=>x).catch((e) => misc.writeToLog('Unable to gather data for local.' + e));  
+                await withTimeout(150000, await battles.battlesList(winner)).then(x=>x).catch((e) => misc.writeToLog('Unable to gather data for local.' + e));  
             }  
         } catch (e) {
                 misc.writeToLog(e);
