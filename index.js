@@ -565,7 +565,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                 } else {
                     misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
                     logSummary.push(' NO TEAMS available to be played')
-                    throw new Error('NO TEAMS available to be played');
+                    return ('NO TEAMS available to be played');
                 }
                 teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
                 useAPI = false;
@@ -579,7 +579,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             } else {
                 misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
                 logSummary.push(' NO TEAMS available to be played');
-                throw new Error(' NO TEAMS available to be played');
+                return (' NO TEAMS available to be played');
             }
             teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
             useAPI = false;
@@ -592,7 +592,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         } else {
             misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
             logSummary.push(' NO TEAMS available to be played')
-            throw new Error(' NO TEAMS available to be played');
+            return (' NO TEAMS available to be played');
         }
         teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
         useAPI = false;
@@ -606,7 +606,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         await page.click('.btn--create-team')[0];   
         }).catch((e) => {
             logSummary.push('Team Selection error')
-            throw new Error('Team Selection error');
+            return ('Team Selection error');
         })
     }
     await page.waitForTimeout(5000);
@@ -757,7 +757,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 
 (async() => {
     try {
-        if (process.env.TELEGRAM_NOTIF === 'true') { await tn.startTG()}
+        if (process.env.TELEGRAM_NOTIF === 'true') { tn.startTG()}
         await checkForUpdate();
         await checkForMissingConfigs();
         const loginViaEmail = JSON.parse(process.env.LOGIN_VIA_EMAIL.toLowerCase());
