@@ -1,8 +1,9 @@
 require('dotenv').config()
-const fetch = require('node-fetch');
+const fetch = require('cross-fetch');
 const fs = require('fs');
 const misc = require('./misc');
 const chalk = require('chalk');
+const axios = require('axios');
 
 
 
@@ -33,7 +34,6 @@ async function delay() {
   async function getBattleHistory(player = '', data = {}) {
       const battleHistory = await fetch(`https://game-api.splinterlands.io/battle/history?player=${player}`)
           .then(async (response) => {
-              await delay();
               if (!response.ok) {
                   throw new Error('Network response was not ok '+player);
               }
@@ -170,7 +170,7 @@ const battles = async (player) =>  await getBattleHistory(player)
       battlesList = uniqueListByKey(battlesList.filter(x => x != undefined),"battle_queue_id")
       misc.writeToLog('Adding data to battle history....');
       misc.writeToLog(chalk.yellow(battlesList.length))
-      fs.writeFile(`data/newHistory.json`, JSON.stringify(battlesList), function (err) {
+      fs.appendFile(`data/newHistory.json`, JSON.stringify(battlesList), function (err) {
         if (err) {
           misc.writeToLog(err,'a'); rej(err);
         }
