@@ -170,7 +170,7 @@ const battles = async (player) =>  await getBattleHistory(player)
       battlesList = uniqueListByKey(battlesList.filter(x => x != undefined),"battle_queue_id")
       misc.writeToLog('Adding data to battle history....');
       misc.writeToLog(chalk.yellow(battlesList.length))
-      fs.appendFile(`data/newHistory.json`, JSON.stringify(battlesList), function (err) {
+      fs.writeFile(`data/newHistory.json`, JSON.stringify(battlesList), function (err) {
         if (err) {
           misc.writeToLog(err,'a'); rej(err);
         }
