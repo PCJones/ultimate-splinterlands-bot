@@ -806,8 +806,8 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
         while (true) {
             let logSummary = [];
             let logSummary1 = [];
-            let seasonRewards = [],
-			startTimer = new Date().getTime();
+            let seasonRewards = [];
+			let startTimer = new Date().getTime();
 			if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender(' Bot Initiated: Battle now starting.' + ' \n' + ' Please wait for the battle results.')};
             for (let i = 0; i < accounts.length; i++) {
                 process.env['EMAIL'] = accounts[i];
@@ -889,6 +889,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
             console.log(chalk.green('Join the telegram group https://t.me/ultimatesplinterlandsbot and discord https://discord.gg/hwSr7KNGs9'));
             console.log('--------------------------End of Battle--------------------------------');
             seasonRewards = ''
+            startTimer = ''
             await new Promise(r => setTimeout(r, sleepingTime));
             
         }

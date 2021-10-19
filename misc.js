@@ -1,3 +1,5 @@
+const chalk = require('chalk');
+
 function writeToLog(...logMessage) {
 	const time = new Date().toLocaleString();
 	const message = `[${time}] ${process.env.ACCUSERNAME}: ${logMessage}`;
