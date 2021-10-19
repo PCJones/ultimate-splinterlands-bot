@@ -1,7 +1,7 @@
 require('dotenv').config()
 const misc = require('./misc');
 const chalk = require('chalk');
-const fetch = require("node-fetch");
+const fetch = require("cross-fetch");
 const axios = require('axios');
 
 
