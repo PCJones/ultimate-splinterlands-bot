@@ -304,11 +304,11 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         deviceScaleFactor: 1,
     });
 
-    await page.goto('https://splinterlands.io/?p=battle_history');
+    await page.goto('http://splinterlands.io/?p=battle_history');
     await page.waitForTimeout(4000);
 
     let username = await getElementText(page, '.dropdown-toggle .bio__name__display', 10000).catch(async () => {
-        await page.goto('https://splinterlands.io');
+        await page.goto('http://splinterlands.io');
         await page.waitForTimeout(4000);
         await getElementText(page, '.dropdown-toggle .bio__name__display', 10000)
     });
@@ -319,7 +319,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         misc.writeToLog('Login')
         await splinterlandsPage.login(page).catch(async () => {
             misc.writeToLog('Unable to login. Trying to reload page again.');
-            await page.goto('https://splinterlands.io/?p=battle_history');
+            await page.goto('http://splinterlands.io/?p=battle_history');
             await page.waitForTimeout(4000);
             await getElementText(page, '.dropdown-toggle .bio__name__display', 10000)
                 await splinterlandsPage.login(page).catch(e => {
@@ -334,7 +334,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     try {
         erc = parseInt((await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 1000)).split('%')[0]);
     } catch {
-        await page.goto('https://splinterlands.io/?p=battle_history');
+        await page.goto('http://splinterlands.io/?p=battle_history');
         try{
             erc = parseInt((await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 1000)).split('%')[0]);
         } catch (e){
@@ -758,6 +758,10 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         let Newquest = await getQuest();	
 		await nq.newquestUpdate(Newquest, claimQuestReward, page, logSummary, allCardDetails, searchFromJSON, newlogvisual);
         teamToPlay = '';
+        erc='';
+        useAPI ='';
+        winPercent ='';
+        newERC = '';
     } catch (e) {
         logSummary.push(chalk.red(' Unable to proceed due to error. Please see logs'));
         return;
@@ -888,8 +892,9 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
             console.log(chalk.green('Interested in a bot that transfers all cards, dec and sps to your main account? Visit the discord or telegram!'));
             console.log(chalk.green('Join the telegram group https://t.me/ultimatesplinterlandsbot and discord https://discord.gg/hwSr7KNGs9'));
             console.log('--------------------------End of Battle--------------------------------');
-            seasonRewards = ''
-            startTimer = ''
+            seasonRewards = '';
+            startTimer = '';
+            logSummary1= '';
             await new Promise(r => setTimeout(r, sleepingTime));
             
         }
