@@ -42,8 +42,9 @@ async function battlesummary(logSummary,tet,sleepingTime){
             console.log(chalk.green(' \n' + ' Battle result sent to telegram'));
 
         } catch (e) {
+                console.log(e);
                 console.log(chalk.red(' [ERROR] Unable to send battle result to Telegram. Please make sure telegram setting is correct.'));
-                bot.sendMessage(ChatId, ' [ERROR] Unable to send battle result to Telegram. Please make sure telegram setting is correct.');
+                bot.sendMessage(process.env.TELEGRAM_CHATID, ' [ERROR] Unable to send battle result to Telegram. Please make sure telegram setting is correct.');
                 return;
         }   
         message = '';	
