@@ -32,7 +32,7 @@ async function delay() {
 //})();
 
   async function getBattleHistory(player = '', data = {}) {
-      const battleHistory = await fetch(`https://game-api.splinterlands.io/battle/history?player=${player}`)
+      const battleHistory = await fetch(`http://game-api.splinterlands.io/battle/history?player=${player}`)
           .then(async (response) => {
               if (!response.ok) {
                   throw new Error('Network response was not ok '+player);
@@ -44,7 +44,7 @@ async function delay() {
           })
           .catch(async (error) => {
             misc.writeToLogNoUsername('Failed to fetch battle data. Trying another api');
-            await fetch(`https://game-api.splinterlands.io/battle/history?player=${player}`, {
+            await fetch(`http://game-api.splinterlands.io/battle/history?player=${player}`, {
               mode: 'no-cors'})
              .then((response) => {
               if (!response.ok) {
@@ -56,7 +56,7 @@ async function delay() {
               return await battleHistory.json();
           }) .catch(async (error) => {
             misc.writeToLogNoUsername('Failed to fetch battle data. Trying another api');
-            await fetch(`https://cache-api.splinterlands.io/battle/history?player=${player}`, {
+            await fetch(`http://cache-api.splinterlands.io/battle/history?player=${player}`, {
               mode: 'no-cors'})
              .then((response) => {
               if (!response.ok) {
