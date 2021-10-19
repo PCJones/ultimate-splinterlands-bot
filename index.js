@@ -619,7 +619,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         await page.click('.btn--create-team')[0];   
         }).catch((e) => {
             logSummary.push('Team Selection error')
-            throw new Error ('Team Selection error');
+            return;
         })
     }
     await page.waitForTimeout(5000);
@@ -817,7 +817,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                 if (keepBrowserOpen && browsers.length == 0) {
                     misc.writeToLog('Opening browsers');
                     browsers = await createBrowsers(accounts.length, headless);
-                } else if (!keepBrowserOpen && browsers.length == 0) { // close browser, only have 1 instance at a time
+                } else { //if (!keepBrowserOpen && browsers.length == 0) { // close browser, only have 1 instance at a time
                     misc.writeToLog('Opening browser');
                     browsers = await createBrowsers(1, headless);
                 }
@@ -849,13 +849,13 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                 if (keepBrowserOpen) {
                     await page.goto('about:blank');
                 } else {
-                    await page.evaluate(function () {
-                        SM.Logout();
-                    });
-                    //let pages = await browsers[0].pages();
-                    //await Promise.all(pages.map(page =>page.close()));
-                    //await browsers[0].close();
-                    //browsers[0].process().kill('SIGKILL');
+                    //await page.evaluate(function () {
+                        //SM.Logout();
+                    //});
+                    let pages = await browsers[0].pages();
+                    await Promise.all(pages.map(page =>page.close()));
+                    await browsers[0].close();
+                    browsers[0].process().kill('SIGKILL');
                 }
             }
             let endTimer = new Date().getTime();
