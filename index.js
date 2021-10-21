@@ -304,11 +304,11 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         deviceScaleFactor: 1,
     });
 
-    await page.goto('http://splinterlands.io/?p=battle_history');
+    await page.goto('https://splinterlands.io/?p=battle_history');
     await page.waitForTimeout(4000);
 
     let username = await getElementText(page, '.dropdown-toggle .bio__name__display', 10000).catch(async () => {
-        await page.goto('http://splinterlands.io');
+        await page.goto('https://splinterlands.io');
         await page.waitForTimeout(4000);
         await getElementText(page, '.dropdown-toggle .bio__name__display', 10000)
     });
@@ -317,24 +317,28 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         misc.writeToLog('Already logged in!');
     } else {
         misc.writeToLog('Login')
-        await splinterlandsPage.login(page).catch(async () => {
+        let maintenance = page.url()
+        if (maintenance == 'https://splinterlands.com/?p=maintenance') {
+                return misc.writeToLog('Game is currently on maintenance.');
+        } else {
+            await splinterlandsPage.login(page).catch(async () => {
             misc.writeToLog('Unable to login. Trying to reload page again.');
-            await page.goto('http://splinterlands.io/?p=battle_history');
+            await page.goto('https://splinterlands.io/?p=battle_history');
             await page.waitForTimeout(4000);
             await getElementText(page, '.dropdown-toggle .bio__name__display', 10000)
                 await splinterlandsPage.login(page).catch(e => {
                 misc.writeToLog(e);
                 logSummary.push(chalk.red(' No records due to login error'));
-                misc.writeToLog('Skipping this account due to to login error. \n');
-                throw new Error;
-                });
-        });
+                throw new Error ('Skipping this account due to to login error.');
+                }); 
+            });
+        }
     }
     await waitUntilLoaded(page);
     try {
         erc = parseInt((await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 1000)).split('%')[0]);
     } catch {
-        await page.goto('http://splinterlands.io/?p=battle_history');
+        await page.goto('https://splinterlands.io/?p=battle_history');
         try{
             erc = parseInt((await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 1000)).split('%')[0]);
         } catch (e){
@@ -853,16 +857,16 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                 if (keepBrowserOpen) {
                     await page.goto('about:blank');
                 } else {
-                    await page.evaluate(async function () {
-                        try{
-                            SM.Logout();
+                    try{
+                        await page.evaluate(async function () {
+                                await SM.Logout();
+                            });      
                         }catch{
-                            let pages =  await browsers[0].pages();
-                            await Promise.all(pages.map(page =>page.close()));
-                            await browsers[0].close();
-                            await browsers[0].process().kill('SIGKILL');
-                        }    
-                    });
+                            let pages =  browsers[0].pages();
+                            Promise.all(pages.map(page =>page.close()));
+                            browsers[0].close();
+                            browsers[0].process().kill('SIGKILL');
+                        }
                 }
             }
             let endTimer = new Date().getTime();
