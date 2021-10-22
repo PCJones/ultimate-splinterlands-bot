@@ -209,12 +209,37 @@ async function createBrowsers(count, headless) {
         const browser = await puppeteer.launch({
                 product: 'chrome',
                 headless: headless,
-                args: process.env.CHROME_NO_SANDBOX === 'true' ? ["--no-sandbox"] : [
+                args:[ "--no-sandbox",
                     //'--incognito',
-                    //'--disable-features=BlockInsecurePrivateNetworkRequests',
-                    //'--disable-web-security',
-                    //'--disable-features=IsolateOrigins',
-                    //'--disable-site-isolation-trials'
+                    '--disable-features=BlockInsecurePrivateNetworkRequests',
+                    '--disable-features=IsolateOrigins',
+                    '--disable-site-isolation-trials',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-accelerated-2d-canvas',
+                    '--disable-canvas-aa', // Disable antialiasing on 2d canvas
+                    '--disable-2d-canvas-clip-aa', // Disable antialiasing on 2d canvas clips
+                    '--disable-gl-drawing-for-tests', // BEST OPTION EVER! Disables GL drawing operations which produce pixel output. With this the GL output will not be correct but tests will run faster.
+                    '--no-first-run',
+                    '--no-zygote', // wtf does that mean ?
+                    '--disable-dev-shm-usage', // ???
+                    '--use-gl=swiftshader', // better cpu usage with --use-gl=desktop rather than --use-gl=swiftshader, still needs more testing.
+                    '--single-process', // <- this one doesn't works in Windows
+                    '--disable-gpu',
+                    '--enable-webgl',
+                    '--hide-scrollbars',
+                    '--mute-audio',
+                    '--disable-infobars',
+                    '--disable-breakpad',
+                    //'--ignore-gpu-blacklist',
+                    '--disable-web-security',
+
+
+
+
+
+
+
                 ],
             });
         const page = await browser.newPage();
@@ -497,6 +522,11 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         battledata.push(' No Mana error. Skipping account.')
         throw new Error(" No mana. Game server error.");
     }
+        let priorityCards = process.env.PRIORITY_CARD;
+		if (priorityCards) {
+            priorityCards = priorityCards?.split(',')
+            priorityCards = priorityCards.filter(x => myCards?.includes(parseInt(x.trim())))
+		}
     misc.writeToLog(chalk.green('Battle details:'));  
     misc.writeToLog('Mana:'+  chalk.yellow(mana) + ' Rules:' + chalk.yellow(rules) + ' Splinters:' + chalk.yellow(splinters))
     misc.writeToLog(chalk.green('starting team selection'));
@@ -544,7 +574,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                      winPercent = (Object.values(apiResponse)[2].replace(',','.')* 100).toFixed(2)
                 if  (winPercent < process.env.SWITCH_THRESHOLD && JSON.parse(process.env.AUTO_SWITCH.toLowerCase()) == true) {  // auto-select to local if win percentage is below 50%
                         misc.writeToLog('API choose low winning percentage splinter . Reverting to local history.');
-                        const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
+                        const possibleTeams = await ask.possibleTeams(matchDetails, priorityCards).catch(e => misc.writeToLog('Error from possible team API call: ', e));
                         if (possibleTeams && possibleTeams.length) {
                             //misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
                             misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);
@@ -574,7 +604,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                     misc.writeToLog('API failed, using local history with most cards used tactic');
                     
                 }
-                const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
+                const possibleTeams = await ask.possibleTeams(matchDetails, priorityCards).catch(e => misc.writeToLog('Error from possible team API call: ', e));
 
                 if (possibleTeams && possibleTeams.length) {
                     //misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
@@ -589,7 +619,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             }
         } catch (e){
             misc.writeToLog('API taking too long. Reverting to use local history' + e);
-            const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
+            const possibleTeams = await ask.possibleTeams(matchDetails, priorityCards).catch(e => misc.writeToLog('Error from possible team API call: ', e));
             if (possibleTeams && possibleTeams.length) {
                 //misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
                 misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);
@@ -602,7 +632,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             useAPI = false;
         }         
     } else {
-        const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
+        const possibleTeams = await ask.possibleTeams(matchDetails, priorityCards).catch(e => misc.writeToLog('Error from possible team API call: ', e));
         if (possibleTeams && possibleTeams.length) {
             //misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
             misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);

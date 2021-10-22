@@ -5,45 +5,47 @@ const helper = require('./helper');
 const battles = require('./battles');
 const fetch = require("node-fetch");
 
-const summoners = [{ 224: 'dragon' },
-{ 27: 'earth' },
-{ 16: 'water' },
-{ 156: 'life' },
-{ 189: 'earth' },
-{ 167: 'fire' },
-{ 145: 'death' },
-{ 5: 'fire' },
-{ 71: 'water' },
-{ 114: 'dragon' },
-{ 178: 'water' },
-{ 110: 'fire' },
-{ 49: 'death' },
-{ 88: 'dragon' },
-{ 38: 'life' },
-{ 239: 'life' },
-{ 74: 'death' },
-{ 78: 'dragon' },
-{ 260: 'fire' },
-{ 70: 'fire' },
-{ 109: 'death' },
-{ 111: 'water' },
-{ 112: 'earth' },
-{ 130: 'dragon' },
-{ 72: 'earth' },
-{ 235: 'dragon' },
-{ 56: 'dragon' },
-{ 113: 'life' },
-{ 200: 'dragon' },
-{ 236: 'fire' },
-{ 240: 'dragon' },
-{ 254: 'water' },
-{ 257: 'water' },
-{ 258: 'death' },
-{ 259: 'earth' },
-{ 261: 'life' },
-{ 262: 'dragon' },
-{ 278: 'earth' },
-{ 73: 'life' }]
+const summoners = [
+    { 224: 'dragon' },
+    { 27: 'earth' },
+    { 16: 'water' },
+    { 156: 'life' },
+    { 189: 'earth' },
+    { 167: 'fire' },
+    { 145: 'death' },
+    { 5: 'fire' },
+    { 71: 'water' },
+    { 114: 'dragon' },
+    { 178: 'water' },
+    { 110: 'fire' },
+    { 49: 'death' },
+    { 88: 'dragon' },
+    { 38: 'life' },
+    { 239: 'life' },
+    { 74: 'death' },
+    { 78: 'dragon' },
+    { 260: 'fire' },
+    { 70: 'fire' },
+    { 109: 'death' },
+    { 111: 'water' },
+    { 112: 'earth' },
+    { 130: 'dragon' },
+    { 72: 'earth' },
+    { 235: 'dragon' },
+    { 56: 'dragon' },
+    { 113: 'life' },
+    { 200: 'dragon' },
+    { 236: 'fire' },
+    { 240: 'dragon' },
+    { 254: 'water' },
+    { 257: 'water' },
+    { 258: 'death' },
+    { 259: 'earth' },
+    { 261: 'life' },
+    { 262: 'dragon' },
+    { 278: 'earth' },
+    { 73: 'life' }
+]
 
 const splinters = ['fire', 'life', 'earth', 'water', 'death', 'dragon']
 
@@ -51,7 +53,7 @@ const getSummoners = (myCards) => {
     try {
         const sumArray = summoners.map(x=>Number(Object.keys(x)[0]))
         const mySummoners = myCards.filter(value => sumArray.includes(Number(value)));
-        return mySummoners;             
+        return mySummoners;
     } catch(e) {
         console.log(e);
         return [];
@@ -67,19 +69,18 @@ const historyBackup = require("./data/newHistory.json");
 const basicCards = require('./data/basicCards.js');
 const { filter } = require('./data/basicCards.js');
 
-
 let availabilityCheck = (base, toCheck) => toCheck.slice(0, 7).every(v => base.includes(v));
 
 const getBattlesWithRuleset = (ruleset, mana, summoners) => {
     const rulesetEncoded = encodeURIComponent(ruleset);
     const host = process.env.API_URL || 'https://splinterlands-data-service.herokuapp.com/'
-//    const host = 'http://localhost:3000/'
+    //    const host = 'http://localhost:3000/'
     let url = ''
-	const useClassicPrivateAPI = JSON.parse(process.env.USE_CLASSIC_BOT_PRIVATE_API.toLowerCase());
+    const useClassicPrivateAPI = JSON.parse(process.env.USE_CLASSIC_BOT_PRIVATE_API.toLowerCase());
     if (useClassicPrivateAPI) {
-		url = `battlesruleset?ruleset=${rulesetEncoded}&mana=${mana}&player=${process.env.ACCUSERNAME}&summoners=${summoners ? JSON.stringify(summoners) : ''}`;
+    url = `battlesruleset?ruleset=${rulesetEncoded}&mana=${mana}&player=${process.env.ACCUSERNAME}&summoners=${summoners ? JSON.stringify(summoners) : ''}`;
         //url = `V2/battlesruleset?ruleset=${rulesetEncoded}&mana=${mana}&player=${process.env.ACCUSERNAME}&summoners=${summoners ? JSON.stringify(summoners) : ''}`;
-	}
+    }
     console.log('API call: ', host+url)
     return fetch(host+url)
         .then(x => x && x.json())
@@ -127,7 +128,33 @@ function compare(a, b) {
     return comparison;
   }
 
-const cardsIdsforSelectedBattles = (mana, ruleset, splinters, summoners) => battlesFilterByManacap(mana, ruleset, summoners)
+function compareByPriority(a, b) {
+    const totA = a[10];
+    const totB = b[10];
+
+    let comparison = 0;
+    if (totA < totB) {
+        comparison = -1;
+    } else if (totA > totB) {
+        comparison = 1;
+    }
+    return comparison;
+}
+
+function countPriorityCard(matchDetails, priorityCards) {
+    const cardDetails = [
+        matchDetails.summoner_id,
+        matchDetails.monster_1_id,
+        matchDetails.monster_2_id,
+        matchDetails.monster_3_id,
+        matchDetails.monster_4_id,
+        matchDetails.monster_5_id,
+        matchDetails.monster_6_id
+    ]
+
+    return priorityCards?.filter(element => cardDetails?.includes(element)).length
+}
+const cardsIdsforSelectedBattles = (mana, ruleset, splinters, summoners, priorityCards) => battlesFilterByManacap(mana, ruleset, summoners)
     .then(x => {
         return x.map(
             (x) => {
@@ -142,29 +169,31 @@ const cardsIdsforSelectedBattles = (mana, ruleset, splinters, summoners) => batt
                     summonerColor(x.summoner_id) ? summonerColor(x.summoner_id) : '',
                     x.tot ? parseInt(x.tot) : '',
                     x.ratio ? parseInt(x.ratio) : '',
+                    countPriorityCard(x, priorityCards)?countPriorityCard(x, priorityCards):''
                 ]
             }
         ).filter(
             team => splinters.includes(team[7])
         ).sort(compare)
+        .sort(compareByPriority)
     })
 
-const askFormation = function (matchDetails) {
+const askFormation = function (matchDetails, priorityCards) {
     const cards = matchDetails.myCards || basicCards;
     const mySummoners = getSummoners(cards);
     console.log('INPUT: ', matchDetails.mana, matchDetails.rules, matchDetails.splinters, cards.length);
-    return cardsIdsforSelectedBattles(matchDetails.mana, matchDetails.rules, matchDetails.splinters, mySummoners)
+    return cardsIdsforSelectedBattles(matchDetails.mana, matchDetails.rules, matchDetails.splinters, mySummoners, priorityCards)
         .then(x => x.filter(
             x => availabilityCheck(cards, x))
             .map(element => element)//cards.cardByIds(element)
         )
 }
 
-const possibleTeams = async (matchDetails) => {
+const possibleTeams = async (matchDetails, priorityCards) => {
     let possibleTeams = [];
     while (matchDetails.mana > 10) {
-        console.log('check battles based on mana: '+matchDetails.mana)
-        possibleTeams = await askFormation(matchDetails)
+        console.log('check battles based on mana: ' + matchDetails.mana)
+        possibleTeams = await askFormation(matchDetails, priorityCards)
         if (possibleTeams.length > 0) {
             return possibleTeams;
         }
@@ -218,11 +247,11 @@ const teamSelection = async (possibleTeams, matchDetails, quest) => {
 
 	const useClassicPrivateAPI = JSON.parse(process.env.USE_CLASSIC_BOT_PRIVATE_API.toLowerCase());
     //TEST V2 Strategy ONLY FOR PRIVATE API
-    if (useClassicPrivateAPI && possibleTeams[0][8]) {
+    if (process.env.API_VERSION == 2 && possibleTeams[0][8]) {
         console.log('play the most winning: ', possibleTeams[0])
         return { summoner: possibleTeams[0][0], cards: possibleTeams[0] };
     }
-    
+
 
     //check if daily quest is not completed
     console.log('quest custom option set as:', process.env.QUEST_PRIORITY, typeof process.env.QUEST_PRIORITY)
@@ -234,7 +263,7 @@ const teamSelection = async (possibleTeams, matchDetails, quest) => {
         console.log(left + ' battles left for the '+quest.splinter+' quest')
         console.log('play for the quest ',quest.splinter,'? ',questCheck)
         if(left > 0 && filteredTeams && filteredTeams.length > 10 && splinters.includes(quest.splinter)) {
-            console.log('PLAY for the quest with Teams: ',filteredTeams.length)
+            console.log('PLAY for the quest with Teams: ',filteredTeams.length , filteredTeams)
             const res = await mostWinningSummonerTankCombo(filteredTeams, matchDetails);
             console.log('Play this for the quest:', res)
             if (res[0] && res[1]) {
