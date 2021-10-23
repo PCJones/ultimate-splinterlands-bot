@@ -638,18 +638,19 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     }
 
     if (teamToPlay) {
-        await page.click('.btn--create-team')[0].catch(async() => {
+        try{
+            await page.click('.btn--create-team')[0];
+        } catch {
             await page.reload().then(async () =>{
-                await page.waitForTimeout(5000);
-                await page.click('.btn--create-team')[0];
+                await page.waitForTimeout(5000); 
+                await page.click('.btn--create-team')[0];   
                 }).catch((e) => {
                     logSummary.push('Team Selection error')
-                    throw new Error ('Team Selection error');
+                    return ('Team Selection error');
                 })
-        });
+        } 
     } else {
             logSummary.push('Team Selection error')
-            return;
     }
     await page.waitForTimeout(5000);
     try {
