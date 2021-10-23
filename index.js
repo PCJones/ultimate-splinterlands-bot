@@ -885,7 +885,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                             //const pages =  browsers[0].pages();
                             //await Promise.all(pages.map(page =>page.close()));
                             await browsers[0].close();
-                            await browsers[0].process().kill('SIGKILL'); 
+                            //await browsers[0].process().kill('SIGKILL'); 
                         })
             }
             let endTimer = new Date().getTime();
