@@ -211,9 +211,9 @@ async function createBrowsers(count, headless) {
                 args:[
                     "--no-sandbox",
                     '--incognito',
-                    //'--disable-features=BlockInsecurePrivateNetworkRequests',
-                    //'--disable-features=IsolateOrigins',
-                    //'--disable-site-isolation-trials',
+                    '--disable-features=BlockInsecurePrivateNetworkRequests',
+                    '--disable-features=IsolateOrigins',
+                    '--disable-site-isolation-trials',
                     '--disable-setuid-sandbox',
                     '--disable-dev-shm-usage',
                     '--disable-accelerated-2d-canvas',
@@ -509,7 +509,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     await page.waitForTimeout(1000);
     //TEAM SELECTION
     let teamToPlay;
-    if (!mana) { 
+    if (mana == 'no mana') { 
         logSummary.push(' No Mana error. Skipping account.')
         battledata.push(' No Mana error. Skipping account.')
         throw new Error(" No mana. Game server error.");
