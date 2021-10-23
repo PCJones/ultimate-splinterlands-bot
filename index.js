@@ -196,7 +196,6 @@ async function getCards() {
         return myCards;
 }
 
-
 async function getQuest() {
     return quests.getPlayerQuest(process.env.ACCUSERNAME.split('@')[0])
     .then(x => x)
@@ -209,11 +208,12 @@ async function createBrowsers(count, headless) {
         const browser = await puppeteer.launch({
                 product: 'chrome',
                 headless: headless,
-                args:[ "--no-sandbox",
-                    //'--incognito',
-                    '--disable-features=BlockInsecurePrivateNetworkRequests',
-                    '--disable-features=IsolateOrigins',
-                    '--disable-site-isolation-trials',
+                args:[
+                    "--no-sandbox",
+                    '--incognito',
+                    //'--disable-features=BlockInsecurePrivateNetworkRequests',
+                    //'--disable-features=IsolateOrigins',
+                    //'--disable-site-isolation-trials',
                     '--disable-setuid-sandbox',
                     '--disable-dev-shm-usage',
                     '--disable-accelerated-2d-canvas',
@@ -223,7 +223,7 @@ async function createBrowsers(count, headless) {
                     '--no-first-run',
                     '--no-zygote', // wtf does that mean ?
                     '--disable-dev-shm-usage', // ???
-                    '--use-gl=swiftshader', // better cpu usage with --use-gl=desktop rather than --use-gl=swiftshader, still needs more testing.
+                    '--use-gl=desktop', // better cpu usage with --use-gl=desktop rather than --use-gl=swiftshader, still needs more testing.
                     '--single-process', // <- this one doesn't works in Windows
                     '--disable-gpu',
                     '--enable-webgl',
@@ -233,13 +233,6 @@ async function createBrowsers(count, headless) {
                     '--disable-breakpad',
                     //'--ignore-gpu-blacklist',
                     '--disable-web-security',
-
-
-
-
-
-
-
                 ],
             });
         const page = await browser.newPage();
@@ -270,7 +263,7 @@ async function getElementTextByXpath(page, selector, timeout = 20000) {
     return text;
 }
 
-async function clickOnElement(page, selector, timeout = 20000, delayBeforeClicking = 300) {
+async function clickOnElement(page, selector, timeout = 20000, delayBeforeClicking = 0) {
     try {
         const elem = await page.waitForSelector(selector, {
                 timeout: timeout
@@ -430,7 +423,6 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 
     // LAUNCH the battle
     try {
-        await page.reload()
         misc.writeToLog('waiting for battle button...')
         await selectCorrectBattleType(page);
 
@@ -486,7 +478,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                 })
                 .then(() => misc.writeToLog('start the match'))
                 .catch((e) => {
-                    misc.writeToLog('third attempt failed');
+                    misc.writeToLog('Third attempt failed');
                     misc.writeToLog('Skipping account due to error')
                     logSummary.push(' Skipping account due to error')
                     throw new Error;
@@ -612,7 +604,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                 } else {
                     misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
                     logSummary.push(' NO TEAMS available to be played')
-                    throw new Error ('NO TEAMS available to be played');
+                    throw new Error('NO TEAMS available to be played');
                 }
                 teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
                 useAPI = false;
@@ -626,7 +618,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             } else {
                 misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
                 logSummary.push(' NO TEAMS available to be played');
-                throw new Error (' NO TEAMS available to be played');
+                throw new Error(' NO TEAMS available to be played');
             }
             teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
             useAPI = false;
@@ -646,19 +638,21 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     }
 
     if (teamToPlay) {
-       await page.click('.btn--create-team')[0];
+        await page.click('.btn--create-team')[0].catch(async() => {
+            await page.reload().then(async () =>{
+                await page.waitForTimeout(5000);
+                await page.click('.btn--create-team')[0];
+                }).catch((e) => {
+                    logSummary.push('Team Selection error')
+                    throw new Error ('Team Selection error');
+                })
+        });
     } else {
-        await page.reload().then(async () =>{
-        await page.waitForTimeout(5000); 
-        await page.click('.btn--create-team')[0];   
-        }).catch((e) => {
             logSummary.push('Team Selection error')
             return;
-        })
     }
     await page.waitForTimeout(5000);
     try {
-        await sleep(300);
         await page.waitForXPath(`//div[@card_detail_id="${teamToPlay.summoner}"]`, {
             timeout: 15000
         }).then(summonerButton => summonerButton.click()).catch( async (error) =>{ 
@@ -802,7 +796,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     }
  } catch {
      return;
- } 
+ }
 }
 
 // 30 MINUTES INTERVAL BETWEEN EACH MATCH (if not specified in the .env file)
@@ -828,7 +822,6 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
         const autoSwitch = JSON.parse(process.env.AUTO_SWITCH.toLowerCase());
 
 
-        let browsers = [];
         misc.writeToLogNoUsername('Headless: ' + headless);
         misc.writeToLogNoUsername('Keep Browser Open: ' + keepBrowserOpen);
         misc.writeToLogNoUsername('Login via Email: ' + loginViaEmail);
@@ -852,15 +845,16 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                 process.env['PASSWORD'] = passwords[i];
                 process.env['ACCUSERNAME'] = accountusers[i];
 
-                if (keepBrowserOpen && browsers.length == 0) {           
-                    misc.writeToLog('Opening browsers');
-                    browsers = await createBrowsers(accounts.length, headless);
-                } else if (!keepBrowserOpen && browsers.length == 0) { // close browser, only have 1 instance at a time
-                    misc.writeToLog('Opening browser');
-                    browsers = await createBrowsers(1, headless);
-                }
+                //if (keepBrowserOpen && browsers.length == 0) {
+                    //misc.writeToLog('Opening browsers');
+                    //browsers = await createBrowsers(accounts.length, headless);
+                //} else if (!keepBrowserOpen && browsers.length == 0) { // close browser, only have 1 instance at a time
+                misc.writeToLog('Opening browser');
+                const browsers = await createBrowsers(1, headless);
+                //}
 
-                const page = (await(keepBrowserOpen ? browsers[i] : browsers[0]).pages())[1];
+                //const page = (await(keepBrowserOpen ? browsers[i] : browsers[0]).pages())[1];
+                const page = (await browsers[0].pages())[1];
 
                 //page.goto('https://splinterlands.io/');
                 misc.writeToLog('getting user cards collection from splinterlands API...')
@@ -884,20 +878,14 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                 })
 
                 await page.waitForTimeout(5000);
-                if (keepBrowserOpen) {
-                    await page.goto('about:blank');
-                } else {
-                    try{
-                        await page.evaluate(async function () {
-                                await SM.Logout();
-                            });      
-                        }catch{
-                            let pages =  browsers[0].pages();
-                            Promise.all(pages.map(page =>page.close()));
-                            browsers[0].close();
-                            browsers[0].process().kill('SIGKILL');
-                        }
-                }
+                await page.evaluate(async function () {
+                    await SM.Logout();
+                        }).catch(async function(){ 
+                            //const pages =  browsers[0].pages();
+                            //await Promise.all(pages.map(page =>page.close()));
+                            await browsers[0].close();
+                            await browsers[0].process().kill('SIGKILL'); 
+                        })
             }
             let endTimer = new Date().getTime();
 			let totalTime = endTimer - startTimer;
@@ -929,10 +917,9 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
             console.log(chalk.green('Interested in a bot that transfers all cards, dec and sps to your main account? Visit the discord or telegram!'));
             console.log(chalk.green('Join the telegram group https://t.me/ultimatesplinterlandsbot and discord https://discord.gg/hwSr7KNGs9'));
             console.log('--------------------------End of Battle--------------------------------');
-            browsers = '';
-            seasonRewards = '';
+            seasonRewards = [];
             startTimer = '';
-            logSummary1= '';
+            logSummary1= [];
             await new Promise(r => setTimeout(r, sleepingTime));
             
         }
