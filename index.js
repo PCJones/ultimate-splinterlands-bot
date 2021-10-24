@@ -210,36 +210,49 @@ async function getQuest() {
 
 async function createBrowsers(count, headless) {
     let browsers = [];
+    let headTrue = [
+        "--no-sandbox",
+        '--incognito',
+        '--disable-features=BlockInsecurePrivateNetworkRequests',
+        '--disable-features=IsolateOrigins',
+        '--disable-site-isolation-trials',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-canvas-aa', // Disable antialiasing on 2d canvas
+        '--disable-2d-canvas-clip-aa', // Disable antialiasing on 2d canvas clips
+        '--disable-gl-drawing-for-tests', // BEST OPTION EVER! Disables GL drawing operations which produce pixel output. With this the GL output will not be correct but tests will run faster.
+        '--no-first-run',
+        '--no-zygote', // wtf does that mean ?
+        '--disable-dev-shm-usage', // ???
+        '--use-gl=swiftshader', // better cpu usage with --use-gl=desktop rather than --use-gl=swiftshader, still needs more testing.
+        '--single-process', // <- this one doesn't works in Windows
+        '--disable-gpu',
+        '--hide-scrollbars',
+        '--mute-audio',
+        '--disable-infobars',
+        '--disable-breakpad',
+        //'--ignore-gpu-blacklist',
+        '--disable-web-security'
+    ];
+    let headfalse = [
+        "--no-sandbox", '--incognito', '--disable-features=BlockInsecurePrivateNetworkRequests','--disable-features=IsolateOrigins','--disable-site-isolation-trials','--disable-background-networking', '--enable-features=NetworkService,NetworkServiceInProcess', '--disable-background-timer-throttling', '--disable-backgrounding-occluded-windows', '--disable-breakpad', '--disable-client-side-phishing-detection', '--disable-component-extensions-with-background-pages', '--disable-default-apps', '--disable-dev-shm-usage', '--disable-extensions', '--disable-features=TranslateUI', '--disable-hang-monitor', '--disable-ipc-flooding-protection','--disable-popup-blocking', '--disable-prompt-on-repost', '--disable-renderer-backgrounding', '--disable-sync', '--no-sandbox-and-elevated', '--no-zygote', 
+        '--use-gl=desktop', '--use-skia-renderer', '--enable-gpu-rasterization', '--enable-zero-copy', '--disable-gpu-sandbox', '--enable-native-gpu-memory-buffers','--disable-background-timer-throttling', '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding', '--ignore-certificate-errors','--enable-hardware-overlays','--enable-oop-rasterization', '--remote-debugging-port=0', 
+    ]
     for (let i = 0; i < count; i++) {
-        const browser = await puppeteer.launch({
+        if (headless === true) {
+             browser = await puppeteer.launch({
                 product: 'chrome',
                 headless: headless,
-                args:[
-                    "--no-sandbox",
-                    '--incognito',
-                    '--disable-features=BlockInsecurePrivateNetworkRequests',
-                    '--disable-features=IsolateOrigins',
-                    '--disable-site-isolation-trials',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-accelerated-2d-canvas',
-                    '--disable-canvas-aa', // Disable antialiasing on 2d canvas
-                    '--disable-2d-canvas-clip-aa', // Disable antialiasing on 2d canvas clips
-                    '--disable-gl-drawing-for-tests', // BEST OPTION EVER! Disables GL drawing operations which produce pixel output. With this the GL output will not be correct but tests will run faster.
-                    '--no-first-run',
-                    '--no-zygote', // wtf does that mean ?
-                    '--disable-dev-shm-usage', // ???
-                    '--use-gl=desktop', // better cpu usage with --use-gl=desktop rather than --use-gl=swiftshader, still needs more testing.
-                    '--single-process', // <- this one doesn't works in Windows
-                    '--disable-gpu',
-                    '--hide-scrollbars',
-                    '--mute-audio',
-                    '--disable-infobars',
-                    '--disable-breakpad',
-                    //'--ignore-gpu-blacklist',
-                    '--disable-web-security'
-                ],
+                args: headTrue
             });
+        } else if (headless === false) {
+             browser = await puppeteer.launch({
+                product: 'chrome',
+                headless: headless,
+                args: headfalse
+            });
+        }   
         const page = await browser.newPage();
         page.setDefaultNavigationTimeout(500000);
         page.on('dialog', async dialog => {
@@ -859,6 +872,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                     //misc.writeToLog('Opening browsers');
                     //browsers = await createBrowsers(accounts.length, headless);
                 //} else if (!keepBrowserOpen && browsers.length == 0) { // close browser, only have 1 instance at a time
+                console.log(browsers.length)
                 if (browsers.length == 0){
                     misc.writeToLog('Opening browser');
                     browsers = await createBrowsers(1, headless);
@@ -895,6 +909,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                             //const pages =  browsers[0].pages();
                             //await Promise.all(pages.map(page =>page.close()));
                             await browsers[0].close();
+                            browsers = [];
                             //await browsers[0].process().kill('SIGKILL'); 
                         })
             }
