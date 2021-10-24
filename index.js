@@ -3,7 +3,7 @@ require('dotenv').config()
 const puppeteer = require('puppeteer');
 const fetch = require("node-fetch");
 const chalk = require('chalk');
-const fs = require('fs');	
+const fs = require('fs');
 
 const splinterlandsPage = require('./splinterlandsPage');
 const user = require('./user');
@@ -189,6 +189,12 @@ async function clickMenuFightButton(page) {
     }
 
 }
+// file size checker
+async function getFilesizeInBytes(filename) {
+    var stats = fs.statSync(filename);
+    var fileSizeInBytes = stats.size;
+    return fileSizeInBytes;
+}
 
 // LOAD MY CARDS
 async function getCards() {
@@ -226,13 +232,12 @@ async function createBrowsers(count, headless) {
                     '--use-gl=desktop', // better cpu usage with --use-gl=desktop rather than --use-gl=swiftshader, still needs more testing.
                     '--single-process', // <- this one doesn't works in Windows
                     '--disable-gpu',
-                    '--enable-webgl',
                     '--hide-scrollbars',
                     '--mute-audio',
                     '--disable-infobars',
                     '--disable-breakpad',
                     //'--ignore-gpu-blacklist',
-                    '--disable-web-security',
+                    '--disable-web-security'
                 ],
             });
         const page = await browser.newPage();
@@ -379,9 +384,6 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         return;
     }
 
-    //check if season reward is available
-    await nq.seasonQuest(page, logSummary, allCardDetails, seasonRewards);
-
     //if quest done claim reward
     let quester = {}
     quester['Quest:'] = quest;
@@ -403,6 +405,8 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     }
     // boart2k end
 
+    //check if season reward is available
+    await nq.seasonQuest(page, logSummary, allCardDetails, seasonRewards);
     await page.waitForTimeout(1000);
     await closePopups(page);
     await page.waitForTimeout(2000);
@@ -491,7 +495,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         return;
 
     }
-    await page.waitForTimeout(10000);
+    await page.waitForTimeout(5000);
     let[mana, rules, splinters] = await Promise.all([
                 splinterlandsPage.checkMatchMana(page).then((mana) => mana).catch(() => 'no mana'),
                 splinterlandsPage.checkMatchRules(page).then((rulesArray) => rulesArray).catch(() => 'no rules'),
@@ -721,7 +725,6 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             misc.writeToLog('Getting battle result...');
             await page.goto('https://splinterlands.io/?p=battle_history');
             await waitUntilLoaded(page);
-            await page.waitForTimeout(5000);
             const winner = await getElementText(page, '.battle-log-entry .battle-log-entry__team.win  .bio__name__display', 15000).catch( async () =>{
                 await getElementText(page, '.battle-log-entry .battle-log-entry__team.win  .bio__name__display', 15000)});
             const draw = await getElementText(page, '.battle-log-entry .battle-log-entry__vs .conflict__title', 15000).catch( async () =>{
@@ -745,8 +748,14 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                 }
             }
             if (getDataLocal == true) {
-                misc.writeToLog("Gathering winner's battle data for local history backup") 
-                await withTimeout(150000, await battles.battlesList(winner)).then(x=>x).catch((e) => misc.writeToLog('Unable to gather data for local.' + e));  
+                let  fileSizeInMegabytes = (await getFilesizeInBytes("data/newHistory.json") / 1024) // *1024)
+
+				if (fileSizeInMegabytes.toString().split('.')[0]  >= 490000) {
+					misc.writeToLog("Unable to gather data as newHistory file is now 500MB") 
+				} else {
+                    misc.writeToLog("Gathering winner's battle data for local history backup") 
+                     await battles.battlesList(winner).then(x=>x).catch((e) => misc.writeToLog('Unable to gather data for local.' + e));
+                }
             }  
         } catch (e) {
                 misc.writeToLog(e);
