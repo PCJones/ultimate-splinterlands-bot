@@ -822,7 +822,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
         const getDataLocal = JSON.parse(process.env.GET_DATA_FOR_LOCAL.toLowerCase());
         const autoSwitch = JSON.parse(process.env.AUTO_SWITCH.toLowerCase());
 
-
+        let browsers = [];
         misc.writeToLogNoUsername('Headless: ' + headless);
         misc.writeToLogNoUsername('Keep Browser Open: ' + keepBrowserOpen);
         misc.writeToLogNoUsername('Login via Email: ' + loginViaEmail);
@@ -850,9 +850,10 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                     //misc.writeToLog('Opening browsers');
                     //browsers = await createBrowsers(accounts.length, headless);
                 //} else if (!keepBrowserOpen && browsers.length == 0) { // close browser, only have 1 instance at a time
-                misc.writeToLog('Opening browser');
-                const browsers = await createBrowsers(1, headless);
-                //}
+                if (browsers.length == 0){
+                    misc.writeToLog('Opening browser');
+                    browsers = await createBrowsers(1, headless);
+                }
 
                 //const page = (await(keepBrowserOpen ? browsers[i] : browsers[0]).pages())[1];
                 const page = (await browsers[0].pages())[1];
@@ -918,6 +919,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
             console.log(chalk.green('Interested in a bot that transfers all cards, dec and sps to your main account? Visit the discord or telegram!'));
             console.log(chalk.green('Join the telegram group https://t.me/ultimatesplinterlandsbot and discord https://discord.gg/hwSr7KNGs9'));
             console.log('--------------------------End of Battle--------------------------------');
+            browsers = [];
             seasonRewards = [];
             startTimer = '';
             logSummary1= [];
