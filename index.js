@@ -212,7 +212,6 @@ async function createBrowsers(count, headless) {
     let browsers = [];
     let headTrue = [
         "--no-sandbox",
-        '--incognito',
         '--disable-features=BlockInsecurePrivateNetworkRequests',
         '--disable-features=IsolateOrigins',
         '--disable-site-isolation-trials',
@@ -225,7 +224,7 @@ async function createBrowsers(count, headless) {
         '--no-first-run',
         '--no-zygote', // wtf does that mean ?
         '--disable-dev-shm-usage', // ???
-        '--use-gl=swiftshader', // better cpu usage with --use-gl=desktop rather than --use-gl=swiftshader, still needs more testing.
+        '--use-gl=desktop', // better cpu usage with --use-gl=desktop rather than --use-gl=swiftshader, still needs more testing.
         '--single-process', // <- this one doesn't works in Windows
         '--disable-gpu',
         '--hide-scrollbars',
@@ -235,10 +234,11 @@ async function createBrowsers(count, headless) {
         //'--ignore-gpu-blacklist',
         '--disable-web-security'
     ];
-    let headfalse = [
-        "--no-sandbox", '--incognito', '--disable-features=BlockInsecurePrivateNetworkRequests','--disable-features=IsolateOrigins','--disable-site-isolation-trials','--disable-background-networking', '--enable-features=NetworkService,NetworkServiceInProcess', '--disable-background-timer-throttling', '--disable-backgrounding-occluded-windows', '--disable-breakpad', '--disable-client-side-phishing-detection', '--disable-component-extensions-with-background-pages', '--disable-default-apps', '--disable-dev-shm-usage', '--disable-extensions', '--disable-features=TranslateUI', '--disable-hang-monitor', '--disable-ipc-flooding-protection','--disable-popup-blocking', '--disable-prompt-on-repost', '--disable-renderer-backgrounding', '--disable-sync', '--no-sandbox-and-elevated', '--no-zygote', 
-        '--use-gl=desktop', '--use-skia-renderer', '--enable-gpu-rasterization', '--enable-zero-copy', '--disable-gpu-sandbox', '--enable-native-gpu-memory-buffers','--disable-background-timer-throttling', '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding', '--ignore-certificate-errors','--enable-hardware-overlays','--enable-oop-rasterization', '--remote-debugging-port=0', 
-    ]
+    let headfalse = ["--no-sandbox",
+    '--disable-features=BlockInsecurePrivateNetworkRequests',
+    '--disable-features=IsolateOrigins',
+    '--disable-site-isolation-trials',]
+        
     for (let i = 0; i < count; i++) {
         if (headless === true) {
              browser = await puppeteer.launch({
@@ -738,6 +738,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             misc.writeToLog('Getting battle result...');
             await page.goto('https://splinterlands.io/?p=battle_history');
             await waitUntilLoaded(page);
+            await closePopups(page);
             const winner = await getElementText(page, '.battle-log-entry .battle-log-entry__team.win  .bio__name__display', 15000).catch( async () =>{
                 await getElementText(page, '.battle-log-entry .battle-log-entry__team.win  .bio__name__display', 15000)});
             const draw = await getElementText(page, '.battle-log-entry .battle-log-entry__vs .conflict__title', 15000).catch( async () =>{
@@ -904,14 +905,18 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 
                 await page.waitForTimeout(5000);
                 await page.evaluate(async function () {
-                    await SM.Logout();
+                    await SM.Logout(); // need to logout the account to avoid soft ban from SPL
+                        }).then(async function (){ 
+                            await browsers[0].close();
+                            await browsers[0].process().kill('SIGKILL'); //  to kill chromium this is the culprit of high CPU usage.  
+                            browsers = [];
                         }).catch(async function(){ 
                             //const pages =  browsers[0].pages();
                             //await Promise.all(pages.map(page =>page.close()));
-                            await browsers[0].close();
+                            await browsers[0].close();  // in case game maintenance
+                            await browsers[0].process().kill('SIGKILL'); 
                             browsers = [];
-                            //await browsers[0].process().kill('SIGKILL'); 
-                        })
+                        })  
             }
             let endTimer = new Date().getTime();
 			let totalTime = endTimer - startTimer;
