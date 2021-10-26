@@ -195,6 +195,32 @@ async function getFilesizeInBytes(filename) {
     var fileSizeInBytes = stats.size;
     return fileSizeInBytes;
 }
+//get accurate DEC not browser base
+async function getbalanceAPI(user,type){
+     const balancer = await fetch(`https://game-api.splinterlands.io/players/balances?username=${user}`)
+    .then(response => response.json())
+    .then(data =>{
+        let dec = data[data.findIndex(img => img.token === 'DEC')].balance
+        let erc = data[data.findIndex(img => img.token === 'ECR')].balance
+        if (type === 'dec'){
+            return parseFloat(Math.round((parseFloat(dec * 100)).toFixed(2)) / 100 ).toFixed(2)
+        } else if (type === 'erc') {
+            return  (erc.toString()).slice(0, 2) + "." + (erc.toString()).slice(2)
+        }
+    }).catch(async () =>{await fetch(`https://api.splinterlands.io/players/balances?username=${user}`)
+    .then(response => response.json())
+    .then(data =>{
+        let dec = data[data.findIndex(img => img.token === 'DEC')].balance
+        let erc = data[data.findIndex(img => img.token === 'ECR')].balance
+        if (type === 'dec'){
+            return parseFloat(Math.round((parseFloat(dec * 100)).toFixed(2)) / 100 ).toFixed(2)
+        } else if (type === 'erc') {
+            return  (erc.toString()).slice(0, 2) + "." + (erc.toString()).slice(2)
+        }
+    })
+    })
+    return await balancer;
+}
 
 // LOAD MY CARDS
 async function getCards() {
@@ -214,33 +240,46 @@ async function createBrowsers(count, headless) {
         "--no-sandbox",
         '--disable-features=IsolateOrigins',
         '--disable-site-isolation-trials',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
         '--disable-canvas-aa', // Disable antialiasing on 2d canvas
         '--disable-2d-canvas-clip-aa', // Disable antialiasing on 2d canvas clips
         '--disable-gl-drawing-for-tests', // BEST OPTION EVER! Disables GL drawing operations which produce pixel output. With this the GL output will not be correct but tests will run faster.
+        '--no-first-run',
+        '--no-zygote', // wtf does that mean ?
+        '--disable-dev-shm-usage', // ???
         '--use-gl=desktop', // better cpu usage with --use-gl=desktop rather than --use-gl=swiftshader, still needs more testing.
+        '--single-process', // <- this one doesn't works in Windows
+        '--disable-gpu',
         '--hide-scrollbars',
         '--mute-audio',
+        '--disable-infobars',
+        '--disable-breakpad',
         '--disable-web-security'
     ];
     let headfalse = ["--no-sandbox",
+    '--disable-web-security',
+    '--mute-audio',
+    '--hide-scrollbars',
     '--disable-features=BlockInsecurePrivateNetworkRequests',
     '--disable-features=IsolateOrigins',
     '--disable-site-isolation-trials',]
-        
+
     for (let i = 0; i < count; i++) {
         if (headless === true) {
-             browser = await puppeteer.launch({
-                product: 'chrome',
-                headless: headless,
-                args: headTrue
-            });
-        } else if (headless === false) {
-             browser = await puppeteer.launch({
-                product: 'chrome',
-                headless: headless,
-                args: headfalse
-            });
-        }   
+            browser = await puppeteer.launch({
+               product: 'chrome',
+               headless: headless,
+               args: headTrue
+           });
+       } else if (headless === false) {
+            browser = await puppeteer.launch({
+               product: 'chrome',
+               headless: headless,
+               args: headfalse
+           });
+       }
         const page = await browser.newPage();
         page.setDefaultNavigationTimeout(500000);
         page.on('dialog', async dialog => {
@@ -755,7 +794,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 				if (fileSizeInMegabytes.toString().split('.')[0]  >= 490000) {
 					misc.writeToLog("Unable to gather data as newHistory file is now 500MB") 
 				} else {
-                    misc.writeToLog("Gathering winner's battle data for local history backup") 
+                    misc.writeToLog("Gathering winner's battle data for local history backup")
                      await battles.battlesList(winner).then(x=>x).catch((e) => misc.writeToLog('Unable to gather data for local.' + e));
                 }
             }  
@@ -766,9 +805,8 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                 newlogvisual['Battle Result'] = 'Could not find winner' 
         }
         try {
-			let decRaw = await getElementText(page, 'div.balance', 2000);
-			let UpDateDec = parseFloat(Math.round((parseFloat(decRaw * 100)).toFixed(2)) / 100 ).toFixed(2);
-            let newERC = (await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 2000)).split('%')[0];
+			let UpDateDec = await getbalanceAPI(process.env.ACCUSERNAME,'dec');
+            let newERC = await getbalanceAPI(process.env.ACCUSERNAME,'erc');
             let curRating = await getElementText(page, 'span.number_text', 2000);
             misc.writeToLog('Updated Rating after battle is ' + chalk.yellow(curRating));
             logSummary.push(' New rating: ' + chalk.yellow(curRating));
@@ -803,12 +841,14 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         winPercent ='';
         newERC = '';
     } catch (e) {
+        misc.writeToLog(' Unable to proceed due to error.' + e)
         logSummary.push(chalk.red(' Unable to proceed due to error. Please see logs'));
         return;
     }
- } catch {
-     return;
- }
+  } catch (e) {
+      misc.writeToLog(' Unable to proceed due to error.' + e)
+      return;
+  }
 }
 
 // 30 MINUTES INTERVAL BETWEEN EACH MATCH (if not specified in the .env file)
