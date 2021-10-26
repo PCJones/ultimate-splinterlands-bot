@@ -27,7 +27,7 @@ async function getFilesizeInBytes(filename) {
 		console.log(' Accounts: ' + chalk.greenBright(accounts))
     
     while (true) {
-	console.time('Total processing time:')
+	console.time('Total processing time')
     	for (let i = 0; i < accounts.length; i++) {
 				console.time('Processing time')
 				await sleep(1000);
