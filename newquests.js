@@ -1,7 +1,7 @@
 require('dotenv').config()
 const misc = require('./misc');
 const chalk = require('chalk');
-const fetch = require("cross-fetch");
+const fetch = require("node-fetch");
 const axios = require('axios');
 
 
@@ -34,10 +34,10 @@ async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, all
             if (claimQuestReward) {
                 await claimButton.click();
                 misc.writeToLog(chalk.green('Claiming quest reward. This will take 1.7 minutes.'));
-                await page.waitForTimeout(60000);
+                await page.waitForTimeout(50000);
                 misc.writeToLog('Checking quest reward chest. Please wait....')
                 await page.reload();
-                await page.waitForTimeout(10000);
+                await page.waitForTimeout(20000);
 
                 // added by boart2k
                 await fetch('https://api.steemmonsters.io/players/history?username=' + process.env.ACCUSERNAME + '&types=claim_reward', {
@@ -125,7 +125,7 @@ async function seasonQuest (page, logSummary, allCardDetails, seasonRewards){
         try {
             misc.writeToLog('Season reward check: ');
             await page.reload();
-            await page.waitForTimeout(10000);
+            await page.waitForTimeout(5000);
             const seasonClaimButton = await page.waitForSelector('#claim-btn.reward_claim_btn', {
                 visible: true,
                 timeout: 5000
