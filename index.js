@@ -236,50 +236,40 @@ async function getQuest() {
 
 async function createBrowsers(count, headless) {
     let browsers = [];
-    let headTrue = [
-        "--no-sandbox",
-        '--disable-features=IsolateOrigins',
-        '--disable-site-isolation-trials',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--disable-canvas-aa', // Disable antialiasing on 2d canvas
-        '--disable-2d-canvas-clip-aa', // Disable antialiasing on 2d canvas clips
-        '--disable-gl-drawing-for-tests', // BEST OPTION EVER! Disables GL drawing operations which produce pixel output. With this the GL output will not be correct but tests will run faster.
-        '--no-first-run',
-        '--no-zygote', // wtf does that mean ?
-        '--disable-dev-shm-usage', // ???
-        '--use-gl=desktop', // better cpu usage with --use-gl=desktop rather than --use-gl=swiftshader, still needs more testing.
-        '--single-process', // <- this one doesn't works in Windows
-        '--disable-gpu',
-        '--hide-scrollbars',
-        '--mute-audio',
-        '--disable-infobars',
-        '--disable-breakpad',
-        '--disable-web-security'
-    ];
-    let headfalse = ["--no-sandbox",
-    '--disable-web-security',
-    '--mute-audio',
-    '--hide-scrollbars',
-    '--disable-features=BlockInsecurePrivateNetworkRequests',
-    '--disable-features=IsolateOrigins',
-    '--disable-site-isolation-trials',]
-
     for (let i = 0; i < count; i++) {
-        if (headless === true) {
             browser = await puppeteer.launch({
                product: 'chrome',
                headless: headless,
-               args: headTrue
+               args: headless === true ? [
+                "--no-sandbox",
+                '--disable-features=IsolateOrigins',
+                '--disable-site-isolation-trials',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-accelerated-2d-canvas',
+                '--disable-canvas-aa', // Disable antialiasing on 2d canvas
+                '--disable-2d-canvas-clip-aa', // Disable antialiasing on 2d canvas clips
+                '--disable-gl-drawing-for-tests', // BEST OPTION EVER! Disables GL drawing operations which produce pixel output. With this the GL output will not be correct but tests will run faster.
+                '--no-first-run',
+                '--no-zygote', // wtf does that mean ?
+                '--disable-dev-shm-usage', // ???
+                '--use-gl=desktop', // better cpu usage with --use-gl=desktop rather than --use-gl=swiftshader, still needs more testing.
+                '--single-process', // <- this one doesn't works in Windows
+                '--disable-gpu',
+                '--hide-scrollbars',
+                '--mute-audio',
+                '--disable-infobars',
+                '--disable-breakpad',
+                '--disable-web-security'
+            ] : ["--no-sandbox",
+            '--disable-accelerated-2d-canvas',
+            '--disable-canvas-aa', // Disable antialiasing on 2d canvas
+            '--disable-2d-canvas-clip-aa',
+            '--hide-scrollbars',
+            '--mute-audio',
+            '--disable-web-security']
            });
-       } else if (headless === false) {
-            browser = await puppeteer.launch({
-               product: 'chrome',
-               headless: headless,
-               args: headfalse
-           });
-       }
+     
         const page = await browser.newPage();
         page.setDefaultNavigationTimeout(500000);
         page.on('dialog', async dialog => {
@@ -806,6 +796,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         })
 
         try {
+            await closePopups(page);
 			let UpDateDec = await getbalanceAPI(process.env.ACCUSERNAME,'dec');
             let newERC = await getbalanceAPI(process.env.ACCUSERNAME,'erc');
             let curRating = await getElementText(page, 'span.number_text', 2000);
