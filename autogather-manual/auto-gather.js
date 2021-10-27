@@ -1,6 +1,7 @@
 require('dotenv').config()
 const fetch = require("cross-fetch");
 const fs = require('fs');
+const readline = require('readline');
 
 const accountusers = process.env.ACCOUNT.split(',');
 const accounts = accountusers;
@@ -8,11 +9,7 @@ const accounts = accountusers;
 const distinct = (value, index, self) => {
     return self.indexOf(value) === index;
 }
-const median = arr => {
-  const mid = Math.floor(arr.length / 2),
-    nums = [...arr].sort((a, b) => a - b);
-  return arr.length % 2 !== 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2;
-};
+
 function uniqueListByKey(arr, key) {
   return [...new Map(arr.map(item => [item[key], item])).values()]
 }
@@ -33,9 +30,11 @@ async function getFilesizeInBytes(filename) {
 
 twirlTimer();
 
+const URL = [`http://game-api.splinterlands.io/battle/history?player=`,`http://api.splinterlands.io/battle/history?player=`, `http://api.steemmonsters.io/battle/history?player=`];
+
 async function getBattleHistory(player = '', data = {}) {
-    //console.log('player', player);
-    const battleHistory = await fetch(`http://game-api.splinterlands.io/battle/history?player=${player}`,{
+    const randomURL = URL[Math.floor(Math.random() * URL.length)];
+    const battleHistory = await fetch(randomURL + player,{
             method: 'get',
             headers: {'Content-Type': 'application/json'}})
           .then(async (response) => {
@@ -51,71 +50,17 @@ async function getBattleHistory(player = '', data = {}) {
               return await battleHistory.json();
             }
           })
-          .catch(async (error) => {
-            console.log('using api2.splinterlands.io')
-            await fetch(`http://api2.splinterlands.io/battle/history?player=${player}`, {
-              method: 'get',
-              headers: {'Content-Type': 'application/json'}})
-             .then(async(response) => {
-              if (!response.ok) {
-                  throw new Error('Network response was not ok '+player);
-              }
-              return await response;
-          })
-          .then(async (battleHistory) => {
-            if (!battleHistory){
-              throw new Error;
-            } else {
-            return await battleHistory.json();
-        }
-          }) .catch(async (error) => {
-            console.log('using api.splinterlands.io')
-            await fetch(`http://api.splinterlands.io/battle/history?player=${player}`, {
-              method: 'get',
-              headers: {'Content-Type': 'application/json'}})
-             .then(async (response) => {
-              if (!response.ok) {
-                  throw new Error('Network response was not ok '+player);
-              }
-              return await response;
-          })
-          .then(async (battleHistory) => {
-            if (!battleHistory){
-              throw new Error;
-            } else {
-            return await battleHistory.json();
-            }
-          })
-          .catch(async (error) => {
-            console.log('http://api.steemmonsters.io')
-            await fetch(`http://api.steemmonsters.io/battle/history?player=${player}`, {
-              method: 'get',
-              headers: {'Content-Type': 'application/json'}})
-             .then(async (response) => {
-              if (!response.ok) {
-                  throw new Error('Network response was not ok '+player);
-              }
-              return await response;
-          })
-          .then(async (battleHistory) => {
-              return await battleHistory.json();
-          })
         .catch((error) => {
+            readline.cursorTo(process.stdout, 0);
             console.error('There has been a problem with your fetch operation:', error);
-          });
-        });
-      });
-    });  
+          }); 
     return await battleHistory.battles;
 }
 
 const extractGeneralInfo = (x) => {
     return {
-        //created_date: x.created_date ? x.created_date : '',
-        //match_type: x.match_type ? x.match_type : '',
         mana_cap: x.mana_cap ? x.mana_cap : '',
         ruleset: x.ruleset ? x.ruleset : '',
-        //inactive: x.inactive ? x.inactive : ''
     }
 }
 
@@ -140,10 +85,8 @@ const extractMonster = (team) => {
 
 let battlesList = [];
 let promises = [];
-let min_rating = [];
 const battles = async (player) =>  await getBattleHistory(player)
 .then(u => u.map(x => { 
-  x.player_1 == process.env.ACCUSERNAME
 return [x.player_1, x.player_2] 
 }).reduce((acc, val) => acc.concat(val), []).filter(distinct))
 .then(ul => ul.map(user => {
@@ -185,28 +128,27 @@ return [x.player_1, x.player_2]
 	  let bb1 = battlesList.length,bb2=bb1;
     fs.readFile(`./${process.env.FILE_NAME}`, 'utf8', (err, data) => {
       if (err) {
+        readline.cursorTo(process.stdout, 0);
         console.log(`Error reading file from disk: ${err}`); rej(err)
       } else {
-        battlesList = data ? [...battlesList, ...JSON.parse(data)] : battlesList;
+        let battlesList = data ? [...battlesList, ...JSON.parse(data)] : battlesList;
       }
-      process.stdout.clearLine()
-      process.stdout.cursorTo(0);
+      readline.cursorTo(process.stdout, 0);
       console.log('battles',bb3=battlesList.length-bb2);
       battlesList = uniqueListByKey(battlesList.filter(x => x != undefined), "battle_queue_id")
 	    console.log('battles',bb4=battlesList.length-bb3,' added')
 	    console.log('total battle',battlesList.length+bb4);
       fs.writeFile(`./${process.env.FILE_NAME}`, JSON.stringify(battlesList), function (err) {
         if (err) {
+          readline.cursorTo(process.stdout, 0);
           console.log(err,'a'); rej(err);
         }
-        battlesList = [],
-        promises = [];
-        min_rating = [];
+        var battlesList = [],
+        var promises = [];
       });
       res(battlesList)
     });
   }) }) 
   clearInterval(twirlTimer())
-  process.stdout.clearLine()
-  process.stdout.cursorTo(0);
+  readline.cursorTo(process.stdout, 0);
 module.exports.battlesList = battles;

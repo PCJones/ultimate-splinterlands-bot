@@ -2,6 +2,7 @@ require('dotenv').config()
 const battles = require('./auto-gather');
 const chalk = require('chalk');
 const fs = require('fs');
+const os = require("os");
 
 
 const sleepingTimeInMinutes = process.env.MINUTES_GATHER_INTERVAL || 30;
@@ -47,7 +48,16 @@ async function getFilesizeInBytes(filename) {
 			console.log('processing ' + (accountusers.indexOf(process.env.ACCOUNT) + 1) + ' of ' + accounts.length)
 			console.log('Gathering battles of: '+chalk.green(accountusers[i]))
 			await battles.battlesList(accountusers[i]).then(x=>x).catch((e) => console.log('Unable to gather data for local.' + e));  
+			const used = process.memoryUsage().heapUsed / 1024 / 1024;
+			console.log(`The process uses approximately ${Math.round(used * 100) / 100} MB of memory.`);
 			console.timeEnd('Processing time')
+			const freeRAM = ((os.freemem()/ 1024 / 1024) * 100)/100;
+			if (freeRAM > 3000) {
+				console.log('Memory is too high. Allowing program to sleep to lower down memory overload for 30 seconds. \n')
+				await sleep(30000) // 30 secs sleep
+			} else {
+				await sleep(5000) // 5 secs sleep
+			}
 		}
 	console.timeEnd('Total processing time')
 	console.log('Waiting for the next gather in', sleepingTime / 1000 / 60, ' minutes at ', new Date(Date.now() + sleepingTime).toLocaleString());
