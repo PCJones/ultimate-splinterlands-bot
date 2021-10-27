@@ -741,16 +741,16 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                         .then(selector => selector.click())}
                     await page.waitForTimeout(1000);
                 }
-        await page.waitForTimeout(5000);
+        await page.waitForTimeout(2000);
         try {
             misc.writeToLog('Team submit. Please wait for the result.');
             await page.click('.btn-green')[0]; //start fight
         } catch {
             misc.writeToLog('Start Fight didnt work, waiting 5 sec and retry');
-            await page.waitForTimeout(5000);
+            await page.waitForTimeout(2000);
             await page.click('.btn-green')[0]; //start fight
         }
-        await page.waitForTimeout(5000);
+        await page.waitForTimeout(2000);
         await page.waitForSelector('#btnRumble', {
             timeout: 160000
         }).then(() => misc.writeToLog('btnRumble visible')).catch(() => misc.writeToLog('btnRumble not visible'));
@@ -761,27 +761,32 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         }).then(() => misc.writeToLog('btnSkip visible')).catch(() => misc.writeToLog('btnSkip not visible'));
         await page.$eval('#btnSkip', elem => elem.click()).then(() => misc.writeToLog('btnSkip clicked')).catch(() => misc.writeToLog('btnSkip not visible')); //skip rumble
 
-        try {
+        //getting battle result
             misc.writeToLog('Getting battle result...');
             await page.goto('https://splinterlands.io/?p=battle_history');
+            await fetch(`https://game-api.splinterlands.io/battle/history?player=${process.env.ACCUSERNAME}`)
+                .then(response => response.json())
+                .then(async data  => {
+                        const winner = data.battles[0].winner
+                        const decWon = data.battles[0].reward_dec
+                        const SPSwon = data.battles[0].reward_sps
             await waitUntilLoaded(page);
-            await closePopups(page);
-            const winner = await getElementText(page, '.battle-log-entry .battle-log-entry__team.win  .bio__name__display', 15000).catch( async () =>{
-                await getElementText(page, '.battle-log-entry .battle-log-entry__team.win  .bio__name__display', 15000)});
-            const draw = await getElementText(page, '.battle-log-entry .battle-log-entry__vs .conflict__title', 15000).catch( async () =>{
-                await getElementText(page, '.battle-log-entry .battle-log-entry__vs .conflict__title', 15000)});
             if (winner.trim() == process.env.ACCUSERNAME.trim()) {
-                const decWon = await getElementText(page, '.battle-log-entry .battle-log-entry__vs.win  .conflict__dec', 1000).catch( async () =>{
-                    await getElementText(page, '.battle-log-entry .battle-log-entry__vs.win  .conflict__dec', 1000)});
-                misc.writeToLog(chalk.green('You won! Reward: ' + decWon));
-				logSummary.push(' Battle result:' + chalk.green(' Win Reward: ' + decWon));
+                misc.writeToLog(chalk.green('You won!'));
+                let battleRewards = []
+                battleRewards.reward = {DEC : decWon, SPS : SPSwon}
+                console.table(battleRewards)
+				logSummary.push(' Battle result:' + chalk.green(' Win Reward: DEC ' + decWon + ' SPS ' + SPSwon));
                 newlogvisual['Battle Result'] = 'Win ' + decWon
-            } else if (draw.trim() == "Draw") {
+                battledata.push(' Battle result: Won');
+            } else if (winner.trim() === "DRAW") {
                 misc.writeToLog(chalk.yellow("It's a draw"));
+                battledata.push(' Battle result: Draw');
                 logSummary.push(' Battle result:' + chalk.blueBright(' Draw'));
                 newlogvisual['Battle Result'] = 'Draw'
             } else {
                 misc.writeToLog(chalk.red('You lost :('));
+                battledata.push(' Battle result: Lost');
 				logSummary.push(' Battle result:' + chalk.red(' Lose'));
                 newlogvisual['Battle Result'] = 'Lose'
                 if (useAPI) {
@@ -797,13 +802,15 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                     misc.writeToLog("Gathering winner's battle data for local history backup")
                      await battles.battlesList(winner).then(x=>x).catch((e) => misc.writeToLog('Unable to gather data for local.' + e));
                 }
-            }  
-        } catch (e) {
+            } 
+        }).catch((e) => {
                 misc.writeToLog(e);
                 misc.writeToLog(chalk.blueBright('Could not find winner'));
+                battledata.push(' Could not find winner');
                 logSummary.push(chalk.blueBright(' Could not find winner'));
                 newlogvisual['Battle Result'] = 'Could not find winner' 
-        }
+        })
+
         try {
 			let UpDateDec = await getbalanceAPI(process.env.ACCUSERNAME,'dec');
             let newERC = await getbalanceAPI(process.env.ACCUSERNAME,'erc');
