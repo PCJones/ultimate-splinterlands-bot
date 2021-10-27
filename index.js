@@ -407,7 +407,6 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         } catch (e){
             misc.writeToLog('Unable to get ERC - Skipping this account');
             logSummary.push(' Unable to get ERC - Skipping this account');
-            battledata.push('Unable to get ERC, account skipped');
             return;
         } 
     }
@@ -555,7 +554,6 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     let teamToPlay;
     if (mana == 'no mana') { 
         logSummary.push(' No Mana error. Skipping account.')
-        battledata.push(' No Mana error. Skipping account.')
         throw new Error(" No mana. Game server error.");
     }
         let priorityCards = process.env.PRIORITY_CARD;
@@ -778,15 +776,12 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                 console.table(battleRewards)
 				logSummary.push(' Battle result:' + chalk.green(' Win Reward: DEC ' + decWon + ' SPS ' + SPSwon));
                 newlogvisual['Battle Result'] = 'Win ' + decWon
-                battledata.push(' Battle result: Won');
             } else if (winner.trim() === "DRAW") {
                 misc.writeToLog(chalk.yellow("It's a draw"));
-                battledata.push(' Battle result: Draw');
                 logSummary.push(' Battle result:' + chalk.blueBright(' Draw'));
                 newlogvisual['Battle Result'] = 'Draw'
             } else {
                 misc.writeToLog(chalk.red('You lost :('));
-                battledata.push(' Battle result: Lost');
 				logSummary.push(' Battle result:' + chalk.red(' Lose'));
                 newlogvisual['Battle Result'] = 'Lose'
                 if (useAPI) {
@@ -806,7 +801,6 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         }).catch((e) => {
                 misc.writeToLog(e);
                 misc.writeToLog(chalk.blueBright('Could not find winner'));
-                battledata.push(' Could not find winner');
                 logSummary.push(chalk.blueBright(' Could not find winner'));
                 newlogvisual['Battle Result'] = 'Could not find winner' 
         })
