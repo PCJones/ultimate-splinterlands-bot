@@ -131,7 +131,7 @@ return [x.player_1, x.player_2]
         readline.cursorTo(process.stdout, 0);
         console.log(`Error reading file from disk: ${err}`); rej(err)
       } else {
-        let battlesList = data ? [...battlesList, ...JSON.parse(data)] : battlesList;
+        battlesList = data ? [...battlesList, ...JSON.parse(data)] : battlesList;
       }
       readline.cursorTo(process.stdout, 0);
       console.log('battles',bb3=battlesList.length-bb2);
@@ -143,8 +143,8 @@ return [x.player_1, x.player_2]
           readline.cursorTo(process.stdout, 0);
           console.log(err,'a'); rej(err);
         }
-        var battlesList = [],
-        var promises = [];
+         battlesList = [],
+         promises = [];
       });
       res(battlesList)
     });
