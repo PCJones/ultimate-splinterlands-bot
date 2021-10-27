@@ -26,6 +26,7 @@ async function readJSONFile(fn){
     return ret;
 }	
 
+
 async function checkForUpdate() {
     await misc.writeToLogNoUsername('------------------------------------------------------------------------------------------------');
     await fetch('http://jofri.pf-control.de/prgrms/splnterlnds/version.txt')
