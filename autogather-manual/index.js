@@ -1,7 +1,7 @@
 require('dotenv').config()
 const battles = require('./auto-gather');
 const chalk = require('chalk');
-const fs = require('fs-path');
+const fs = require('fs');
 const os = require("os");
 
 
@@ -32,7 +32,7 @@ async function getFilesizeInBytes(filename) {
     	for (let i = 0; i < accounts.length; i++) {
 				console.time('Processing time')
 				await sleep(1000);
-			if (fs.existsSync(`/USBm/data/${process.env.FILE_NAME}`)){
+			if (fs.existsSync(`./${process.env.FILE_NAME}`)){
 				let  fileSizeInMegabytes = (await getFilesizeInBytes(`${process.env.FILE_NAME}`) / 1024) // *1024)
 				if (fileSizeInMegabytes > process.env.SIZE_LIMIT) {
 					process.stdout.clearLine()
