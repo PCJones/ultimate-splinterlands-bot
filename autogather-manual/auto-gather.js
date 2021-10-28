@@ -1,6 +1,6 @@
 require('dotenv').config()
 const fetch = require("cross-fetch");
-const fs = require('fs');
+const fs = require('fs-path');
 const readline = require('readline');
 
 const accountusers = process.env.ACCOUNT.split(',');
@@ -126,7 +126,7 @@ return [x.player_1, x.player_2]
   .then(() => { return Promise.all(promises) })
   .then(() => { return new Promise((res,rej) => {
 	  let bb1 = battlesList.length,bb2=bb1;
-    fs.readFile(`./${process.env.FILE_NAME}`, 'utf8', (err, data) => {
+    fs.readFile(`/USBm/data/${process.env.FILE_NAME}`, 'utf8', (err, data) => {
       if (err) {
         readline.cursorTo(process.stdout, 0);
         console.log(`Error reading file from disk: ${err}`); rej(err)
@@ -138,7 +138,7 @@ return [x.player_1, x.player_2]
       battlesList = uniqueListByKey(battlesList.filter(x => x != undefined), "battle_queue_id")
 	    console.log('battles',bb4=battlesList.length-bb3,' added')
 	    console.log('total battle',battlesList.length+bb4);
-      fs.writeFile(`./${process.env.FILE_NAME}`, JSON.stringify(battlesList), function (err) {
+      fs.writeFile(`/USBm/data/${process.env.FILE_NAME}`, JSON.stringify(battlesList), function (err) {
         if (err) {
           readline.cursorTo(process.stdout, 0);
           console.log(err,'a'); rej(err);
