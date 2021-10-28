@@ -1,7 +1,7 @@
 require('dotenv').config()
 const battles = require('./auto-gather');
 const chalk = require('chalk');
-const fs = require('fs');
+const fs = require('fs-path');
 const os = require("os");
 
 
