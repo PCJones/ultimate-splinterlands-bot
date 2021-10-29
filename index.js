@@ -924,19 +924,20 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                 })
 
                 await page.waitForTimeout(5000);
-                await page.evaluate(async function () {
-                    await SM.Logout(); // need to logout the account to avoid soft ban from SPL
-                        }).then(async function (){ 
-                            await browsers[0].close();
-                            await browsers[0].process().kill('SIGKILL'); //  to kill chromium this is the culprit of high CPU usage.  
-                            browsers = [];
-                        }).catch(async function(){ 
-                            //const pages =  browsers[0].pages();
-                            //await Promise.all(pages.map(page =>page.close()));
-                            await browsers[0].close();  // in case game maintenance
-                            await browsers[0].process().kill('SIGKILL'); 
-                            browsers = [];
-                        })  
+                if (accounts.indexOf(process.env.ACCUSERNAME) + 1 === accounts.length) {
+                    await browsers[0].close();
+                    browsers[0].process().kill('SIGKILL');
+                    browsers = [];
+                } else {
+                    console.log('hello')
+                    await page.evaluate(async function () {
+                        await SM.Logout(); // this makes puppeteer faster.
+                    }).catch(async function(){ 
+                        await browsers[0].close();  // in case game maintenance
+                        await browsers[0].process().kill('SIGKILL'); 
+                        browsers = [];
+                    });        
+                }    
             }
             let endTimer = new Date().getTime();
 			let totalTime = endTimer - startTimer;
@@ -975,7 +976,8 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
             await new Promise(r => setTimeout(r, sleepingTime));
             
         }
-    } catch (e) {
+    } catch (e) {  
+        await browsers[0].process().kill('SIGKILL'); // chromium is a bitch, have to kill it to save CPU memory.
         if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("Bot stops due to error. Please see logs for details.")};
         console.log('Routine error at: ', new Date().toLocaleString(), e)
     }
