@@ -941,7 +941,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
             }
             let endTimer = new Date().getTime();
 			let totalTime = endTimer - startTimer;
-			let tet = ' Total execution time: ' + chalk.green((totalTime / 1000 / 60).toFixed(2) + ' mins')
+			let tet = ' Total execution time: ' + chalk.green((totalTime / 1000 / 60).toFixed(2) + 'mins')
             console.log('--------------------------Battle Result Summary:----------------------');
             console.log(tet);
 			if (unitVersion == 'default'){
