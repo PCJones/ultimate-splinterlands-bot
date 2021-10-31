@@ -132,9 +132,7 @@ async function seasonQuest (page, logSummary, allCardDetails, seasonRewards){
             })
                 await seasonClaimButton.click().then(() => misc.writeToLog('Season reward button clicked.'));
                 misc.writeToLog('Claiming the season reward. Please Wait... ');
-                await page.waitForTimeout(50000);
-                await page.reload();
-                await page.waitForTimeout(20000);
+                await page.waitForTimeout(100000);
                 await page.reload();
 
                 const data = await makeGetRequest('https://api.steemmonsters.io/players/history?username=' + process.env.ACCUSERNAME + '&types=claim_reward')

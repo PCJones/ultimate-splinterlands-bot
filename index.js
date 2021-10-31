@@ -435,10 +435,10 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     // boart2k end
 
     //check if season reward is available
-    await nq.seasonQuest(page, logSummary, allCardDetails, seasonRewards);
     await page.waitForTimeout(1000);
     await closePopups(page);
     await page.waitForTimeout(2000);
+    await nq.seasonQuest(page, logSummary, allCardDetails, seasonRewards);
     if (!page.url().includes("battle_history")) {
         await clickMenuFightButton(page);
         await page.waitForTimeout(3000);
