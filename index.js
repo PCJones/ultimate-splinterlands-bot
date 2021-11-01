@@ -195,32 +195,7 @@ async function getFilesizeInBytes(filename) {
     var fileSizeInBytes = stats.size;
     return fileSizeInBytes;
 }
-//get accurate DEC not browser base
-async function getbalanceAPI(user,type){
-     const balancer = await fetch(`https://game-api.splinterlands.io/players/balances?username=${user}`)
-    .then(response => response.json())
-    .then(data =>{
-        let dec = data[data.findIndex(img => img.token === 'DEC')].balance
-        let erc = data[data.findIndex(img => img.token === 'ECR')].balance
-        if (type === 'dec'){
-            return parseFloat(Math.round((parseFloat(dec * 100)).toFixed(2)) / 100 ).toFixed(2)
-        } else if (type === 'erc') {
-            return  (erc.toString()).slice(0, 2) + "." + (erc.toString()).slice(2)
-        }
-    }).catch(async () =>{await fetch(`https://api.splinterlands.io/players/balances?username=${user}`)
-    .then(response => response.json())
-    .then(data =>{
-        let dec = data[data.findIndex(img => img.token === 'DEC')].balance
-        let erc = data[data.findIndex(img => img.token === 'ECR')].balance
-        if (type === 'dec'){
-            return parseFloat(Math.round((parseFloat(dec * 100)).toFixed(2)) / 100 ).toFixed(2)
-        } else if (type === 'erc') {
-            return  (erc.toString()).slice(0, 2) + "." + (erc.toString()).slice(2)
-        }
-    })
-    })
-    return await balancer;
-}
+
 
 // LOAD MY CARDS
 async function getCards() {
@@ -237,7 +212,7 @@ async function getQuest() {
 async function createBrowsers(count, headless) {
     let browsers = [];
     for (let i = 0; i < count; i++) {
-            browser = await puppeteer.launch({
+        const browser = await puppeteer.launch({
                product: 'chrome',
                headless: headless,
                args: headless === true ? [
@@ -269,7 +244,7 @@ async function createBrowsers(count, headless) {
             '--mute-audio',
             '--disable-web-security']
            });
-     
+
         const page = await browser.newPage();
         page.setDefaultNavigationTimeout(500000);
         page.on('dialog', async dialog => {
@@ -387,29 +362,21 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             });
         }
     }
+    await page.goto('https://splinterlands.io/?p=battle_history');
+    await page.reload();
+    await closePopups(page).catch(()=>misc.writeToLog('No pop up to be closed.'));
     await waitUntilLoaded(page);
-    try {
-        erc = parseInt((await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 1000)).split('%')[0]);
-    } catch {
-        await page.goto('https://splinterlands.io/?p=battle_history');
-        try{
-            erc = parseInt((await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 1000)).split('%')[0]);
-        } catch (e){
-            misc.writeToLog('Unable to get ERC - Skipping this account');
-            logSummary.push(' Unable to get ERC - Skipping this account');
-            return;
-        } 
-    }
-    if (erc >= 50) {
-        misc.writeToLog('Current Energy Capture Rate is ' + chalk.green(erc + "%"));
-  
+    const ercCurrentraw =  await page.evaluate(()=>SM.Player.capture_rate);
+    let ercCurrent = (ercCurrentraw.toString()).slice(0, 2)+ "." + (ercCurrentraw.toString()).slice(2)
+
+    if (ercCurrent >= 50) {
+        misc.writeToLog('Current ECR is ' + chalk.green(ercCurrent + "%"));
     } else {
-        misc.writeToLog('Current Energy Capture Rate is ' + chalk.red(erc + "%"));
-        
+        misc.writeToLog('Current ECR is ' + chalk.red(ercCurrent + "%"));
     }
-    if (erc < ercThreshold) {
-        misc.writeToLog('ERC is below threshold of ' + chalk.red(ercThreshold + '% ') + '- Skipping this account');
-        logSummary.push(' Account skipped: ' + chalk.red('ERC is below threshold of ' + ercThreshold))
+    if (ercCurrent < ercThreshold) {
+        misc.writeToLog('ECR is below threshold of ' + chalk.red(ercThreshold + '% ') + '- Skipping this account');
+        logSummary.push(' Account skipped: ' + chalk.red('ECR is below threshold of ' + ercThreshold))
         return;
     }
 
@@ -420,31 +387,30 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 
     // boart2k added
     const powerThreshold = process.env.POWER_THRESHOLD;
-    let powerRaw = await getElementTextByXpath(page, "//div[@id='power_progress']/div/span[2]", 1000);
-    let power = convertToNumber(powerRaw);
+    const powerRaw = await page.evaluate(()=>SM.Player.collection_power);
 
-    if(power < powerThreshold){
+    if(powerRaw < powerThreshold){
         misc.writeToLog('Collection Power: ' + chalk.red(powerRaw) + ' is lower than the ' + chalk.red(powerThreshold) + ' you have set.');
         logSummary.push(' Collection Power: ' + chalk.red(powerRaw) + ' is lower than the ' + chalk.red(powerThreshold) + ' you have set.');
-        newlogvisual['Power'] = power
+        newlogvisual['Power'] = powerRaw
     } else {
         misc.writeToLog('Collection Power: ' + chalk.green(powerRaw));
         logSummary.push(' Collection Power: ' + chalk.green(powerRaw));
-        newlogvisual['Power'] = power
+        newlogvisual['Power'] = powerRaw
     }
     // boart2k end
 
     //check if season reward is available
     await page.waitForTimeout(1000);
-    await closePopups(page);
+    await closePopups(page).catch(()=>misc.writeToLog('No pop up to be closed.'));
     await page.waitForTimeout(2000);
-    await nq.seasonQuest(page, logSummary, allCardDetails, seasonRewards);
+    await nq.seasonQuest(page, logSummary, allCardDetails, seasonRewards, powerThreshold);
     if (!page.url().includes("battle_history")) {
         await clickMenuFightButton(page);
         await page.waitForTimeout(3000);
     }
 
-    let curRating = await getElementText(page, 'span.number_text', 2000).catch(() => {misc.writeToLog('Unable to get current Rating')} );
+    const curRating = await page.evaluate(()=>SM.Player.rating).catch(() => {misc.writeToLog('Unable to get current Rating')} );
     misc.writeToLog('Current Rating is ' + chalk.yellow(curRating));
 
     if (!page.url().includes("battle_history")) {
@@ -548,16 +514,24 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     }
         let priorityCards = process.env.PRIORITY_CARD;
 		if (priorityCards) {
-            priorityCards = priorityCards?.split(',')
-            priorityCards = priorityCards.filter(x => myCards?.includes(parseInt(x.trim())))
+            priorityCards = priorityCards.split(',')
+            priorityCards = priorityCards.filter(x => myCards.includes(parseInt(x.trim())))
 		}
     misc.writeToLog(chalk.green('Battle details:'));  
     misc.writeToLog('Mana:'+  chalk.yellow(mana) + ' Rules:' + chalk.yellow(rules) + ' Splinters:' + chalk.yellow(splinters))
     misc.writeToLog(chalk.green('starting team selection'));
+    var twirlTimer = (function() {
+        var P = ["Please wait |", "Please wait /", "Please wait -", "Please wait \\"];
+        var x = 0;
+        return setInterval(function() {
+          process.stdout.write("\r" + P[x++]);
+          x &= 3;
+        }, 250); })(); 
     if (useAPI) {
        try {
             const apiResponse = await withTimeout(100000, api.getPossibleTeams(matchDetails));
             if (apiResponse && !JSON.stringify(apiResponse).includes('api limit reached')) {
+                readline.cursorTo(process.stdout, 0); 
                 misc.writeToLog(chalk.magenta('API Response Result: ')); 
                 console.log(chalk.cyan(' Team picked by API: '));
                     console.table({
@@ -578,6 +552,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                     cards: [Object.values(apiResponse)[1], Object.values(apiResponse)[3], Object.values(apiResponse)[5], Object.values(apiResponse)[7], Object.values(apiResponse)[9],
                         Object.values(apiResponse)[11], Object.values(apiResponse)[13], Object.values(apiResponse)[15]]
                 };
+
                    subElement = helper.teamActualSplinterToPlay(splinters,teamToPlay.cards.slice(0, 6)).toLowerCase()
                 if (Object.values(apiResponse)[15] === 'dragon' && splinters.includes(subElement) == false ) {
                     misc.writeToLog('Sub-element is ' + subElement + ' but not included on available splinters.')
@@ -595,14 +570,16 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                     useAPI = false;  
 
                 } else {
-                     winPercent = (Object.values(apiResponse)[2].replace(',','.')* 100).toFixed(2)
+                   const winPercent = (Object.values(apiResponse)[2].replace(',','.')* 100).toFixed(2)
                 if  (winPercent < process.env.SWITCH_THRESHOLD && JSON.parse(process.env.AUTO_SWITCH.toLowerCase()) == true) {  // auto-select to local if win percentage is below 50%
+                        readline.cursorTo(process.stdout, 0);
                         misc.writeToLog('API choose low winning percentage splinter . Reverting to local history.');
                         const possibleTeams = await ask.possibleTeams(matchDetails, priorityCards).catch(e => misc.writeToLog('Error from possible team API call: ', e));
                         if (possibleTeams && possibleTeams.length) {
                             //misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
                             misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);
                         } else {
+                            readline.cursorTo(process.stdout, 0); 
                             misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
                             logSummary.push(' NO TEAMS available to be played')
                             throw new Error (' NO TEAMS available to be played');
@@ -613,6 +590,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                         apiSelect = true;
                         // TEMP, testing
                         if (Object.values(apiResponse)[1] == '') {
+                            readline.cursorTo(process.stdout, 0); 
                             misc.writeToLog('Seems like the API found no possible team - using local history');
                             const possibleTeams = await ask.possibleTeams(matchDetails).catch(e => misc.writeToLog('Error from possible team API call: ', e));
                             teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);  
@@ -621,6 +599,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                 }
             } else {
                 if (apiResponse && JSON.stringify(apiResponse).includes('api limit reached')) {
+                    readline.cursorTo(process.stdout, 0); 
                     misc.writeToLog('API limit per hour reached, using local backup!');
                     misc.writeToLog('Visit discord or telegram group to learn more about API limits: https://t.me/ultimatesplinterlandsbot and https://discord.gg/hwSr7KNGs9');
                     apiSelect = 'false'  
@@ -631,12 +610,13 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                 const possibleTeams = await ask.possibleTeams(matchDetails, priorityCards).catch(e => misc.writeToLog('Error from possible team API call: ', e));
 
                 if (possibleTeams && possibleTeams.length) {
-                    //misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
+                    readline.cursorTo(process.stdout, 0); 
                     misc.writeToLog('Possible Teams based on your cards: ' + possibleTeams.length);
                 } else {
+                    readline.cursorTo(process.stdout, 0); 
                     misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
                     logSummary.push(' NO TEAMS available to be played')
-                    throw new Error('NO TEAMS available to be played');
+                    throw new Error;
                 }
                 teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
                 useAPI = false;
@@ -645,12 +625,12 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             misc.writeToLog('API taking too long. Reverting to use local history' + e);
             const possibleTeams = await ask.possibleTeams(matchDetails, priorityCards).catch(e => misc.writeToLog('Error from possible team API call: ', e));
             if (possibleTeams && possibleTeams.length) {
-                //misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
+                readline.cursorTo(process.stdout, 0); 
                 misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);
             } else {
                 misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
                 logSummary.push(' NO TEAMS available to be played');
-                throw new Error(' NO TEAMS available to be played');
+                throw new Error;
             }
             teamToPlay = await ask.teamSelection(possibleTeams, matchDetails, quest);
             useAPI = false;
@@ -658,9 +638,10 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     } else {
         const possibleTeams = await ask.possibleTeams(matchDetails, priorityCards).catch(e => misc.writeToLog('Error from possible team API call: ', e));
         if (possibleTeams && possibleTeams.length) {
-            //misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length, '\n', possibleTeams);
+            readline.cursorTo(process.stdout, 0); 
             misc.writeToLog('Possible Teams based on your cards: ', possibleTeams.length);
         } else {
+            readline.cursorTo(process.stdout, 0); 
             misc.writeToLog('Error: ', JSON.stringify(matchDetails), JSON.stringify(possibleTeams))
             logSummary.push(' NO TEAMS available to be played')
             throw new Error (' NO TEAMS available to be played');
@@ -698,6 +679,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             }).then(summonerButton => summonerButton.click())
         });
         if (card.color(teamToPlay.cards[0]) === 'Gold') {
+            readline.cursorTo(process.stdout, 0); 
             misc.writeToLog(' Dragon play TEAMCOLOR ' + helper.teamActualSplinterToPlay(splinters,teamToPlay.cards.slice(0, 6)))
             await page.waitForXPath(`//div[@data-original-title="${helper.teamActualSplinterToPlay(splinters,teamToPlay.cards.slice(0, 6))}"]`, {
                 timeout: 8000
@@ -714,6 +696,8 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             }); 
         }
         await page.waitForTimeout(10000);
+        clearInterval(twirlTimer);
+        readline.cursorTo(process.stdout, 0); 
         misc.writeToLog('Summoner: ' + chalk.yellow(teamToPlay.summoner.toString().padStart(3)) + ' Name: ' + chalk.green(allCardDetails[(parseInt(teamToPlay.summoner))-1].name.toString()));
                 for (i = 1; i <= 6; i++) {
                     await sleep(300);
@@ -738,10 +722,24 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             await page.waitForTimeout(2000);
             await page.click('.btn-green')[0]; //start fight
         }
+        var twirlTimer = (function() {
+            var P = ["Please wait |", "Please wait /", "Please wait -", "Please wait \\"];
+            var x = 0;
+            return setInterval(function() {
+              process.stdout.write("\r" + P[x++]);
+              x &= 3;
+            }, 250); })(); 
         await page.waitForTimeout(2000);
         await page.waitForSelector('#btnRumble', {
             timeout: 160000
-        }).then(() => misc.writeToLog('btnRumble visible')).catch(() => misc.writeToLog('btnRumble not visible'));
+        }).then(() => {
+            clearInterval(twirlTimer);
+            readline.cursorTo(process.stdout, 0); 
+            misc.writeToLog('btnRumble visible')
+        }).catch(() => {
+            clearInterval(twirlTimer);
+            readline.cursorTo(process.stdout, 0);
+            misc.writeToLog('btnRumble not visible')});
         await page.waitForTimeout(5000);
         await page.$eval('#btnRumble', elem => elem.click()).then(() => misc.writeToLog('btnRumble clicked')).catch(() => misc.writeToLog('btnRumble didnt click')); //start rumble
         await page.waitForSelector('#btnSkip', {
@@ -785,7 +783,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 					misc.writeToLog("Unable to gather data as newHistory file is now 500MB") 
 				} else {
                     misc.writeToLog("Gathering winner's battle data for local history backup")
-                     await battles.battlesList(winner).then(x=>x).catch((e) => misc.writeToLog('Unable to gather data for local.' + e));
+                    await battles.battlesList(winner).then(x=>x).catch((e) => misc.writeToLog('Unable to gather data for local.' + e));
                 }
             } 
         }).catch((e) => {
@@ -794,16 +792,17 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                 logSummary.push(chalk.blueBright(' Could not find winner'));
                 newlogvisual['Battle Result'] = 'Could not find winner' 
         })
-
         try {
-            await closePopups(page);
-			let UpDateDec = await getbalanceAPI(process.env.ACCUSERNAME,'dec');
-            let newERC = await getbalanceAPI(process.env.ACCUSERNAME,'erc');
-            let curRating = await getElementText(page, 'span.number_text', 2000);
-            misc.writeToLog('Updated Rating after battle is ' + chalk.yellow(curRating));
-            logSummary.push(' New rating: ' + chalk.yellow(curRating));
+            await closePopups(page).catch(()=>misc.writeToLog('No pop up to be closed.'));
+			const UpDateDec = (await page.evaluate(()=>SM.Player.balances.find(x=>x.token=='DEC').balance)).toFixed(2);
+            console.log(UpDateDec)
+            const newERCRaw = await page.evaluate(()=>SM.Player.balances.find(x=>x.token=='ECR').balance);
+            let newERC = (newERCRaw.toString()).slice(0, 2)+ "." + (newERCRaw.toString()).slice(2)
+            const newRating = await page.evaluate(()=>SM.Player.rating);
+            misc.writeToLog('Updated Rating after battle is ' + chalk.yellow(newRating));
+            logSummary.push(' New rating: ' + chalk.yellow(newRating));
 			logSummary.push(' New DEC Balance: ' + chalk.cyan(UpDateDec + ' DEC'));
-            newlogvisual['Rating'] = curRating
+            newlogvisual['Rating'] = newRating
             newlogvisual['DEC Balance'] = UpDateDec + ' dec'
 			let e = parseInt(newERC);
                 if (e >= 50) {
@@ -826,18 +825,22 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             newlogvisual['DEC Balance'] = 'n/a'
         }
         let Newquest = await getQuest();	
-		await nq.newquestUpdate(Newquest, claimQuestReward, page, logSummary, allCardDetails, searchFromJSON, newlogvisual);
+		await nq.newquestUpdate(Newquest, claimQuestReward, page, logSummary, allCardDetails, newlogvisual, powerThreshold);
         teamToPlay = '';
         erc='';
         useAPI ='';
         winPercent ='';
         newERC = '';
     } catch (e) {
+        clearInterval(twirlTimer);
+        readline.cursorTo(process.stdout, 0);
         misc.writeToLog(' Unable to proceed due to error.' + e)
         logSummary.push(chalk.red(' Unable to proceed due to error. Please see logs'));
         return;
     }
   } catch (e) {
+      clearInterval(twirlTimer);
+      readline.cursorTo(process.stdout, 0);
       misc.writeToLog(' Unable to proceed due to error.' + e)
       return;
   }
@@ -858,7 +861,6 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
         const passwords = process.env.PASSWORD.split(',');
         const headless = JSON.parse(process.env.HEADLESS.toLowerCase());
         const useAPI = JSON.parse(process.env.USE_API.toLowerCase());
-        const keepBrowserOpen = JSON.parse(process.env.KEEP_BROWSER_OPEN.toLowerCase());
         const claimQuestReward = JSON.parse(process.env.CLAIM_QUEST_REWARD.toLowerCase());
         const prioritizeQuest = JSON.parse(process.env.QUEST_PRIORITY.toLowerCase());
         const teleNotif = JSON.parse(process.env.TELEGRAM_NOTIF.toLowerCase());
@@ -867,7 +869,6 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 
         let browsers = [];
         misc.writeToLogNoUsername('Headless: ' + headless);
-        misc.writeToLogNoUsername('Keep Browser Open: ' + keepBrowserOpen);
         misc.writeToLogNoUsername('Login via Email: ' + loginViaEmail);
         misc.writeToLogNoUsername('Get data for local history: ' + getDataLocal);
         misc.writeToLogNoUsername('Claim Quest Reward: ' + claimQuestReward);
@@ -889,17 +890,11 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                 process.env['PASSWORD'] = passwords[i];
                 process.env['ACCUSERNAME'] = accountusers[i];
 
-                //if (keepBrowserOpen && browsers.length == 0) {
-                    //misc.writeToLog('Opening browsers');
-                    //browsers = await createBrowsers(accounts.length, headless);
-                //} else if (!keepBrowserOpen && browsers.length == 0) { // close browser, only have 1 instance at a time
-                console.log(browsers.length)
                 if (browsers.length == 0){
                     misc.writeToLog('Opening browser');
                     browsers = await createBrowsers(1, headless);
                 }
 
-                //const page = (await(keepBrowserOpen ? browsers[i] : browsers[0]).pages())[1];
                 const page = (await browsers[0].pages())[1];
 
                 //page.goto('https://splinterlands.io/');
@@ -917,7 +912,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                 }
                 await startBotPlayMatch(page, myCards, quest, claimQuestReward, prioritizeQuest, useAPI, logSummary, getDataLocal , logSummary1, seasonRewards)
                 .then(() => {
-                    misc.writeToLog('Closing battle');
+                    misc.writeToLog('Closing battle \n');
                 })
                 .catch((e) => {
                     misc.writeToLog(e)
@@ -929,7 +924,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                     browsers[0].process().kill('SIGKILL');
                     browsers = [];
                 } else {
-                    console.log('hello')
+                  
                     await page.evaluate(async function () {
                         await SM.Logout(); // this makes puppeteer faster.
                     }).catch(async function(){ 
@@ -937,11 +932,11 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                         await browsers[0].process().kill('SIGKILL'); 
                         browsers = [];
                     });        
-                }    
+                } 
             }
             let endTimer = new Date().getTime();
 			let totalTime = endTimer - startTimer;
-			let tet = ' Total execution time: ' + chalk.green((totalTime / 1000 / 60).toFixed(2) + 'mins')
+			let tet = ' Total execution time: ' + chalk.green((totalTime / 1000 / 60).toFixed(2) + ' mins')
             console.log('--------------------------Battle Result Summary:----------------------');
             console.log(tet);
 			if (unitVersion == 'default'){
@@ -976,8 +971,9 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
             await new Promise(r => setTimeout(r, sleepingTime));
             
         }
-    } catch (e) {  
-        await browsers[0].process().kill('SIGKILL'); // chromium is a bitch, have to kill it to save CPU memory.
+    } catch (e) {
+        await browsers[0].close();  // chromium is a bitch, have to kill it to save CPU memory.
+        await browsers[0].process().kill('SIGKILL'); 
         if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("Bot stops due to error. Please see logs for details.")};
         console.log('Routine error at: ', new Date().toLocaleString(), e)
     }
