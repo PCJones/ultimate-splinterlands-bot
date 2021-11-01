@@ -718,7 +718,9 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         //getting battle result
             misc.writeToLog('Getting battle result...');
             await page.goto('https://splinterlands.io/?p=battle_history');
-            await fetch(`https://game-api.splinterlands.com/battle/history2?player=${process.env.ACCUSERNAME}`)
+            const bURL = [`https://game-api.splinterlands.io/battle/history2?player=`,`https://api.splinterlands.io/battle/history2?player=`, `https://api.steemmonsters.io/battle/history2?player=`];
+            const battleURL = bURL[Math.floor(Math.random() * bURL.length)];
+            await fetch(battleURL + process.env.ACCUSERNAME)
                 .then(response => response.json())
                 .then(async data  => {
                         const winner = data.battles[0].winner

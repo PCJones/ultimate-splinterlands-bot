@@ -19,7 +19,7 @@ const getQuestSplinter = (questName) => {
     return playerQuest.element;
 }
 
-const getPlayerQuest = async (username) => (await fetch(`https://game-api.splinterlands.io/players/quests?username=${username}`)//,
+const getPlayerQuest = async (username) => (await fetch(`https://api.steemmonsters.io/players/quests?username=${username}`)//,
   //{ "credentials": "omit", "headers": { "accept": "application/json, text/javascript, */*; q=0.01" }, "referrer": `https://splinterlands.com/?p=collection&a=${username}`, "referrerPolicy": "no-referrer-when-downgrade", "body": null, "method": "GET", "mode": "cors" })
   .then(x => x && x.json())
   .then(x => {
@@ -28,8 +28,8 @@ const getPlayerQuest = async (username) => (await fetch(`https://game-api.splint
           return questDetails;
         }})
    .catch(async () => {
-    console.log('Error: game-api.splinterlands did not respond trying api2.slinterlands... ');
-    await fetch(`https://api2.splinterlands.com/players/quests?username=${username}`)
+    console.log('Error: api.steemmonsters.io did not respond trying api.slinterlands... ');
+    await fetch(`https://api.splinterlands.io/players/quests?username=${username}`)
       .then(x => x && x.json())
       .then(x => {
           if (x[0]) {
@@ -37,14 +37,24 @@ const getPlayerQuest = async (username) => (await fetch(`https://game-api.splint
               return questDetails;
             }})
       .catch(async () => {
-    console.log('Error: api2.splinterlands did not respond trying api.slinterlands... ');
-    await fetch(`https://api.splinterlands.com/players/quests?username=${username}`)
+    console.log('Error: api.splinterlands did not respond trying api2.slinterlands... ');
+    await fetch(`https://game-api.splinterlands.io/players/quests?username=${username}`)
       .then(x => x && x.json())
       .then(x => {
           if (x[0]) {
               const questDetails = {name: x[0].name, splinter: getQuestSplinter(x[0].name), total: x[0].total_items, completed: x[0].completed_items}
               return questDetails;
             }})
+      .catch(async () => {
+    console.log('Error: game-api.splinterlands did not respond trying api.steemmonsters... ');
+    await fetch(`https://api.steemmonsters.io/players/quests?username=${username}`)
+      .then(x => x && x.json())
+      .then(x => {
+          if (x[0]) {
+              const questDetails = {name: x[0].name, splinter: getQuestSplinter(x[0].name), total: x[0].total_items, completed: x[0].completed_items}
+              return questDetails;
+            }})   
+  })  
   })
 }))
 
