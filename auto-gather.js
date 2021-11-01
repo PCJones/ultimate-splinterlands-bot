@@ -16,16 +16,14 @@ function uniqueListByKey(arr, key) {
   return [...new Map(arr.map(item => [item[key], item])).values()]
 }
 
-async function twirlTimer() {
-  var P = ["Processing |", "Processing /", "Processing -", "Processing \\"];
-  var x = 0;
-  return setInterval(function() {
-    process.stdout.write("\r" + P[x++]);
-    x &= 3;
-  }, 250);
-};
-  const URL = [`https://game-api.splinterlands.io/battle/history2?player=`,`https://api.splinterlands.io/battle/history2?player=`, `https://api.steemmonsters.io/battle/history2?player=`];
+function sleep(ms) {
+  return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+  });
+}
+const URL = [`https://api2.splinterlands.com/battle/history?player=`,`https://api.splinterlands.io/battle/history?player=`, `https://api.steemmonsters.io/battle/history?player=`];
   async function getBattleHistory(player = '', data = {}) {
+    await sleep(10000);
     const randomURL = URL[Math.floor(Math.random() * URL.length)];
     const battleHistory = await fetch(randomURL + player,{
             method: 'get',
