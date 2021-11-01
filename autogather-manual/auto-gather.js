@@ -15,25 +15,24 @@ function uniqueListByKey(arr, key) {
   return [...new Map(arr.map(item => [item[key], item])).values()]
 }
 
-function twirlTimer() {
-  var P = ["Processing |", "Processing /", "Processing -", "Processing \\"];
-  var x = 0;
-  return setInterval(function() {
-    process.stdout.write("\r" + P[x++]);
-    x &= 3;
-  }, 250);
-};
+
 async function getFilesizeInBytes(filename) {
   var stats = fs.statSync(filename);
   var fileSizeInBytes = stats.size;
   return fileSizeInBytes;
 }
 
-twirlTimer();
 
-const URL = [`http://game-api.splinterlands.io/battle/history?player=`,`http://api.splinterlands.io/battle/history?player=`, `http://api.steemmonsters.io/battle/history?player=`];
+
+function sleep(ms) {
+  return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+  });
+}
+const URL = [`https://api2.splinterlands.com/battle/history?player=`,`https://api.splinterlands.io/battle/history?player=`, `https://api.steemmonsters.io/battle/history?player=`];
 
 async function getBattleHistory(player = '', data = {}) {
+    await sleep(10000);
     const randomURL = URL[Math.floor(Math.random() * URL.length)];
     const battleHistory = await fetch(randomURL + player,{
             method: 'get',
@@ -150,6 +149,5 @@ return [x.player_1, x.player_2]
       res(battlesList)
     });
   }) }) 
-  clearInterval(twirlTimer())
-  readline.cursorTo(process.stdout, 0);
+  readline.cursorTo(process.stdout, 0); 
 module.exports.battlesList = battles;

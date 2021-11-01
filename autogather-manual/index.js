@@ -4,6 +4,7 @@ const chalk = require('chalk');
 const path = require('path');
 const fs = require('fs');
 const os = require("os");
+const readline = require('readline');
 
 
 const sleepingTimeInMinutes = process.env.MINUTES_GATHER_INTERVAL || 30;
@@ -48,7 +49,16 @@ async function getFilesizeInBytes(filename) {
 			process.env['ACCOUNT'] = accountusers[i];
 			console.log('processing ' + (accountusers.indexOf(process.env.ACCOUNT) + 1) + ' of ' + accounts.length)
 			console.log('Gathering battles of: '+chalk.green(accountusers[i]))
-			await battles.battlesList(accountusers[i]).then(x=>x).catch((e) => console.log('Unable to gather data for local.' + e));  
+			var twirlTimer = (function() {
+				var P = ["Please wait |", "Please wait /", "Please wait -", "Please wait \\"];
+				var x = 0;
+				return setInterval(function() {
+				  process.stdout.write("\r" + P[x++]);
+				  x &= 3;
+				}, 250); })(); 
+			await battles.battlesList(accountusers[i]).then(x=>x).catch((e) => console.log('Unable to gather data for local.' + e));
+			clearInterval(twirlTimer);
+  			readline.cursorTo(process.stdout, 0);   
 			const used = process.memoryUsage().heapUsed / 1024 / 1024;
 			console.log(`The process uses approximately ${Math.round(used * 100) / 100} MB of memory.`);
 			console.timeEnd('Processing time')
