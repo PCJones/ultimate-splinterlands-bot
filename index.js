@@ -483,7 +483,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         let priorityCards = process.env.PRIORITY_CARD;
 		if (priorityCards) {
             priorityCards = priorityCards.split(',')
-            priorityCards = priorityCards.filter(x => myCards?.includes(parseInt(x.trim())))
+            priorityCards = priorityCards.filter(x => myCards.includes(parseInt(x.trim())))
 		}
     misc.writeToLog(chalk.green('Battle details:'));  
     misc.writeToLog('Mana:'+  chalk.yellow(mana) + ' Rules:' + chalk.yellow(rules) + ' Splinters:' + chalk.yellow(splinters))
@@ -718,7 +718,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         //getting battle result
             misc.writeToLog('Getting battle result...');
             await page.goto('https://splinterlands.io/?p=battle_history');
-            const bURL = [`https://game-api.splinterlands.io/battle/history2?player=`,`https://api.splinterlands.io/battle/history2?player=`, `https://api.steemmonsters.io/battle/history2?player=`];
+            const bURL = [`https://api2.splinterlands.com/battle/history?player=`,`https://api.splinterlands.io/battle/history?player=`, `https://api.steemmonsters.io/battle/history?player=`];
             const battleURL = bURL[Math.floor(Math.random() * bURL.length)];
             await fetch(battleURL + process.env.ACCUSERNAME)
                 .then(response => response.json())
@@ -765,7 +765,6 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         try {
             await closePopups(page).catch(()=>misc.writeToLog('No pop up to be closed.'));
 			const UpDateDec = (await page.evaluate(()=>SM.Player.balances.find(x=>x.token=='DEC').balance)).toFixed(2);
-            console.log(UpDateDec)
             const newERCRaw = await page.evaluate(()=>SM.Player.balances.find(x=>x.token=='ECR').balance);
             let newERC = (newERCRaw.toString()).slice(0, 2)+ "." + (newERCRaw.toString()).slice(2)
             const newRating = await page.evaluate(()=>SM.Player.rating);
