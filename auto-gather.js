@@ -3,88 +3,58 @@ const fetch = require('cross-fetch');
 const fs = require('fs');
 const misc = require('./misc');
 const chalk = require('chalk');
-const axios = require('axios');
+const readline = require('readline');
+
+
 
 
 
 const distinct = (value, index, self) => {
     return self.indexOf(value) === index;
 }
-const median = arr => {
-  const mid = Math.floor(arr.length / 2),
-    nums = [...arr].sort((a, b) => a - b);
-  return arr.length % 2 !== 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2;
-};
 function uniqueListByKey(arr, key) {
   return [...new Map(arr.map(item => [item[key], item])).values()]
 }
 
-async function delay() {
-  return new Promise(resolve => {resolve()})
-}
-//const twirlTimer = (function() {
-  //var P = ["Processing |", "Processing /", "Processing -", "Processing \\"];
-  //var x = 0;
-  //return setInterval(function() {
-    //process.stdout.write("\r" + P[x++]);
-    //x &= 3;
-  //}, 250);
-//})();
-
+async function twirlTimer() {
+  var P = ["Processing |", "Processing /", "Processing -", "Processing \\"];
+  var x = 0;
+  return setInterval(function() {
+    process.stdout.write("\r" + P[x++]);
+    x &= 3;
+  }, 250);
+};
+  const URL = [`https://game-api.splinterlands.io/battle/history2?player=`,`https://api.splinterlands.io/battle/history2?player=`, `https://api.steemmonsters.io/battle/history2?player=`];
   async function getBattleHistory(player = '', data = {}) {
-      const battleHistory = await fetch(`http://game-api.splinterlands.io/battle/history2?player=${player}`)
+    const randomURL = URL[Math.floor(Math.random() * URL.length)];
+    const battleHistory = await fetch(randomURL + player,{
+            method: 'get',
+            headers: {'Content-Type': 'application/json'}})
           .then(async (response) => {
               if (!response.ok) {
                   throw new Error('Network response was not ok '+player);
               }
-              return response;
+              return await response;
           })
           .then(async (battleHistory) => {
+              if (!battleHistory){
+                  throw new Error;
+              } else {
               return await battleHistory.json();
+            }
           })
-          .catch(async (error) => {
-            misc.writeToLogNoUsername('Failed to fetch battle data. Trying another api');
-            await fetch(`http://api.splinterlands.io/battle/history2?player=${player}`, {
-              mode: 'no-cors'})
-             .then((response) => {
-              if (!response.ok) {
-                  throw new Error('Network response was not ok '+player);
-              }
-              return response;
-          })
-          .then(async (battleHistory) => {
-              return await battleHistory.json();
-          }) .catch(async (error) => {
-            misc.writeToLogNoUsername('Failed to fetch battle data. Trying another api');
-            await fetch(`http://api2.splinterlands.io/battle/history2?player=${player}`, {
-              mode: 'no-cors'})
-             .then((response) => {
-              if (!response.ok) {
-                  throw new Error('Network response was not ok '+player);
-              }
-              return response;
-          })
-          .then(async (battleHistory) => {
-              return await battleHistory.json();
-          })
-          .catch((error) => {
-            misc.writeToLogNoUsername('There has been a problem with your fetch operation:', error);
-          });
-        });
-      });
-        
-      return await battleHistory.battles;
-      
+        .catch((error) => {
+            readline.cursorTo(process.stdout, 0);
+            console.error('There has been a problem with your fetch operation:', error);
+          }); 
+    return await battleHistory.battles;
   }
  
 
 const extractGeneralInfo = (x) => {
     return {
-        //created_date: x.created_date ? x.created_date : '',
-        //match_type: x.match_type ? x.match_type : '',
         mana_cap: x.mana_cap ? x.mana_cap : '',
         ruleset: x.ruleset ? x.ruleset : '',
-        //inactive: x.inactive ? x.inactive : ''
     }
 }
 
@@ -99,29 +69,19 @@ const extractMonster = (team) => {
     return {
         summoner_id: team.summoner.card_detail_id,
         monster_1_id: monster1 ? monster1.card_detail_id : '',
-        monster_1_abilities: monster1 ? monster1.abilities : '',
         monster_2_id: monster2 ? monster2.card_detail_id : '',
-        monster_2_abilities: monster2 ? monster2.abilities : '',
         monster_3_id: monster3 ? monster3.card_detail_id : '',
-        monster_3_abilities: monster3 ? monster3.abilities : '',
         monster_4_id: monster4 ? monster4.card_detail_id : '',
-        monster_4_abilities: monster4 ? monster4.abilities : '',
         monster_5_id: monster5 ? monster5.card_detail_id : '',
-        monster_5_abilities: monster5 ? monster5.abilities : '',
         monster_6_id: monster6 ? monster6.card_detail_id : '',
-        monster_6_abilities: monster6 ? monster6.abilities : ''
     }
 }
 
 let battlesList = [];
 let promises = [];
 
-
-
-
 const battles = async (player) =>  await getBattleHistory(player)
   .then(u => u.map(x => { 
-      //x.player_1 == process.env.ACCUSERNAME
     return [x.player_1, x.player_2] 
   }).reduce((acc, val) => acc.concat(val), []).filter(distinct))
   .then(ul => ul.map(user => {
@@ -160,20 +120,26 @@ const battles = async (player) =>  await getBattleHistory(player)
   }))
   .then(() => { return Promise.all(promises) })
   .then(() => { return new Promise((res,rej) => {
-	  misc.writeToLog('Reading local battle history');
-    fs.readFile(`./data/newHistory.json`, 'utf8', (err, data) => {
+    //twirlTimer();
+    readline.cursorTo(process.stdout, 0);
+	  console.log('Reading local battle history');
+     fs.readFile(`./data/newHistory.json`, 'utf8', (err, data) => {
       if (err) {
+        readline.cursorTo(process.stdout, 0);
         misc.writeToLog(`Error reading file from disk: ${err}`); rej(err)
       } else {
         battlesList = data ? [...battlesList, ...JSON.parse(data)] : battlesList;
       }
       battlesList = uniqueListByKey(battlesList.filter(x => x != undefined),"battle_queue_id")
+      readline.cursorTo(process.stdout, 0);
       misc.writeToLog('Adding data to battle history....');
+      readline.cursorTo(process.stdout, 0);
       misc.writeToLog(chalk.yellow(battlesList.length))
       fs.writeFile(`data/newHistory.json`, JSON.stringify(battlesList), function (err) {
         if (err) {
           misc.writeToLog(err,'a'); rej(err);
         }
+        readline.cursorTo(process.stdout, 0);
         misc.writeToLog(chalk.green('Success adding data.....')); 
         battlesList = [],
         promises = []; 
@@ -181,7 +147,6 @@ const battles = async (player) =>  await getBattleHistory(player)
       res(battlesList)
     });
   }) })
-    //clearInterval(twirlTimer)
-    //process.stdout.clearLine();
-    //process.stdout.cursorTo(0);
+
+
 exports.battlesList = battles;
