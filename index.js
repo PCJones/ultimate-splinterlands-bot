@@ -4,6 +4,7 @@ const puppeteer = require('puppeteer');
 const fetch = require("node-fetch");
 const chalk = require('chalk');
 const fs = require('fs');
+const readline = require('readline');
 
 const splinterlandsPage = require('./splinterlandsPage');
 const user = require('./user');
@@ -107,40 +108,6 @@ function sleep(ms) {
         setTimeout(resolve, ms);
     });
 }
-// boart2k added a function to convert Number Strings to Integer
-function convertToNumber(stringNum){
-    let ctnArr = stringNum.split(',');
-    let ctnTempNum = '';
-    ctnArr.forEach(x => ctnTempNum+=x);
-    return parseInt(ctnTempNum);
-}
-
-// searchFromJSON can handle key of type array with a max length of 2... For Now...
-function searchFromJSON(data,key,value){
-    let tempData;
-
-    if(Array.isArray(key)){
-        for(let x = 0; x < data.length-1; x++){
-            let temp = typeof data[x][key[0]] == 'string' ? JSON.parse(data[x][key[0]])[key[1]] : data[x][key[0][key[1]]];
-            if(temp == value){
-                tempData = data[x];
-                break;
-            }
-        }
-    }else{
-        // for now the codes below are not used
-        for(let x = 0; x < data.length-1; x++){
-            console.log(data[x][key]);
-            if(data[x][key] == value){
-                tempData = data[x];
-                break;
-            }
-        }    
-    }
-
-    return tempData;
-}
-// boart2k end
 
 const withTimeout = (millis, promise) => {
     const timeout = new Promise((resolve, reject) =>
@@ -235,6 +202,7 @@ async function createBrowsers(count, headless) {
                 '--mute-audio',
                 '--disable-infobars',
                 '--disable-breakpad',
+                '--enable-low-end-device-mode',
                 '--disable-web-security'
             ] : ["--no-sandbox",
             '--disable-accelerated-2d-canvas',
