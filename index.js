@@ -483,7 +483,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         let priorityCards = process.env.PRIORITY_CARD;
 		if (priorityCards) {
             priorityCards = priorityCards.split(',')
-            priorityCards = priorityCards.filter(x => myCards.includes(parseInt(x.trim())))
+            priorityCards = priorityCards.filter(x => myCards?.includes(parseInt(x.trim())))
 		}
     misc.writeToLog(chalk.green('Battle details:'));  
     misc.writeToLog('Mana:'+  chalk.yellow(mana) + ' Rules:' + chalk.yellow(rules) + ' Splinters:' + chalk.yellow(splinters))
