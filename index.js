@@ -334,17 +334,19 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     await page.reload();
     await closePopups(page).catch(()=>misc.writeToLog('No pop up to be closed.'));
     await waitUntilLoaded(page);
-    const ercCurrentraw =  await page.evaluate(()=>SM.Player.capture_rate);
-    let ercCurrent = (ercCurrentraw.toString()).slice(0, 2)+ "." + (ercCurrentraw.toString()).slice(2)
+    const ercCurrentraw = parseInt((await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 100)).split('%')[0]);
+    //const ercCurrentraw =  await page.evaluate(()=>SM.Player.capture_rate);
+    //let ercCurrent = (ercCurrentraw.toString()).slice(0, 2)+ "." + (ercCurrentraw.toString()).slice(2)
 
-    if (ercCurrent >= 50) {
-        misc.writeToLog('Current ECR is ' + chalk.green(ercCurrent + "%"));
+    if (ercCurrentraw >= 50) {
+        misc.writeToLog('Current ECR is ' + chalk.green(ercCurrentraw + "%"));
     } else {
-        misc.writeToLog('Current ECR is ' + chalk.red(ercCurrent + "%"));
+        misc.writeToLog('Current ECR is ' + chalk.red(ercCurrentraw + "%"));
     }
-    if (ercCurrent < ercThreshold) {
+    if (ercCurrentraw < ercThreshold) {
         misc.writeToLog('ECR is below threshold of ' + chalk.red(ercThreshold + '% ') + '- Skipping this account');
         logSummary.push(' Account skipped: ' + chalk.red('ECR is below threshold of ' + ercThreshold))
+        battledata.push(' Account skipped: ERC is below threshold of ' + ercThreshold)
         return;
     }
 
