@@ -18,7 +18,7 @@ const tn = require('./telnotif');
 const nq = require('./newquests');
 const fnAllCardsDetails  = ('./data/cardsDetails.json');
 const battles = require('./auto-gather');
-const version = 0.42;
+const version = 11.2;
 const unitVersion = 'desktop'
 
 async function readJSONFile(fn){
@@ -30,14 +30,14 @@ async function readJSONFile(fn){
 
 async function checkForUpdate() {
     await misc.writeToLogNoUsername('------------------------------------------------------------------------------------------------');
-    await fetch('http://jofri.pf-control.de/prgrms/splnterlnds/version.txt')
+    await fetch('https://raw.githubusercontent.com/virgaux/USBpc/master/USBpc-Version.txt')
     .then(response => response.json())
     .then(newestVersion => {
         if (newestVersion > version) {
-            if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot')}
-            misc.writeToLogNoUsername(chalk.green('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot'));
-            misc.writeToLogNoUsername(chalk.green('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot'));
-            misc.writeToLogNoUsername(chalk.green('New Update! Please download on https://github.com/PCJones/ultimate-splinterlands-bot'));
+            if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender('New Update! Please download on https://github.com/virgaux/USBpc')}
+            misc.writeToLogNoUsername(chalk.green('New Update! Please download on https://github.com/virgaux/USBpc'));
+            misc.writeToLogNoUsername(chalk.green('New Update! Please download on https://github.com/virgaux/USBpc'));
+            misc.writeToLogNoUsername(chalk.green('New Update! Please download on https://github.com/virgaux/USBpc'));
         } else {
             misc.writeToLogNoUsername('No update available');
         }
