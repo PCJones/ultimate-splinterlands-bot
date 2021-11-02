@@ -5,6 +5,7 @@ const fetch = require("node-fetch");
 const chalk = require('chalk');
 const fs = require('fs');
 const readline = require('readline');
+const figlet = require('figlet')
 
 const splinterlandsPage = require('./splinterlandsPage');
 const user = require('./user');
@@ -18,7 +19,7 @@ const tn = require('./telnotif');
 const nq = require('./newquests');
 const fnAllCardsDetails  = ('./data/cardsDetails.json');
 const battles = require('./auto-gather');
-const version = 11.2;
+const version = 11.3;
 const unitVersion = 'desktop'
 
 async function readJSONFile(fn){
@@ -30,18 +31,23 @@ async function readJSONFile(fn){
 
 async function checkForUpdate() {
     await misc.writeToLogNoUsername('------------------------------------------------------------------------------------------------');
-    await fetch('https://raw.githubusercontent.com/virgaux/USBpc/master/USBpc-Version.txt')
-    .then(response => response.json())
-    .then(newestVersion => {
-        if (newestVersion > version) {
-            if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender('New Update! Please download on https://github.com/virgaux/USBpc')}
-            misc.writeToLogNoUsername(chalk.green('New Update! Please download on https://github.com/virgaux/USBpc'));
-            misc.writeToLogNoUsername(chalk.green('New Update! Please download on https://github.com/virgaux/USBpc'));
-            misc.writeToLogNoUsername(chalk.green('New Update! Please download on https://github.com/virgaux/USBpc'));
-        } else {
-            misc.writeToLogNoUsername('No update available');
-        }
-    })
+    console.log(figlet.textSync('USBpc', {
+        //font: 'Ghost',
+        horizontalLayout: 'default',
+        verticalLayout: 'default',
+        width: 80,
+        whitespaceBreak: true
+      }));
+      await fetch('https://raw.githubusercontent.com/virgaux/USBpc/master/USBpc-Version.txt')
+      .then(response => response.json())
+      .then(newestVersion => {
+          if (newestVersion > version) {
+              if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender('New Update! Please download on https://github.com/virgaux/USBpc')}
+              misc.writeToLogNoUsername(chalk.green('New Update! Please download on https://github.com/virgaux/USBpc'));
+          } else {
+              misc.writeToLogNoUsername('No update available');
+          }
+      })
     misc.writeToLogNoUsername('------------------------------------------------------------------------------------------------');
 }
 
@@ -334,7 +340,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     await page.reload();
     await closePopups(page).catch(()=>misc.writeToLog('No pop up to be closed.'));
     await waitUntilLoaded(page);
-    const ercCurrentraw = parseInt((await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 100)).split('%')[0]);
+    const ercCurrentraw = parseInt((await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 1000)).split('%')[0])
     //const ercCurrentraw =  await page.evaluate(()=>SM.Player.capture_rate);
     //let ercCurrent = (ercCurrentraw.toString()).slice(0, 2)+ "." + (ercCurrentraw.toString()).slice(2)
 
