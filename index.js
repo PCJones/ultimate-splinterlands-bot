@@ -1,11 +1,12 @@
 //'use strict';
 require('dotenv').config()
 const puppeteer = require('puppeteer');
-const fetch = require("node-fetch");
+const fetch = require("cross-fetch");
 const chalk = require('chalk');
 const fs = require('fs');
 const readline = require('readline');
-const figlet = require('figlet')
+const figlet = require('figlet');
+const { table } = require('table');
 
 const splinterlandsPage = require('./splinterlandsPage');
 const user = require('./user');
@@ -29,8 +30,7 @@ async function readJSONFile(fn){
 }	
 
 
-async function checkForUpdate() {
-    await misc.writeToLogNoUsername('------------------------------------------------------------------------------------------------');
+async function checkForUpdate(teleNotif) {
     console.log(figlet.textSync('USBpc', {
         //font: 'Ghost',
         horizontalLayout: 'default',
@@ -38,73 +38,77 @@ async function checkForUpdate() {
         width: 80,
         whitespaceBreak: true
       }));
+    let config = {columns: [ { width: 25 , alignment: 'center'}]};
+    let updateNews = [[chalk.green('USBpc Version ' + version)]];
+    console.log(table(updateNews, config));  
+    console.log('---------------------------------------------------------------------------------')
       await fetch('https://raw.githubusercontent.com/virgaux/USBpc/master/USBpc-Version.txt')
       .then(response => response.json())
       .then(newestVersion => {
           if (newestVersion > version) {
-              if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender('New Update! Please download on https://github.com/virgaux/USBpc')}
-              misc.writeToLogNoUsername(chalk.green('New Update! Please download on https://github.com/virgaux/USBpc'));
+            if (teleNotif == true){tn.sender('New Update! Please download on https://github.com/virgaux/USBpc')}
+            console.log(chalk.green('      New Update! Please download on https://github.com/virgaux/USBpc'))
           } else {
-              misc.writeToLogNoUsername('No update available');
+            console.log(chalk.yellow('                                No update available'))
           }
       })
-    misc.writeToLogNoUsername('------------------------------------------------------------------------------------------------');
+    console.log('--------------------------------------------------------------------------------- \n')  
 }
 
-async function checkForMissingConfigs() {
+async function checkForMissingConfigs(teleNotif) {
     if (!process.env.TELEGRAM_NOTIF) {
 		misc.writeToLogNoUsername(chalk.red("Missing TELEGRAM_NOTIF parameter in .env - see updated .env-example!"));
-        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("ALERT: Missing TELEGRAM_NOTIF parameter in .env - see updated .env-example!")}
+        if (teleNotif === 'true'){tn.sender("ALERT: Missing TELEGRAM_NOTIF parameter in .env - see updated .env-example!")}
 		await sleep(60000);
 	}
     if (!process.env.LOGIN_VIA_EMAIL) {
         misc.writeToLogNoUsername(chalk.red("Missing LOGIN_VIA_EMAIL parameter in .env - see updated .env-example!"));
-        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("ALERT: Missing LOGIN_VIA_EMAIL parameter in .env - see updated .env-example!")}
+        if (teleNotif === 'true'){tn.sender("ALERT: Missing LOGIN_VIA_EMAIL parameter in .env - see updated .env-example!")}
         await sleep(60000);
     }
     if (!process.env.HEADLESS) {
         misc.writeToLogNoUsername(chalk.red("Missing HEADLESS parameter in .env - see updated .env-example!"));
-        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("ALERT: Missing HEADLESS parameter in .env - see updated .env-example!")}
+        if (teleNotif === 'true'){tn.sender("ALERT: Missing HEADLESS parameter in .env - see updated .env-example!")}
         await sleep(60000);
     }
     if (!process.env.KEEP_BROWSER_OPEN) {
         misc.writeToLogNoUsername(chalk.red("Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!"));
-        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("ALERT: Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!")};
+        if (teleNotif === 'true'){tn.sender("ALERT: Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!")};
         await sleep(60000);
     }
     if (!process.env.CLAIM_QUEST_REWARD) {
         misc.writeToLogNoUsername(chalk.red("Missing CLAIM_QUEST_REWARD parameter in .env - see updated .env-example!"));
-        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("ALERT: Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!")};
+        if (teleNotif === 'true'){tn.sender("ALERT: Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!")};
         await sleep(60000);
     }
     if (!process.env.USE_CLASSIC_BOT_PRIVATE_API) {
         misc.writeToLogNoUsername(chalk.red("Missing USE_CLASSIC_BOT_PRIVATE_API parameter in .env - see updated .env-example!"));
-        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("ALERT: Missing USE_CLASSIC_BOT_PRIVATE_API parameter in .env - see updated .env-example!")};
+        if (teleNotif === 'true'){tn.sender("ALERT: Missing USE_CLASSIC_BOT_PRIVATE_API parameter in .env - see updated .env-example!")};
         await sleep(60000);
     }
     if (!process.env.USE_API) {
         misc.writeToLogNoUsername(chalk.red("Missing USE_API parameter in .env - see updated .env-example!"));
-        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("ALERT: Missing USE_API parameter in .env - see updated .env-example!")};
+        if (teleNotif === 'true'){tn.sender("ALERT: Missing USE_API parameter in .env - see updated .env-example!")};
         await sleep(60000);
     }
     if (!process.env.API_URL || (process.env.USE_API === 'true' && !process.env.API_URL.includes('http'))) {
         misc.writeToLogNoUsername(chalk.red("Missing API_URL parameter in .env - see updated .env-example!"));
-        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("ALERT: Missing API_URL parameter in .env - see updated .env-example!")};
+        if (teleNotif === 'true'){tn.sender("ALERT: Missing API_URL parameter in .env - see updated .env-example!")};
         await sleep(60000);
     }
     if (process.env.USE_API === 'true' && process.env.USE_CLASSIC_BOT_PRIVATE_API === 'true') {
         misc.writeToLogNoUsername(chalk.red('Please only set USE_API or USE_CLASSIC_BOT_PRIVATE_API to true'));
-        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender('ALERT: Please only set USE_API or USE_CLASSIC_BOT_PRIVATE_API to true')};
+        if (teleNotif === 'true'){tn.sender('ALERT: Please only set USE_API or USE_CLASSIC_BOT_PRIVATE_API to true')};
         await sleep(60000);
     }
     if (!process.env.ERC_THRESHOLD) {
         misc.writeToLogNoUsername(chalk.red("Missing ERC_THRESHOLD parameter in .env - see updated .env-example!"));
-        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("ALERT: Missing ERC_THRESHOLD parameter in .env - see updated .env-example!")};
+        if (teleNotif === 'true'){tn.sender("ALERT: Missing ERC_THRESHOLD parameter in .env - see updated .env-example!")};
         await sleep(60000);
     }
     if (!process.env.GET_DATA_FOR_LOCAL) {
         misc.writeToLogNoUsername(chalk.red("process.env.GET_DATA_FOR_LOCAL parameter in .env - see updated .env-example!"));
-        if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("ALERT: Missing process.env.GET_DATA_FOR_LOCAL parameter in .env - see updated .env-example!")};
+        if (teleNotif === 'true'){tn.sender("ALERT: Missing process.env.GET_DATA_FOR_LOCAL parameter in .env - see updated .env-example!")};
         await sleep(60000);
     }
 }
@@ -306,23 +310,25 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         deviceScaleFactor: 1,
     });
 
-    await page.goto('https://splinterlands.io/?p=battle_history');
+    await page.goto('https://splinterlands.io');
     await page.waitForTimeout(4000);
-
-    let username = await getElementText(page, '.dropdown-toggle .bio__name__display', 10000).catch(async () => {
-        await page.goto('https://splinterlands.io');
-        await page.waitForTimeout(4000);
-        await getElementText(page, '.dropdown-toggle .bio__name__display', 10000)
-    });
-
-    if (username == process.env.ACCUSERNAME) {
-        misc.writeToLog('Already logged in!');
+    //check if maintenance 
+    const maintenance = page.url()
+    if (maintenance == 'https://splinterlands.com/?p=maintenance') {
+        await page.reload()
+        if (maintenance == 'https://splinterlands.com/?p=maintenance'){
+            return misc.writeToLog('Game is currently on maintenance.')  
+        }    
     } else {
-        misc.writeToLog('Login')
-        let maintenance = page.url()
-        if (maintenance == 'https://splinterlands.com/?p=maintenance') {
-                return misc.writeToLog('Game is currently on maintenance.');
+        const username = await getElementText(page, '.dropdown-toggle .bio__name__display', 10000).catch(async () => {
+            await page.goto('https://splinterlands.io');
+            await page.waitForTimeout(4000);
+            await getElementText(page, '.dropdown-toggle .bio__name__display', 10000)
+        });
+        if (username == process.env.ACCUSERNAME) {
+            misc.writeToLog('Already logged in!');
         } else {
+            misc.writeToLog('Login')
             await splinterlandsPage.login(page).catch(async () => {
             misc.writeToLog('Unable to login. Trying to reload page again.');
             await page.goto('https://splinterlands.io/?p=battle_history');
@@ -334,25 +340,26 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                 throw new Error ('Skipping this account due to to login error.');
                 }); 
             });
-        }
-    }
+        }    
+    }    
+
     await page.goto('https://splinterlands.io/?p=battle_history');
     await page.reload();
-    await closePopups(page).catch(()=>misc.writeToLog('No pop up to be closed.'));
+    await closePopups(page);
     await waitUntilLoaded(page);
-    const ercCurrentraw = parseInt((await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 1000)).split('%')[0])
-    //const ercCurrentraw =  await page.evaluate(()=>SM.Player.capture_rate);
-    //let ercCurrent = (ercCurrentraw.toString()).slice(0, 2)+ "." + (ercCurrentraw.toString()).slice(2)
-
-    if (ercCurrentraw >= 50) {
-        misc.writeToLog('Current ECR is ' + chalk.green(ercCurrentraw + "%"));
+    const ercCurrentraw = await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 1000).catch(async () =>{
+        misc.writeToLog('unable to get ECR via browser. Will get info via API call.')
+        await page.evaluate(()=>SM.Player.capture_rate).then(x=>(x.toString()).slice(0, 2)+ "." + (x.toString()).slice(2))
+    });
+    let ecrInitial = ercCurrentraw.includes('%')? ercCurrentraw.split('%')[0] : ercCurrentraw
+    if ( ecrInitial >= 50) {
+        misc.writeToLog('Current ECR is ' + chalk.green(ecrInitial + "%"));
     } else {
-        misc.writeToLog('Current ECR is ' + chalk.red(ercCurrentraw + "%"));
+        misc.writeToLog('Current ECR is ' + chalk.red(ecrInitial + "%"));
     }
-    if (ercCurrentraw < ercThreshold) {
+    if (ecrInitial < ercThreshold) {
         misc.writeToLog('ECR is below threshold of ' + chalk.red(ercThreshold + '% ') + '- Skipping this account');
         logSummary.push(' Account skipped: ' + chalk.red('ECR is below threshold of ' + ercThreshold))
-        battledata.push(' Account skipped: ERC is below threshold of ' + ercThreshold)
         return;
     }
 
@@ -790,7 +797,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                 }
                 logSummary.push(' Remaining ERC: ' + newERC);
                 misc.writeToLog('Remaining ERC: ' + newERC);
-                newlogvisual['ERC'] = newERC.replace(/\u001b[^m]*?m/g,"")
+                newlogvisual['ECR'] = newERC.replace(/\u001b[^m]*?m/g,"")
 
         } catch (e) {
             misc.writeToLog(e);
@@ -800,6 +807,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             logSummary.push(chalk.blueBright(' Unable to get remaining ERC '));
             newlogvisual['Rating'] = 'n/a'
             newlogvisual['DEC Balance'] = 'n/a'
+            newlogvisual['ECR']= 'n/a'
         }
         let Newquest = await getQuest();	
 		await nq.newquestUpdate(Newquest, claimQuestReward, page, logSummary, allCardDetails, newlogvisual, powerThreshold);
@@ -830,8 +838,6 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 (async() => {
     try {
         if (process.env.TELEGRAM_NOTIF === 'true') { tn.startTG()}
-        await checkForUpdate();
-        await checkForMissingConfigs();
         const loginViaEmail = JSON.parse(process.env.LOGIN_VIA_EMAIL.toLowerCase());
         const accountusers = process.env.ACCUSERNAME.split(',');
         const accounts = loginViaEmail ? process.env.EMAIL.split(',') : accountusers;
@@ -843,6 +849,8 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
         const teleNotif = JSON.parse(process.env.TELEGRAM_NOTIF.toLowerCase());
         const getDataLocal = JSON.parse(process.env.GET_DATA_FOR_LOCAL.toLowerCase());
         const autoSwitch = JSON.parse(process.env.AUTO_SWITCH.toLowerCase());
+        await checkForUpdate(teleNotif);
+        await checkForMissingConfigs(teleNotif);
 
         let browsers = [];
         misc.writeToLogNoUsername('Headless: ' + headless);
@@ -949,8 +957,9 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
             
         }
     } catch (e) {
-        await browsers[0].close();  // chromium is a bitch, have to kill it to save CPU memory.
-        await browsers[0].process().kill('SIGKILL'); 
+        let browsers = await puppeteer.launch({product: 'chrome'})
+        await browsers.close().then(()=> console.log('chromium is a bitch, have to kill it to save CPU memory.')); 
+        await browsers.process().kill('SIGKILL'); 
         if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("Bot stops due to error. Please see logs for details.")};
         console.log('Routine error at: ', new Date().toLocaleString(), e)
     }

@@ -1,6 +1,6 @@
 {
   "name": "ultimate-splinterlands-bot",
-  "version": "11.3",
+  "version": "11.4",
   "description": "A fast, free, multi-account splinderlands bot",
   "main": "index.js",
   "scripts": {
@@ -22,6 +22,7 @@
     "pg": "^8.0.3",
     "puppeteer": "^10.1.0",
     "stream-json": "^1.7.3",
+    "table": "^6.7.2",
     "telebot": "^1.4.1"
   },
   "repository": {
@@ -35,6 +36,5 @@
   "bugs": {
     "url": "https://github.com/virgaux/USBpc/issues"
   },
-  "homepage": "https://github.com/virgaux/USBpc#readme",
-  "devDependencies": {}
+  "homepage": "https://github.com/virgaux/USBpc#readme"
 }
