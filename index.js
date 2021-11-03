@@ -20,7 +20,7 @@ const tn = require('./telnotif');
 const nq = require('./newquests');
 const fnAllCardsDetails  = ('./data/cardsDetails.json');
 const battles = require('./auto-gather');
-const version = 11.4;
+const version = 11.5;
 const unitVersion = 'desktop'
 
 async function readJSONFile(fn){
@@ -373,7 +373,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     // boart2k added
     const powerThreshold = process.env.POWER_THRESHOLD;
     const powerRaw = await page.evaluate(()=>SM.Player.collection_power);
-
+ 
     if(powerRaw < powerThreshold){
         misc.writeToLog('Collection Power: ' + chalk.red(powerRaw) + ' is lower than the ' + chalk.red(powerThreshold) + ' you have set.');
         logSummary.push(' Collection Power: ' + chalk.red(powerRaw) + ' is lower than the ' + chalk.red(powerThreshold) + ' you have set.');
@@ -389,7 +389,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     await page.waitForTimeout(1000);
     await closePopups(page).catch(()=>misc.writeToLog('No pop up to be closed.'));
     await page.waitForTimeout(2000);
-    await nq.seasonQuest(page, logSummary, allCardDetails, seasonRewards, powerThreshold, powerRaw);
+    await nq.seasonQuest(page, logSummary, allCardDetails, seasonRewards);
     if (!page.url().includes("battle_history")) {
         await clickMenuFightButton(page);
         await page.waitForTimeout(3000);
@@ -812,7 +812,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             newlogvisual['ECR']= 'n/a'
         }
         let Newquest = await getQuest();	
-		await nq.newquestUpdate(Newquest, claimQuestReward, page, logSummary, allCardDetails, newlogvisual, powerThreshold);
+		await nq.newquestUpdate(Newquest, claimQuestReward, page, logSummary, allCardDetails, newlogvisual, powerThreshold, powerRaw);
         teamToPlay = '';
         erc='';
         useAPI ='';
