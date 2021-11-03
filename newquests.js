@@ -8,7 +8,7 @@ const readline = require('readline');
   
 
 
-async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, allCardDetails, newlogvisual){
+async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, allCardDetails, newlogvisual, powerThreshold, powerRaw){
 
     const questElement = Object.values(Newquest)[1].toString();
     if (questElement === "life") {
@@ -34,7 +34,7 @@ async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, all
     try {
         const claimButton =  await page.waitForSelector('#quest_claim_btn', { timeout: 5000, visible: true });
         if (claimButton) {
-            if (claimQuestReward) {
+            if (claimQuestReward == true && powerRaw > powerThreshold) {
                 var twirlTimer = (function() {
                     var P = ["Please wait |", "Please wait /", "Please wait -", "Please wait \\"];
                     var x = 0;
@@ -61,32 +61,32 @@ async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, all
                 .then((data) => {
                     const generalResult = Object.values(JSON.parse(Object.values(data[0])[11]).rewards) // general result
                     let detailer1 = [];
-                    let forlogVisual = []
-                    let message1 = ' Daily rewards claimed: \n'
-                    let forNLV = ''
+                    let forlogVisual = [];
+                    let message1 = ' Daily rewards claimed: ';
+                    let forNLV = '';
                         for (let i = 0; i < generalResult.length; i++) {
                             rewardcard = Object.values(generalResult[i])[0]
                             if (rewardcard === 'reward_card'){
                                 cardNumber = Object.values(Object.values(generalResult[i])[2])[1]
                                 goldFoil = Object.values(Object.values(generalResult[i])[2])[3]
                                 if (goldFoil == false ) {
-                                    detailer1.push(' Received ' + allCardDetails[(parseInt(cardNumber))-1].name.toString() + " card")
+                                    detailer1.push( allCardDetails[(parseInt(cardNumber))-1].name.toString() + " card")
                                 } else {
-                                    detailer1.push(' Received GoldFoil' + allCardDetails[(parseInt(cardNumber))-1].name.toString() + " card")
+                                    detailer1.push('GoldFoil' + allCardDetails[(parseInt(cardNumber))-1].name.toString() + " card")
                                 } 
                             } else if (rewardcard === 'potion'){
-                                detailer1.push(' Received' + Object.values(generalResult[i])[2] + ' Potion Qty: ' + Object.values(generalResult[i])[1])
+                                detailer1.push( Object.values(generalResult[i])[2] + ' Potion Qty: ' + Object.values(generalResult[i])[1])
                             } else if (rewardcard === 'dec'){
-                                detailer1.push(' Received' + Object.values(generalResult[i])[1] + ' DEC')
+                                detailer1.push(Object.values(generalResult[i])[1] + ' DEC')
                             } else if (rewardcard === 'credits'){ 
-                                detailer1.push(' Received' + Object.values(generalResult[i])[1] + ' Credits')
+                                detailer1.push(Object.values(generalResult[i])[1] + ' Credits')
                             }
                         }
 
                         for (let i = 0; i < detailer1.length; i++) {
                             message1 = message1 + detailer1[i] +' \n';
                             forlogVisual.push({['Daily quest rewards :'] : detailer1[i]})
-                            forNLV = forNLV + detailer1[i] +' \n';
+                            forNLV = forNLV + detailer1[i] + ',';
                         }                        
                     clearInterval(twirlTimer);
                     readline.cursorTo(process.stdout, 0);
@@ -105,7 +105,15 @@ async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, all
                 });
                 // boart2k end
 
-            } 
+            } else {
+                if (powerRaw > powerThreshold) {
+                    misc.writeToLog('Updated Quest Details:' + coloredElement  + " Quest: " + Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString());
+                    misc.writeToLog('Unable to claim reward, below set power threshold.');
+                    logSummary.push(" " + coloredElement  + " Quest: " + chalk.yellow(Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString()) + chalk.red(' Unable to claim reward, below set power threshold.'));
+                    newlogvisual['Quest'] = coloredElement.replace(/\u001b[^m]*?m/g,"") + ' ' + Object.values(Newquest)[3].toString() + "/" + Object.values(Newquest)[2].toString()
+                    newlogvisual['Reward'] = 'Unable to claim reward, below set power threshold.'
+                }
+            }
         }
     } catch (e) {
         readline.cursorTo(process.stdout, 0);

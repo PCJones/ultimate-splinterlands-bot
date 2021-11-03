@@ -20,7 +20,7 @@ const tn = require('./telnotif');
 const nq = require('./newquests');
 const fnAllCardsDetails  = ('./data/cardsDetails.json');
 const battles = require('./auto-gather');
-const version = 11.4;
+const version = 11.3;
 const unitVersion = 'desktop'
 
 async function readJSONFile(fn){
@@ -42,17 +42,19 @@ async function checkForUpdate(teleNotif) {
     let updateNews = [[chalk.green('USBpc Version ' + version)]];
     console.log(table(updateNews, config));  
     console.log('---------------------------------------------------------------------------------')
-      await fetch('https://raw.githubusercontent.com/virgaux/USBpc/master/USBpc-Version.txt')
-      .then(response => response.json())
+      await fetch('https://raw.githubusercontent.com/virgaux/USBpc/master/USBpc-Version.json')
+      .then(newestVersion => newestVersion.json())
       .then(newestVersion => {
-          if (newestVersion > version) {
+          if (newestVersion.Version > version) {
             if (teleNotif == true){tn.sender('New Update! Please download on https://github.com/virgaux/USBpc')}
             console.log(chalk.green('      New Update! Please download on https://github.com/virgaux/USBpc'))
+            console.table(newestVersion)
           } else {
             console.log(chalk.yellow('                                No update available'))
           }
       })
     console.log('--------------------------------------------------------------------------------- \n')  
+
 }
 
 async function checkForMissingConfigs(teleNotif) {
@@ -387,7 +389,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     await page.waitForTimeout(1000);
     await closePopups(page).catch(()=>misc.writeToLog('No pop up to be closed.'));
     await page.waitForTimeout(2000);
-    await nq.seasonQuest(page, logSummary, allCardDetails, seasonRewards, powerThreshold);
+    await nq.seasonQuest(page, logSummary, allCardDetails, seasonRewards, powerThreshold, powerRaw);
     if (!page.url().includes("battle_history")) {
         await clickMenuFightButton(page);
         await page.waitForTimeout(3000);
@@ -958,7 +960,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
         }
     } catch (e) {
         let browsers = await puppeteer.launch({product: 'chrome'})
-        await browsers.close().then(()=> console.log('chromium is a bitch, have to kill it to save CPU memory.')); 
+        await browsers.close().then(()=> console.log('Chromium is a bitch, have to kill it to save CPU memory.')); 
         await browsers.process().kill('SIGKILL'); 
         if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("Bot stops due to error. Please see logs for details.")};
         console.log('Routine error at: ', new Date().toLocaleString(), e)
