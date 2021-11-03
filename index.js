@@ -20,7 +20,7 @@ const tn = require('./telnotif');
 const nq = require('./newquests');
 const fnAllCardsDetails  = ('./data/cardsDetails.json');
 const battles = require('./auto-gather');
-const version = 11.5;
+const version = 11.6;
 const unitVersion = 'desktop'
 
 async function readJSONFile(fn){
@@ -735,14 +735,20 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         //getting battle result
             misc.writeToLog('Getting battle result...');
             await page.goto('https://splinterlands.io/?p=battle_history');
-            const bURL = [`https://api2.splinterlands.com/battle/history?player=`,`https://api.splinterlands.io/battle/history?player=`, `https://api.steemmonsters.io/battle/history?player=`];
-            const battleURL = bURL[Math.floor(Math.random() * bURL.length)];
-            await fetch(battleURL + process.env.ACCUSERNAME)
-                .then(response => response.json())
-                .then(async data  => {
-                        const winner = data.battles[0].winner
-                        const decWon = data.battles[0].reward_dec
-                        const SPSwon = data.battles[0].reward_sps
+            const battleResult = await fetch(`https://api2.splinterlands.com/battle/history?player=${process.env.ACCUSERNAME}`).then(response => response.json())
+                .catch(async () => await fetch(`https://api.splinterlands.io/battle/history?player=${process.env.ACCUSERNAME}`).then(response => response.json()))
+                .catch(async () => await fetch(`https://api.steemmonsters.io/battle/history?player=${process.env.ACCUSERNAME}`).then(response => response.json()))
+                .catch(async () => await fetch(`https://game-api.steemmonsters.io/battle/history?player=${process.env.ACCUSERNAME}`).then(response => response.json()))
+                .catch((e) => {
+                    misc.writeToLog(e);
+                    misc.writeToLog(chalk.blueBright('Could not find winner'));
+                    logSummary.push(chalk.blueBright(' Could not find winner'));
+                    newlogvisual['Battle Result'] = 'Could not find winner' 
+                })
+        if (battleResult) {    
+            const winner = battleResult.battles[0].winner
+            const decWon = battleResult.battles[0].reward_dec
+            const SPSwon = battleResult.battles[0].reward_sps 
             await waitUntilLoaded(page);
             if (winner.trim() == process.env.ACCUSERNAME.trim()) {
                 misc.writeToLog(chalk.green('You won!'));
@@ -773,12 +779,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                     await battles.battlesList(winner).then(x=>x).catch((e) => misc.writeToLog('Unable to gather data for local.' + e));
                 }
             } 
-        }).catch((e) => {
-                misc.writeToLog(e);
-                misc.writeToLog(chalk.blueBright('Could not find winner'));
-                logSummary.push(chalk.blueBright(' Could not find winner'));
-                newlogvisual['Battle Result'] = 'Could not find winner' 
-        })
+        }
         try {
             await closePopups(page).catch(()=>misc.writeToLog('No pop up to be closed.'));
 			const UpDateDec = (await page.evaluate(()=>SM.Player.balances.find(x=>x.token=='DEC').balance)).toFixed(2);

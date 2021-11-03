@@ -28,8 +28,8 @@ const getPlayerQuest = async (username) => (await fetch(`https://api.steemmonste
           return questDetails;
         }})
    .catch(async () => {
-    console.log('Error: api.steemmonsters.io did not respond trying api.slinterlands... ');
-    await fetch(`https://api.splinterlands.io/players/quests?username=${username}`)
+    console.log('Error: api.steemmonsters.io did not respond trying api2.slinterlands... ');
+    await fetch(`https://api2.splinterlands.com/players/quests?username=${username}`)
       .then(x => x && x.json())
       .then(x => {
           if (x[0]) {
@@ -47,7 +47,7 @@ const getPlayerQuest = async (username) => (await fetch(`https://api.steemmonste
             }})
       .catch(async () => {
     console.log('Error: game-api.splinterlands did not respond trying api.steemmonsters... ');
-    await fetch(`https://api.steemmonsters.io/players/quests?username=${username}`)
+    await fetch(`https://api.splinterlands.io/players/quests?username=${username}`)
       .then(x => x && x.json())
       .then(x => {
           if (x[0]) {
