@@ -20,7 +20,7 @@ const tn = require('./telnotif');
 const nq = require('./newquests');
 const fnAllCardsDetails  = ('./data/cardsDetails.json');
 const battles = require('./auto-gather');
-const version = 11.3;
+const version = 11.4;
 const unitVersion = 'desktop'
 
 async function readJSONFile(fn){
