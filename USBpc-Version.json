@@ -2,6 +2,6 @@
         "Version": 11.4, 
         "Fixes": "Fixed error on ECR", 
         "Update":"Updated index", 
-        "New_feature": ["Added ACCI welcome text", "version checker via terminal", "Daily quest will not be claimed if power is below set power Threshold."]
+        "New_feature": "Added ACCI welcome text, Version checker via terminal , Daily quest will not be claimed if power is below set power Threshold."
 
 }
