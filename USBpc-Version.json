@@ -1,7 +1,7 @@
 {
-        "Version": 11.6, 
-        "Fixes": "Fixed error on ECR, new quest bug", 
-        "Update":"Updated index, Added 4 API address for backup", 
-        "New_feature": "Added ACCI welcome text, Version checker via terminal , Daily quest will not be claimed if power is below set power Threshold."
+        "Version": 11.7, 
+        "Fixes": "Fixed ECR not recognizing ERC treshold , proper call response for API", 
+        "Update":"Intergration Update Public API released by Jones.", 
+        "New_feature": "Daily quest will not be claimed if power is below set power threshold."
 
 }

@@ -20,7 +20,7 @@ const tn = require('./telnotif');
 const nq = require('./newquests');
 const fnAllCardsDetails  = ('./data/cardsDetails.json');
 const battles = require('./auto-gather');
-const version = 11.6;
+const version = 11.7;
 const unitVersion = 'desktop'
 
 async function readJSONFile(fn){
@@ -354,12 +354,12 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         await page.evaluate(()=>SM.Player.capture_rate).then(x=>(x.toString()).slice(0, 2)+ "." + (x.toString()).slice(2))
     });
     let ecrInitial = ercCurrentraw.includes('%')? ercCurrentraw.split('%')[0] : ercCurrentraw
-    if ( ecrInitial >= 50) {
+    if ( parseFloat(ecrInitial) >= 50) {
         misc.writeToLog('Current ECR is ' + chalk.green(ecrInitial + "%"));
     } else {
         misc.writeToLog('Current ECR is ' + chalk.red(ecrInitial + "%"));
     }
-    if (ecrInitial < ercThreshold) {
+    if (parseFloat(ecrInitial) < parseFloat(ercThreshold)) {
         misc.writeToLog('ECR is below threshold of ' + chalk.red(ercThreshold + '% ') + '- Skipping this account');
         logSummary.push(' Account skipped: ' + chalk.red('ECR is below threshold of ' + ercThreshold))
         return;
@@ -515,6 +515,12 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     if (useAPI) {
        try {
             const apiResponse = await withTimeout(100000, api.getPossibleTeams(matchDetails));
+            while (JSON.stringify(apiResponse).includes('hash')) {
+                misc.writeToLog('Waiting 30 seconds for API to calculate team...');
+                misc.writeToLog('You have an option to update to V2 of this bot to make this faster: https://github.com/PCJones/Ultimate-Splinterlands-Bot-V2');
+                await sleep(30000);
+                apiResponse = await api.getPossibleTeams(matchDetails);
+            }
             if (apiResponse && !JSON.stringify(apiResponse).includes('api limit reached')) {
                 readline.cursorTo(process.stdout, 0); 
                 misc.writeToLog(chalk.magenta('API Response Result: ')); 
