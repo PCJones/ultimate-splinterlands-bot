@@ -1,7 +1,7 @@
 {
         "Version": 11.4, 
-        "Fixes": "Fixed error on console.log, fixed ECR error, fixed version checker", 
-        "Update":"updated index", 
-        "New_feature": "Added ACCI welcome text and version via terminal"
+        "Fixes": "Fixed error on ECR", 
+        "Update":"Updated index", 
+        "New_feature": "Added ACCI welcome text and version checker via terminal"
 
 }
