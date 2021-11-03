@@ -738,7 +738,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             const battleResult = await fetch(`https://api2.splinterlands.com/battle/history?player=${process.env.ACCUSERNAME}`).then(response => response.json())
                 .catch(async () => await fetch(`https://api.splinterlands.io/battle/history?player=${process.env.ACCUSERNAME}`).then(response => response.json()))
                 .catch(async () => await fetch(`https://api.steemmonsters.io/battle/history?player=${process.env.ACCUSERNAME}`).then(response => response.json()))
-                .catch(async () => await fetch(`https://game-api.steemmonsters.io/battle/history?player=${process.env.ACCUSERNAME}`).then(response => response.json()))
+                .catch(async () => await fetch(`https://game-api.splinterlands.io/battle/history?player=${process.env.ACCUSERNAME}`).then(response => response.json()))
                 .catch((e) => {
                     misc.writeToLog(e);
                     misc.writeToLog(chalk.blueBright('Could not find winner'));
