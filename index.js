@@ -351,24 +351,25 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     await waitUntilLoaded(page);
     const ercCurrentraw = await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 1000).catch(async () =>{
         misc.writeToLog('unable to get ECR via browser. Will get info via API call.')
-        await page.evaluate(()=>SM.Player.balances.find(x=>x.token=='ECR').balance)
-            .then(ecrApi1 => {
+        await page.evaluate(()=>SM.Player.capture_rate)
+            .then(async ecrApi1 => {
             ecrApi1 = (ecrApi1.toString()).slice(0, 2)+ "." + (ecrApi1.toString()).slice(2);
-            return ecrApi1; 
+            return await ecrApi1; 
         });
     });
-    let ecrInitial = ercCurrentraw.includes('%')? ercCurrentraw.split('%')[0] : ercCurrentraw
-    if ( parseFloat(ecrInitial) >= 50) {
-        misc.writeToLog('Current ECR is ' + chalk.green(ecrInitial + "%"));
-    } else {
-        misc.writeToLog('Current ECR is ' + chalk.red(ecrInitial + "%"));
+    if (ercCurrentraw) {
+        let ecrInitial = ercCurrentraw.includes('%')? ercCurrentraw.split('%')[0] : ercCurrentraw
+        if ( parseFloat(ecrInitial) >= 50) {
+            misc.writeToLog('Current ECR is ' + chalk.green(ecrInitial + "%"));
+        } else {
+            misc.writeToLog('Current ECR is ' + chalk.red(ecrInitial + "%"));
+        }
+        if (parseFloat(ecrInitial) < parseFloat(ercThreshold)) {
+            misc.writeToLog('ECR is below threshold of ' + chalk.red(ercThreshold + '% ') + '- Skipping this account');
+            logSummary.push(' Account skipped: ' + chalk.red('ECR is below threshold of ' + ercThreshold))
+            return;
+        }
     }
-    if (parseFloat(ecrInitial) < parseFloat(ercThreshold)) {
-        misc.writeToLog('ECR is below threshold of ' + chalk.red(ercThreshold + '% ') + '- Skipping this account');
-        logSummary.push(' Account skipped: ' + chalk.red('ECR is below threshold of ' + ercThreshold))
-        return;
-    }
-
     //if quest done claim reward
     let quester = {}
     quester['Quest:'] = quest;
