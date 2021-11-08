@@ -1,6 +1,6 @@
 {
   "name": "ultimate-splinterlands-bot",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "A fast, free, multi-account splinderlands bot",
   "main": "index.js",
   "scripts": {
