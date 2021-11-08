@@ -1,6 +1,6 @@
 {
-        "Version": 11.7, 
-        "Fixes": "Fixed ECR not recognizing ERC treshold , proper call response for API", 
+        "Version": 11.8, 
+        "Fixes": "Fixed public API error", 
         "Update":"Intergration Update Public API released by Jones.", 
         "New_feature": "Daily quest will not be claimed if power is below set power threshold."
 

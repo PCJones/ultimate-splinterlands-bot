@@ -20,7 +20,7 @@ const tn = require('./telnotif');
 const nq = require('./newquests');
 const fnAllCardsDetails  = ('./data/cardsDetails.json');
 const battles = require('./auto-gather');
-const version = 11.7;
+const version = 11.8;
 const unitVersion = 'desktop'
 
 async function readJSONFile(fn){
@@ -520,11 +520,13 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     if (useAPI) {
        try {
             const apiResponse = await withTimeout(100000, api.getPossibleTeams(matchDetails));
+            let apiResponseCounter = 0;
             while (JSON.stringify(apiResponse).includes('hash')) {
                 misc.writeToLog('Waiting 30 seconds for API to calculate team...');
                 misc.writeToLog('You have an option to update to V2 of this bot to make this faster: https://github.com/PCJones/Ultimate-Splinterlands-Bot-V2');
                 await sleep(30000);
                 apiResponse = await api.getPossibleTeams(matchDetails);
+                if (++apiResponseCounter >= 4) break;
             }
             if (apiResponse && !JSON.stringify(apiResponse).includes('api limit reached')) {
                 readline.cursorTo(process.stdout, 0); 
