@@ -397,7 +397,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     misc.writeToLog(chalk.green('starting team selection'));
     if (useAPI) {
         const apiResponse = await api.getPossibleTeams(matchDetails);
-		int apiResponseCounter = 0;
+		let apiResponseCounter = 0;
 		while (JSON.stringify(apiResponse).includes('hash')) {
 			misc.writeToLog(chalk.magenta('API Response: ' + JSON.stringify(apiResponse)));
 			misc.writeToLog('Waiting 30 seconds for API to calculate team...');
