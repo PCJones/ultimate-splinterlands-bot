@@ -20,7 +20,7 @@ const tn = require('./telnotif');
 const nq = require('./newquests');
 const fnAllCardsDetails  = ('./data/cardsDetails.json');
 const battles = require('./auto-gather');
-const version = 11.8;
+const version = 11.9;
 const unitVersion = 'desktop'
 
 async function readJSONFile(fn){
@@ -351,25 +351,24 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     await waitUntilLoaded(page);
     const ercCurrentraw = await getElementTextByXpath(page, "//div[@class='dec-options'][1]/div[@class='value'][2]/div", 1000).catch(async () =>{
         misc.writeToLog('unable to get ECR via browser. Will get info via API call.')
-        await page.evaluate(()=>SM.Player.capture_rate)
-            .then(async ecrApi1 => {
+        await page.evaluate(()=>SM.Player.balances.find(x=>x.token=='ECR').balance)
+            .then(ecrApi1 => {
             ecrApi1 = (ecrApi1.toString()).slice(0, 2)+ "." + (ecrApi1.toString()).slice(2);
-            return await ecrApi1; 
+            return ecrApi1; 
         });
     });
-    if (ercCurrentraw) {
-        let ecrInitial = ercCurrentraw.includes('%')? ercCurrentraw.split('%')[0] : ercCurrentraw
-        if ( parseFloat(ecrInitial) >= 50) {
-            misc.writeToLog('Current ECR is ' + chalk.green(ecrInitial + "%"));
-        } else {
-            misc.writeToLog('Current ECR is ' + chalk.red(ecrInitial + "%"));
-        }
-        if (parseFloat(ecrInitial) < parseFloat(ercThreshold)) {
-            misc.writeToLog('ECR is below threshold of ' + chalk.red(ercThreshold + '% ') + '- Skipping this account');
-            logSummary.push(' Account skipped: ' + chalk.red('ECR is below threshold of ' + ercThreshold))
-            return;
-        }
+    let ecrInitial = ercCurrentraw.includes('%')? ercCurrentraw.split('%')[0] : ercCurrentraw
+    if ( parseFloat(ecrInitial) >= 50) {
+        misc.writeToLog('Current ECR is ' + chalk.green(ecrInitial + "%"));
+    } else {
+        misc.writeToLog('Current ECR is ' + chalk.red(ecrInitial + "%"));
     }
+    if (parseFloat(ecrInitial) < parseFloat(ercThreshold)) {
+        misc.writeToLog('ECR is below threshold of ' + chalk.red(ercThreshold + '% ') + '- Skipping this account');
+        logSummary.push(' Account skipped: ' + chalk.red('ECR is below threshold of ' + ercThreshold))
+        return;
+    }
+
     //if quest done claim reward
     let quester = {}
     quester['Quest:'] = quest;
@@ -494,7 +493,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         myCards: myCards,
         quest: (prioritizeQuest && quest && (quest.total != quest.completed)) ? quest : '',
     }
-
+    console.log(matchDetails)
     await page.waitForTimeout(1000);
     //TEAM SELECTION
     let teamToPlay;
@@ -520,14 +519,6 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     if (useAPI) {
        try {
             const apiResponse = await withTimeout(100000, api.getPossibleTeams(matchDetails));
-            let apiResponseCounter = 0;
-            while (JSON.stringify(apiResponse).includes('hash')) {
-                misc.writeToLog('Waiting 30 seconds for API to calculate team...');
-                misc.writeToLog('You have an option to update to V2 of this bot to make this faster: https://github.com/PCJones/Ultimate-Splinterlands-Bot-V2');
-                await sleep(30000);
-                apiResponse = await api.getPossibleTeams(matchDetails);
-                if (++apiResponseCounter >= 4) break;
-            }
             if (apiResponse && !JSON.stringify(apiResponse).includes('api limit reached')) {
                 readline.cursorTo(process.stdout, 0); 
                 misc.writeToLog(chalk.magenta('API Response Result: ')); 

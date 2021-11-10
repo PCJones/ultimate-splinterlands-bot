@@ -1,7 +1,8 @@
 {
-        "Version": 11.8, 
+        "Version": 11.9, 
         "Fixes": "Fixed public API error", 
         "Update":"Intergration Update Public API released by Jones.", 
-        "New_feature": "Daily quest will not be claimed if power is below set power threshold."
+        "New_feature": "Daily quest will not be claimed if power is below set power threshold.",
+        "Instuction" : "No need to npm install again. Just git pull or replace the updated files"
 
 }
