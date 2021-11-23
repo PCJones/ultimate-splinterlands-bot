@@ -1,8 +1,8 @@
 {
-        "Version": 11.9, 
-        "Fixes": "Fixed public API error", 
-        "Update":"Intergration Update Public API released by Jones.", 
-        "New_feature": "Daily quest will not be claimed if power is below set power threshold.",
+        "Version": 11.11, 
+        "Fixes": "Fixed API for retreiving cards", 
+        "Update":"rotating API for card collection to fix API down", 
+        "New_feature": "Coming soon",
         "Instuction" : "No need to npm install again. Just git pull or replace the updated files"
 
 }

@@ -19,8 +19,9 @@ const misc = require('./misc');
 const tn = require('./telnotif');
 const nq = require('./newquests');
 const fnAllCardsDetails  = ('./data/cardsDetails.json');
+const basicCards = require('./data/basicCards');
 const battles = require('./auto-gather');
-const version = 11.9;
+const version = 11.11;
 const unitVersion = 'desktop'
 
 async function readJSONFile(fn){
@@ -178,8 +179,20 @@ async function getFilesizeInBytes(filename) {
 
 // LOAD MY CARDS
 async function getCards() {
-    const myCards = await user.getPlayerCards(process.env.ACCUSERNAME, new Date(Date.now() - 86400000)) // 86400000 = 1 day in milliseconds
-        return myCards;
+    const APIs = ['https://api.splinterlands.io/cards/collection/','https://game-api.splinterlands.io/cards/collection/','https://api.steemmonsters.io/cards/collection/','https://api2.splinterlands.com/cards/collection/'] 
+     let i =0 
+     while(i<4){
+        var myCards = await user.getPlayerCards(process.env.ACCUSERNAME, new Date(Date.now() - 86400000), APIs[i]) // 86400000 = 1 day in milliseconds
+        if (myCards != undefined){
+            break;
+        }
+       i++;}
+       if (myCards != undefined){
+        return myCards
+       }else {
+        misc.writeToLog('Using Basic Cards')
+         return basicCards
+       }
 }
 
 async function getQuest() {
