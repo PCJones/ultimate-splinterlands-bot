@@ -1,5 +1,5 @@
 require('dotenv').config()
-const fetch = require('cross-fetch');
+const fetch = require("async-get-json");
 const fs = require('fs');
 const misc = require('./misc');
 const chalk = require('chalk');
@@ -21,31 +21,34 @@ function sleep(ms) {
       setTimeout(resolve, ms);
   });
 }
-const URL = [`https://api2.splinterlands.com/battle/history?player=`,`https://api.splinterlands.io/battle/history?player=`, `https://api.steemmonsters.io/battle/history?player=`];
   async function getBattleHistory(player = '', data = {}) {
-    await sleep(10000);
-    const randomURL = URL[Math.floor(Math.random() * URL.length)];
-    const battleHistory = await fetch(randomURL + player,{
-            method: 'get',
-            headers: {'Content-Type': 'application/json'}})
-          .then(async (response) => {
-              if (!response.ok) {
-                  throw new Error('Network response was not ok '+player);
-              }
-              return await response;
-          })
-          .then(async (battleHistory) => {
-              if (!battleHistory){
-                  throw new Error;
-              } else {
-              return await battleHistory.json();
-            }
-          })
-        .catch((error) => {
+    await sleep(5000);
+    const battleHistory = await fetch(`http://game-api.splinterlands.io/battle/history?player=` + player)
+    .then(b=>b.battles)
+    .catch(async ()=> {
+      readline.cursorTo(process.stdout, 0);
+      console.log('Fetch error. using API.spliterlands.')
+      await fetch(`http://api.splinterlands.io/battle/history?player=` + player)
+      .then(b=>b.battles)
+      .catch(async ()=> {
+        readline.cursorTo(process.stdout, 0);
+          console.log('Fetch error. using steemmonstes API.')
+          await fetch(`http://api.steemmonsters.io/battle/history?player=` + player)
+          .then(b=>b.battles)
+          .catch(async ()=> {
             readline.cursorTo(process.stdout, 0);
-            console.error('There has been a problem with your fetch operation:', error);
-          }); 
-    return await battleHistory.battles;
+              console.log('Fetch error. using API2.')
+              await fetch(`http://api2.splinterlands.com/battle/history?player=` + player)
+              .then(b=>b.battles)
+          .catch(async () => {
+            readline.cursorTo(process.stdout, 0);
+            console.log('There has been a problem with your fetch operation:', error);
+            return [];
+          })   
+        })  
+      })  
+    });
+    return await battleHistory;
   }
  
 
