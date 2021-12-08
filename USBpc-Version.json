@@ -1,7 +1,7 @@
 {
-        "Version": 11.11, 
+        "Version": 11.12, 
         "Fixes": "Fixed API for retreiving cards", 
-        "Update":"rotating API for card collection to fix API down", 
+        "Update":"update card details.json", 
         "New_feature": "Coming soon",
         "Instuction" : "No need to npm install again. Just git pull or replace the updated files"
 
