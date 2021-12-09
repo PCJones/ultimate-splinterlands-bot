@@ -984,5 +984,6 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
         await browsers.process().kill('SIGKILL'); 
         if (process.env.TELEGRAM_NOTIF === 'true'){tn.sender("Bot stops due to error. Please see logs for details.")};
         console.log('Routine error at: ', new Date().toLocaleString(), e)
+        console.log(e.lineNumber)
     }
 })();
