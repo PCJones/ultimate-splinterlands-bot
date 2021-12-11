@@ -3,7 +3,8 @@ A fast, free, multi-account splinderlands bot
 
 # There is a new version of this bot:
 https://github.com/PCJones/Ultimate-Splinterlands-Bot-V2
-Please use this improved and much faster version!
+
+**Please use this improved and much faster version!**
 
 ## Preamble 
 Right now the code is a mess - I just hacked something together so I can release this asap. I'm planning on updating the code soon. 
