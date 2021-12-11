@@ -1,6 +1,11 @@
 # Ultimate Splinterlands Bot by PC Jones
 A fast, free, multi-account splinderlands bot
 
+# There is a new version of this bot:
+https://github.com/PCJones/Ultimate-Splinterlands-Bot-V2
+Please use this improved and much faster version!
+
+
 Based on https://github.com/alfficcadenti/splinterlands-bot
 
 ## Preamble 
