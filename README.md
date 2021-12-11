@@ -5,14 +5,12 @@ A fast, free, multi-account splinderlands bot
 https://github.com/PCJones/Ultimate-Splinterlands-Bot-V2
 Please use this improved and much faster version!
 
-
-Based on https://github.com/alfficcadenti/splinterlands-bot
-
 ## Preamble 
 Right now the code is a mess - I just hacked something together so I can release this asap. I'm planning on updating the code soon. 
 
 Feel free to give suggestions for features/code refurbishing via github or on discord/telegram.
 
+Code is based on https://github.com/alfficcadenti/splinterlands-bot
 
 ## New Features
 - Multiple accounts with only one instance
