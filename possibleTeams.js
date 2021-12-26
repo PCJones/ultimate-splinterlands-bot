@@ -44,7 +44,13 @@ const summoners = [
     { 261: 'life' },
     { 262: 'dragon' },
     { 278: 'earth' },
-    { 73: 'life' }
+    { 73: 'life' },
+    { 441: 'life' },
+    { 438: 'death' },
+    { 440: 'fire' },
+    { 437: 'water' },
+    { 439: 'earth' },
+    { 442: 'dragon' }
 ]
 
 const splinters = ['fire', 'life', 'earth', 'water', 'death', 'dragon']
