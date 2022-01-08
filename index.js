@@ -320,7 +320,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 
     misc.writeToLog(!myCards?'Playing only basic cards':`Deck size: ${myCards.length}`)
     await page.waitForSelector('#play_now_btn',{visible: true, timeout: 2000}).catch(()=> misc.writeToLog('Took 2 sec to load.'));
-    
+
     //check if maintenance 
     const maintenance = page.url()
     if (maintenance == 'https://splinterlands.com/?p=maintenance') {
@@ -330,7 +330,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         }    
     } else {
         const username = await getElementText(page, '.dropdown-toggle .bio__name__display', 5000).catch(async () => {
-            await page.goto('https://splinterlands.com',{waitUntil: 'networkidle0'});
+            await page.goto('https://splinterlands.com');
             await getElementText(page, '.dropdown-toggle .bio__name__display', 10000)
         });
         if (username == process.env.ACCUSERNAME) {
