@@ -21,7 +21,7 @@ const nq = require('./newquests');
 const fnAllCardsDetails  = ('./data/cardsDetails.json');
 const basicCards = require('./data/basicCards');
 const battles = require('./auto-gather');
-const version = 11.12;
+const version = 11.13;
 const unitVersion = 'desktop'
 
 async function readJSONFile(fn){
@@ -121,6 +121,10 @@ function sleep(ms) {
         setTimeout(resolve, ms);
     });
 }
+
+async function checkURl(path) {
+    return await fetch(path).then(response=>response.status)
+  }
 
 const withTimeout = (millis, promise) => {
     const timeout = new Promise((resolve, reject) =>
@@ -273,12 +277,12 @@ async function clickOnElement(page, selector, timeout = 20000, delayBeforeClicki
             });
         if (elem) {
             await sleep(delayBeforeClicking);
-            misc.writeToLog('Clicking element ' + selector);
+            //misc.writeToLog('Clicking element ' + selector);
             await elem.click();
             return true;
         }
     } catch (e) {}
-    misc.writeToLog('Error: Could not find element ' + selector);
+    //misc.writeToLog('Error: Could not find element ' + selector);
     return false;
 }
 
@@ -313,20 +317,9 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     const allCardDetails = await readJSONFile(fnAllCardsDetails);
     logSummary.push(' \n -----' + process.env.ACCUSERNAME + '-----')
     logSummary1[process.env.ACCUSERNAME] = newlogvisual
-    if (myCards) {
-        misc.writeToLog('Deck size: ' + myCards.length)
-    } else {
-        misc.writeToLog('Playing only basic cards')
-    }
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36');
-    await page.setViewport({
-        width: 1800,
-        height: 1500,
-        deviceScaleFactor: 1,
-    });
 
-    await page.goto('https://splinterlands.io');
-    await page.waitForTimeout(4000);
+    misc.writeToLog(!myCards?'Playing only basic cards':`Deck size: ${myCards.length}`)
+    await page.waitForNavigation({waitUntil: 'networkidle0'});
     //check if maintenance 
     const maintenance = page.url()
     if (maintenance == 'https://splinterlands.com/?p=maintenance') {
@@ -335,30 +328,32 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             return misc.writeToLog('Game is currently on maintenance.')  
         }    
     } else {
-        const username = await getElementText(page, '.dropdown-toggle .bio__name__display', 10000).catch(async () => {
-            await page.goto('https://splinterlands.io');
-            await page.waitForTimeout(4000);
+        const username = await getElementText(page, '.dropdown-toggle .bio__name__display', 5000).catch(async () => {
+            await page.goto('https://splinterlands.com',{waitUntil: 'networkidle0'});
             await getElementText(page, '.dropdown-toggle .bio__name__display', 10000)
         });
         if (username == process.env.ACCUSERNAME) {
             misc.writeToLog('Already logged in!');
         } else {
             misc.writeToLog('Login')
-            await splinterlandsPage.login(page).catch(async () => {
+          var logStatus = await splinterlandsPage.login(page).catch(async (err) => {
+            console.log(err); 
+            return "Didn't login" }); 
+          if (logStatus != 'logged in!') {   
             misc.writeToLog('Unable to login. Trying to reload page again.');
-            await page.goto('https://splinterlands.io/?p=battle_history');
+            await page.goto('https://splinterlands.com/?p=battle_history');
             await page.waitForTimeout(4000);
             await getElementText(page, '.dropdown-toggle .bio__name__display', 10000)
-                await splinterlandsPage.login(page).catch(e => {
+            await splinterlandsPage.login(page).then(logStatus => {if (logStatus!="Didn't login"){misc.writeToLog(logStatus)}else{throw new Error("unable to login.")}}).catch(e => {
                 misc.writeToLog(e);
                 logSummary.push(chalk.red(' No records due to login error'));
                 throw new Error ('Skipping this account due to to login error.');
-                }); 
-            });
+                });   
+          }else{misc.writeToLog(logStatus)}
         }    
     }    
 
-    await page.goto('https://splinterlands.io/?p=battle_history');
+    await page.goto('https://splinterlands.com/?p=battle_history');
     await page.reload();
     await closePopups(page);
     await waitUntilLoaded(page);
@@ -903,6 +898,8 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
                 }
 
                 const page = (await browsers[0].pages())[1];
+                 page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36');
+                 page.setViewport({ width: 1800,height: 1500,deviceScaleFactor: 1,}).then(()=> page.goto(`https://splinterlands.com`))
 
                 //page.goto('https://splinterlands.io/');
                 misc.writeToLog('getting user cards collection from splinterlands API...')

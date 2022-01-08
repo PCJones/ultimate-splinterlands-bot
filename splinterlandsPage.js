@@ -1,36 +1,22 @@
 const misc = require('./misc');
+require('dotenv').config()
 
 async function login(page) {
+
     try {
-        page.waitForSelector('#log_in_button > button').then(() => page.click('#log_in_button > button'))
+        await page.waitForSelector('#log_in_button > button').then(() => page.click('#log_in_button > button'))
         await page.waitForSelector('#email',{visible: true, timeout: 10000})
             .then(() => page.focus('#email'))
-            .then(() => page.type('#email', process.env.EMAIL))
+            .then(() => page.type('#email', process.env.ACCUSERNAME))
             .then(() => page.focus('#password'))
-            .then(() => page.type('#password', process.env.PASSWORD))
-
-            // .then(() => page.waitForSelector('#login_dialog_v2 > div > div > div.modal-body > div > div > form > div > div.col-sm-offset-1 > button', { visible: true }).then(() => page.click('#login_dialog_v2 > div > div > div.modal-body > div > div > form > div > div.col-sm-offset-1 > button')))
-            .then(() => page.click('#loginBtn',{visible: true, timeout: 10000}))// .then(button=>button.click())
-            //.then(() => page.waitForTimeout(1000))
-            /*.then(() => page.reload())
-            .then(() => page.waitForTimeout(5000))
-            .then(() => page.reload())
-            .then(() => page.waitForTimeout(3000))*/ //edit by Jones
-            .then(async () => {
-                await page.waitForSelector('#log_in_text', {
-                        visible: true, timeout: 3000
-                    })
-                    .then(()=>{
-                        misc.writeToLog('logged in!')
-                    })
-                    .catch(()=>{
-                        misc.writeToLog('didnt login');
-                        throw new Error('Didnt login');
-                    })
-                })
-            .then(() => page.waitForTimeout(500))
-            //.then(() => page.reload()) edited by jones
+            .then(async() => await page.type('#password', process.env.PASSWORD))
+        await page.waitForTimeout(1000)     
+        await page.waitForSelector('#loginBtn',{visible: true, timeout: 10000}).then(async button=> await button.click('button#loginBtn.btn.btn-primary.btn-lg'))
+        await page.waitForNavigation({waitUntil: 'networkidle0'})
+        const text = await page.waitForSelector('.dropdown-toggle .bio__name__display', {timeout: 10000}).then(async element =>{ return await element.evaluate(el => el.textContent)});
+        return  text != process.env.ACCUSERNAME? "Didn't login" : 'logged in!'   
     } catch (e) {
+        console.log(e)
         throw new Error('Check that you used correctly username and posting key or email and password.');
     }
 }
