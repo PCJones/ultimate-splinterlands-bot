@@ -319,7 +319,8 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     logSummary1[process.env.ACCUSERNAME] = newlogvisual
 
     misc.writeToLog(!myCards?'Playing only basic cards':`Deck size: ${myCards.length}`)
-    await page.waitForNavigation({waitUntil: 'networkidle0'});
+    await page.waitForSelector('#play_now_btn',{visible: true, timeout: 2000}).catch(()=> misc.writeToLog('Took 2 sec to load.'));
+    
     //check if maintenance 
     const maintenance = page.url()
     if (maintenance == 'https://splinterlands.com/?p=maintenance') {
