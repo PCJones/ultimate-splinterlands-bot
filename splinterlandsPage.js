@@ -11,8 +11,8 @@ async function login(page) {
             .then(() => page.type('#password', process.env.PASSWORD))
 
             // .then(() => page.waitForSelector('#login_dialog_v2 > div > div > div.modal-body > div > div > form > div > div.col-sm-offset-1 > button', { visible: true }).then(() => page.click('#login_dialog_v2 > div > div > div.modal-body > div > div > form > div > div.col-sm-offset-1 > button')))
-            .then(() => page.waitForSelector('#loginBtn',{visible: true, timeout: 3000})).then(button=>button.click())
-            .then(() => page.waitForTimeout(300000))
+            .then(() => page.waitForSelector('#loginBtn',{visible: true, timeout: 1000})).then(button=>button.click())
+            //.then(() => page.waitForTimeout(1000))
             /*.then(() => page.reload())
             .then(() => page.waitForTimeout(5000))
             .then(() => page.reload())
