@@ -12,7 +12,8 @@ async function login(page) {
             .then(async() =>{ 
                 await page.waitForTimeout(1000)
                 await page.type('#password', process.env.PASSWORD)})  
-        await page.waitForSelector('#loginBtn',{visible: true, timeout: 10000}).then(async ()=> await page.click('button#loginBtn.btn.btn-primary.btn-lg'))
+        await page.waitForSelector('#loginBtn',{visible: true, timeout: 10000}).then(async ()=> await page.click('button#loginBtn'))
+        // .btn.btn-primary.btn-lg
         await page.waitForNavigation({waitUntil: 'load',timout:500}).catch(()=>{ if(!page.url().includes('?p=about-player'))throw new error('Unable to login')})
         const text = await page.waitForSelector('.dropdown-toggle .bio__name__display', {timeout: 10000}).then(async element =>{ return await element.evaluate(el => el.textContent)});
         return  text != process.env.ACCUSERNAME? "Didn't login" : 'logged in!'   
