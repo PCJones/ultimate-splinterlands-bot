@@ -21,7 +21,7 @@ const nq = require('./newquests');
 const fnAllCardsDetails  = ('./data/cardsDetails.json');
 const basicCards = require('./data/basicCards');
 const battles = require('./auto-gather');
-const version = 11.13;
+const version = 11.21;
 const unitVersion = 'desktop'
 
 async function readJSONFile(fn){
@@ -58,61 +58,34 @@ async function checkForUpdate(teleNotif) {
 
 }
 
-async function checkForMissingConfigs(teleNotif) {
+async function checkForMissingConfigs() {
     if (!process.env.TELEGRAM_NOTIF) {
-		misc.writeToLogNoUsername(chalk.red("Missing TELEGRAM_NOTIF parameter in .env - see updated .env-example!"));
-        if (teleNotif === 'true'){tn.sender("ALERT: Missing TELEGRAM_NOTIF parameter in .env - see updated .env-example!")}
-		await sleep(60000);
+		misc.writeToLogNoUsername(chalk.red("Missing TELEGRAM_NOTIF parameter in .env. Reverting to default setup."));
+        process.env.TELEGRAM_NOTIF=false
 	}
-    if (!process.env.LOGIN_VIA_EMAIL) {
-        misc.writeToLogNoUsername(chalk.red("Missing LOGIN_VIA_EMAIL parameter in .env - see updated .env-example!"));
-        if (teleNotif === 'true'){tn.sender("ALERT: Missing LOGIN_VIA_EMAIL parameter in .env - see updated .env-example!")}
-        await sleep(60000);
-    }
     if (!process.env.HEADLESS) {
-        misc.writeToLogNoUsername(chalk.red("Missing HEADLESS parameter in .env - see updated .env-example!"));
-        if (teleNotif === 'true'){tn.sender("ALERT: Missing HEADLESS parameter in .env - see updated .env-example!")}
-        await sleep(60000);
-    }
-    if (!process.env.KEEP_BROWSER_OPEN) {
-        misc.writeToLogNoUsername(chalk.red("Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!"));
-        if (teleNotif === 'true'){tn.sender("ALERT: Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!")};
-        await sleep(60000);
+        misc.writeToLogNoUsername(chalk.red("Missing HEADLESS parameter in .env. Reverting to default setup."));
+        process.env.HEADLESS=true
     }
     if (!process.env.CLAIM_QUEST_REWARD) {
-        misc.writeToLogNoUsername(chalk.red("Missing CLAIM_QUEST_REWARD parameter in .env - see updated .env-example!"));
-        if (teleNotif === 'true'){tn.sender("ALERT: Missing KEEP_BROWSER_OPEN parameter in .env - see updated .env-example!")};
-        await sleep(60000);
-    }
-    if (!process.env.USE_CLASSIC_BOT_PRIVATE_API) {
-        misc.writeToLogNoUsername(chalk.red("Missing USE_CLASSIC_BOT_PRIVATE_API parameter in .env - see updated .env-example!"));
-        if (teleNotif === 'true'){tn.sender("ALERT: Missing USE_CLASSIC_BOT_PRIVATE_API parameter in .env - see updated .env-example!")};
-        await sleep(60000);
+        misc.writeToLogNoUsername(chalk.red("Missing CLAIM_QUEST_REWARD parameter in .env. Reverting to default setup."));
+        process.env.CLAIM_QUEST_REWARD=false
     }
     if (!process.env.USE_API) {
-        misc.writeToLogNoUsername(chalk.red("Missing USE_API parameter in .env - see updated .env-example!"));
-        if (teleNotif === 'true'){tn.sender("ALERT: Missing USE_API parameter in .env - see updated .env-example!")};
-        await sleep(60000);
+        misc.writeToLogNoUsername(chalk.red("Missing USE_API parameter in .env. Reverting to to use local history."));
+        process.env.USE_API=false
     }
     if (!process.env.API_URL || (process.env.USE_API === 'true' && !process.env.API_URL.includes('http'))) {
-        misc.writeToLogNoUsername(chalk.red("Missing API_URL parameter in .env - see updated .env-example!"));
-        if (teleNotif === 'true'){tn.sender("ALERT: Missing API_URL parameter in .env - see updated .env-example!")};
-        await sleep(60000);
-    }
-    if (process.env.USE_API === 'true' && process.env.USE_CLASSIC_BOT_PRIVATE_API === 'true') {
-        misc.writeToLogNoUsername(chalk.red('Please only set USE_API or USE_CLASSIC_BOT_PRIVATE_API to true'));
-        if (teleNotif === 'true'){tn.sender('ALERT: Please only set USE_API or USE_CLASSIC_BOT_PRIVATE_API to true')};
-        await sleep(60000);
+        misc.writeToLogNoUsername(chalk.red("Missing API_URL parameter in .env. Reverting to to use local history."));
+        process.env.USE_API=false
     }
     if (!process.env.ERC_THRESHOLD) {
-        misc.writeToLogNoUsername(chalk.red("Missing ERC_THRESHOLD parameter in .env - see updated .env-example!"));
-        if (teleNotif === 'true'){tn.sender("ALERT: Missing ERC_THRESHOLD parameter in .env - see updated .env-example!")};
-        await sleep(60000);
+        misc.writeToLogNoUsername(chalk.red("Missing ERC_THRESHOLD parameter in .env. Reverting to default setup."));
+        process.env.ERC_THRESHOLD=50  
     }
     if (!process.env.GET_DATA_FOR_LOCAL) {
-        misc.writeToLogNoUsername(chalk.red("process.env.GET_DATA_FOR_LOCAL parameter in .env - see updated .env-example!"));
-        if (teleNotif === 'true'){tn.sender("ALERT: Missing process.env.GET_DATA_FOR_LOCAL parameter in .env - see updated .env-example!")};
-        await sleep(60000);
+        misc.writeToLogNoUsername(chalk.red("process.env.GET_DATA_FOR_LOCAL parameter in .env. Reverting to default setup."));
+        process.env.GET_DATA_FOR_LOCAL=false
     }
 }
 
@@ -216,7 +189,6 @@ async function createBrowsers(count, headless) {
                 '--disable-features=IsolateOrigins',
                 '--disable-site-isolation-trials',
                 '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
                 '--disable-accelerated-2d-canvas',
                 '--disable-canvas-aa', // Disable antialiasing on 2d canvas
                 '--disable-2d-canvas-clip-aa', // Disable antialiasing on 2d canvas clips
@@ -225,7 +197,7 @@ async function createBrowsers(count, headless) {
                 '--no-zygote', // wtf does that mean ?
                 '--disable-dev-shm-usage', // ???
                 '--use-gl=desktop', // better cpu usage with --use-gl=desktop rather than --use-gl=swiftshader, still needs more testing.
-                '--single-process', // <- this one doesn't works in Windows
+                //'--single-process', // <- this one doesn't works in Windows
                 '--disable-gpu',
                 '--hide-scrollbars',
                 '--mute-audio',
@@ -330,27 +302,24 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         }    
     } else {
         const username = await getElementText(page, '.dropdown-toggle .bio__name__display', 5000).catch(async () => {
-            await page.goto('https://splinterlands.com');
-            await getElementText(page, '.dropdown-toggle .bio__name__display', 10000)
+            await page.goto(`https://${gameUrl}`);
+            await getElementText(page, '.dropdown-toggle .bio__name__display', 5000)
         });
         if (username == process.env.ACCUSERNAME) {
             misc.writeToLog('Already logged in!');
         } else {
-            misc.writeToLog('Login')
-          var logStatus = await splinterlandsPage.login(page).catch(async (err) => {
-            console.log(err); 
-            return "Didn't login" }); 
-          if (logStatus != 'logged in!') {   
-            misc.writeToLog('Unable to login. Trying to reload page again.');
-            await page.goto('https://splinterlands.com/?p=battle_history');
-            await page.waitForTimeout(4000);
-            await getElementText(page, '.dropdown-toggle .bio__name__display', 10000)
-            await splinterlandsPage.login(page).then(logStatus => {if (logStatus!="Didn't login"){misc.writeToLog(logStatus)}else{throw new Error("unable to login.")}}).catch(e => {
-                misc.writeToLog(e);
-                logSummary.push(chalk.red(' No records due to login error'));
-                throw new Error ('Skipping this account due to to login error.');
-                });   
-          }else{misc.writeToLog(logStatus)}
+                 misc.writeToLog('Login')
+                await splinterlandsPage.login(page).catch(async () => {
+                   misc.writeToLog('Unable to login. Reloading page.');
+                    await page.goto(`https://splinterlands/?p=battle_history`);
+                    await page.waitForTimeout(4000);
+                    const userlogin = await getElementText(page, '.dropdown-toggle .bio__name__display', 10000);
+                    if (userlogin!= process.env.ACCUSERNAME) await splinterlandsPage.login(page).catch(e => {
+                        misc.writeToLog(e);
+                        logSummary.push(chalk.red(' No records due to login error'));
+                        throw new Error ('Skipping this account due to to login error.');
+                        }); 
+                    });
         }    
     }    
 
@@ -856,9 +825,8 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 (async() => {
     try {
         if (process.env.TELEGRAM_NOTIF === 'true') { tn.startTG()}
-        const loginViaEmail = JSON.parse(process.env.LOGIN_VIA_EMAIL.toLowerCase());
         const accountusers = process.env.ACCUSERNAME.split(',');
-        const accounts = loginViaEmail ? process.env.EMAIL.split(',') : accountusers;
+        const accounts =  accountusers;
         const passwords = process.env.PASSWORD.split(',');
         const headless = JSON.parse(process.env.HEADLESS.toLowerCase());
         const useAPI = JSON.parse(process.env.USE_API.toLowerCase());
@@ -872,7 +840,6 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 
         let browsers = [];
         misc.writeToLogNoUsername('Headless: ' + headless);
-        misc.writeToLogNoUsername('Login via Email: ' + loginViaEmail);
         misc.writeToLogNoUsername('Get data for local history: ' + getDataLocal);
         misc.writeToLogNoUsername('Claim Quest Reward: ' + claimQuestReward);
         misc.writeToLogNoUsername('Prioritize Quests: ' + prioritizeQuest);
