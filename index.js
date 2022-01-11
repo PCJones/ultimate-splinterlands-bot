@@ -465,6 +465,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
             ]);
 
     const matchDetails = {
+        player: process.env.ACCUSERNAME.trim(),
         mana: mana,
         rules: rules,
         splinters: splinters,
