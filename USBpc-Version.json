@@ -1,7 +1,7 @@
 {
         "Version": 11.21, 
         "Fixes": "Fixed can't login error.", 
-        "Update":"update card details.json", 
+        "Update":"LostVoid Private API ready.", 
         "New_feature": "Coming soon",
         "Instuction" : "No need to npm install again. Just git pull or replace the updated files"
 
