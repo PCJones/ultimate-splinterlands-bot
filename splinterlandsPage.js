@@ -15,19 +15,20 @@ async function login(page) {
             .then(async ()=> await page.waitForSelector('#loginBtn',{visible: true, timeout: 10000}))
             .then(async button=> await button.click('button#loginBtn.btn.btn-primary.btn-lg'))
             .then(async () => {
-                await page.waitForNavigation({timeout:10000}).then(()=>{
+                await page.waitForNavigation({timeout:30000}).then(()=>{
                     if (!page.url().includes('?p=about-player')) throw new Error("Page didn't load");
-                })
-                // await page.waitForSelector('#log_in_text', {
-                //         visible: true, timeout: 10000
-                //     })
-                    .then(()=>{
+                }).then(()=>{
                         misc.writeToLog('logged in!')
                     })
                     .catch(e=>{
-                        console.log(e)
-                        misc.writeToLog('didnt login');
-                        throw new Error('Didnt login');
+                        await page.waitForSelector('#log_in_text', {visible: true, timeout: 10000})
+                        .then(()=>{
+                            misc.writeToLog('logged in!')
+                        }).catch(e=>{
+                            console.log(e)
+                            misc.writeToLog('didnt login');
+                            throw new Error('Didnt login');
+                        })    
                     })      
                 })
     } catch (e) {

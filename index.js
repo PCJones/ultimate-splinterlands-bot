@@ -21,7 +21,7 @@ const nq = require('./newquests');
 const fnAllCardsDetails  = ('./data/cardsDetails.json');
 const basicCards = require('./data/basicCards');
 const battles = require('./auto-gather');
-const version = 11.21;
+const version = 11.22;
 const unitVersion = 'desktop'
 
 async function readJSONFile(fn){

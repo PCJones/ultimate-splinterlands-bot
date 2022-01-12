@@ -1,12 +1,72 @@
 require('dotenv').config()
 const misc = require('./misc');
 const chalk = require('chalk');
-const fetch = require("cross-fetch");
 const axios = require('axios');
 const readline = require('readline');
 
-  
+async function clickOnElement(page, selector, timeout = 20000, delayBeforeClicking = 0) {
+    try {
+        const elem = await page.waitForSelector(selector, {
+                timeout: timeout
+            });
+        if (elem) {
+            await sleep(delayBeforeClicking);
+            misc.lineToLog('Clicking element ' + selector);
+            await elem.click().then(()=>misc.clearliners());
+            return true;
+        }
+    } catch (e) {
+        misc.clearliners()
+    }
+    return false;
+}
+async function sleep(ms) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
 
+async function makeGetRequest(path,setTimeOut) {
+    return new Promise(function (resolve, reject) {
+        axios.get(path, {timeout: setTimeOut}).then(
+            (response) => {
+                resolve(response.data);
+            },
+                (error) => {
+                reject(error);
+            }
+        );
+    });
+  }
+
+async function getRewardsDetails(rewardType){
+    let api= ['splinterlands','steemmonsters']
+    let counter = 0;
+    var apiURL = api[0];
+    while(true){
+        var data = await makeGetRequest(`https://api.${apiURL}.io/players/history?username=${process.env.ACCUSERNAME}&types=claim_reward`,10000)
+        .then(data=>data[0]).catch(()=>false)
+            if (data!=false && JSON.parse(data.data).type == rewardType) break;
+                await sleep(10000);
+            if (++counter>2) apiURL = api[1];
+            if (++counter>4) {
+                data = '';
+                break;
+            }
+        }
+    return data
+}  
+  
+async function openChestReward(page, timeout){
+    await page.waitForSelector('button#btnCloseOpenPack.new-button', {visible: true,timeout: timeout}).then(async()=>{ 
+        let i=1
+        while(true){
+           const clickChest = await page.waitForXPath(`//*[@id="open_pack_dialog"]/div/div/div[1]/div/div[${i}]`, {timeout: 1000}).then(button => button.click()).catch(()=>false)
+           if (clickChest == false ) break;
+           i++;
+        } 
+    await page.reload()}).catch(async()=> await page.reload())
+}
 
 async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, allCardDetails, newlogvisual, powerThreshold, powerRaw){
 
@@ -46,48 +106,55 @@ async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, all
                 await claimButton.click();
                 readline.cursorTo(process.stdout, 0);
                 misc.writeToLog(chalk.green('Claiming quest reward. This will take 1.7 minutes.'));
-                await page.waitForTimeout(60000);
+                await openChestReward(page, 60000)
                 readline.cursorTo(process.stdout, 0);
                 misc.writeToLog('Checking quest reward chest. Please wait....')
-                await page.reload();
-                await page.waitForTimeout(30000);
+                await page.waitForTimeout(100000);
 
-                // added by boart2k
-                await fetch(`https://api.steemmonsters.io/players/history?username=${process.env.ACCUSERNAME}&types=claim_reward`, {
-                    method: 'GET',
-                    headers: {'Content-Type': 'application/json'}
-                })
-                .then(response => response.json())
-                .then((data) => {
-                    const generalResult = Object.values(JSON.parse(Object.values(data[0])[11]).rewards) // general result
-                    let detailer1 = [];
-                    let forlogVisual = [];
-                    let message1 = ' Daily rewards claimed: ';
-                    let forNLV = '';
-                        for (let i = 0; i < generalResult.length; i++) {
-                            rewardcard = Object.values(generalResult[i])[0]
-                            if (rewardcard === 'reward_card'){
-                                cardNumber = Object.values(Object.values(generalResult[i])[2])[1]
-                                goldFoil = Object.values(Object.values(generalResult[i])[2])[3]
-                                if (goldFoil == false ) {
-                                    detailer1.push( allCardDetails[(parseInt(cardNumber))-1].name.toString() + " card")
-                                } else {
-                                    detailer1.push('GoldFoil' + allCardDetails[(parseInt(cardNumber))-1].name.toString() + " card")
-                                } 
-                            } else if (rewardcard === 'potion'){
-                                detailer1.push( Object.values(generalResult[i])[2] + ' Potion Qty: ' + Object.values(generalResult[i])[1])
-                            } else if (rewardcard === 'dec'){
-                                detailer1.push(Object.values(generalResult[i])[1] + ' DEC')
-                            } else if (rewardcard === 'credits'){ 
-                                detailer1.push(Object.values(generalResult[i])[1] + ' Credits')
+                await getRewardsDetails("quest").then(async data=>{
+                
+                    if (data && data.success== true){
+                        const generalResult = JSON.parse(data.result).rewards // general result
+                        let detailer1 = [];
+                        let forlogVisual = [];
+                        let message1 = ' Daily rewards claimed: ';
+                        let forNLV = '';
+                            for (let i = 0; i < generalResult.length; i++) {
+                                rewardcard = generalResult[i].type
+                                if (rewardcard === 'reward_card'){
+                                    cardNumber = generalResult[i].card.card_detail_id
+                                    goldFoil = generalResult[i].card.gold
+                                    if (goldFoil == false ) {
+                                        detailer1.push(`${allCardDetails[(parseInt(cardNumber))-1].name.toString()} card`)
+                                    } else {
+                                        detailer1.push(`GoldFoil ${allCardDetails[(parseInt(cardNumber))-1].name.toString()} card`)
+                                    } 
+                                } else if (rewardcard === 'potion'){
+                                    detailer1.push(`${generalResult[i].potion_type} Potion Qty: ${generalResult[i].quantity}`)
+                                } else if (rewardcard === 'dec'){
+                                    detailer1.push(`${generalResult[i].quantity} DEC`)
+                                } else if (rewardcard === 'credits'){ 
+                                    detailer1.push(`${generalResult[i].quantity} Credits`)
+                                }
                             }
-                        }
 
-                        for (let i = 0; i < detailer1.length; i++) {
-                            message1 = message1 + detailer1[i] +' \n';
-                            forlogVisual.push({['Daily quest rewards :'] : detailer1[i]})
-                            forNLV = forNLV + detailer1[i] + ',';
-                        }                        
+                            for (let i = 0; i < detailer1.length; i++) {
+                                message1 = message1 + detailer1[i] +' \n';
+                                forlogVisual.push({['Daily quest rewards :'] : detailer1[i]})
+                                if (detailer1.length>1){
+                                    forNLV = forNLV.concat(`${detailer1[i]},`);
+                                } else {
+                                    forNLV = detailer1[i]
+                                }
+                            }
+
+                    } else if (data && data.success!=true) {
+                        data.error  
+                        forlogVisual.push({['Daily quest rewards :'] : data.error })
+                        forNLV = data.error;
+                    } else if (!data){
+                        throw new Error ('Error on getting rewards data.');
+                    }                         
                     clearInterval(twirlTimer);
                     readline.cursorTo(process.stdout, 0);
                     console.table(forlogVisual)
@@ -125,19 +192,6 @@ async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, all
 }  
 
 async function seasonQuest (page, logSummary, allCardDetails, seasonRewards){
-    function makeGetRequest(path) {
-        return new Promise(function (resolve, reject) {
-            axios.get(path).then(
-                (response) => {
-                    var result = response.data;
-                    resolve(result);
-                },
-                    (error) => {
-                    reject(error);
-                }
-            );
-        });
-      }
 
     if (JSON.parse(process.env.CLAIM_SEASON_REWARD.toLowerCase()) == true) {
         try {
@@ -159,39 +213,44 @@ async function seasonQuest (page, logSummary, allCardDetails, seasonRewards){
                 misc.writeToLog('Season reward button clicked.')});
                 readline.cursorTo(process.stdout, 0);
                 misc.writeToLog('Claiming the season reward. Please Wait... ');
-                await page.waitForTimeout(100000);
-                await page.reload();
+                await openChestReward(page, 120000).then(async()=>await page.waitForTimeout(60000))
 
-                const data = await makeGetRequest('https://api.steemmonsters.io/players/history?username=' + process.env.ACCUSERNAME + '&types=claim_reward')
                             try{
-                                const generalResult = Object.values(JSON.parse(Object.values(data[0])[11]).rewards) // general result
-                                let detailer1 = [];
-                                let forVisual = []
-                                let message1 = ' Season rewards claimed: \n'
-                                for (let i = 0; i < generalResult.length; i++) {
-                                    rewardcard = Object.values(generalResult[i])[0]
-                                    if (rewardcard === 'reward_card'){
-                                        cardNumber = Object.values(Object.values(generalResult[i])[2])[1]
-                                        goldFoil = Object.values(Object.values(generalResult[i])[2])[3]
-                                        if (goldFoil == false ) {
-                                            detailer1.push(' received card: ' + allCardDetails[(parseInt(cardNumber))-1].name.toString())
-                                        } else {
-                                            detailer1.push(' received card: GoldFoil' + allCardDetails[(parseInt(cardNumber))-1].name.toString())
-                                        } 
-                                    } else if (rewardcard === 'potion'){
-                                        detailer1.push(' received ' + Object.values(generalResult[i])[2] + ' Potion Qty: ' + Object.values(generalResult[i])[1])
-                                    } else if (rewardcard === 'dec'){
-                                        detailer1.push(' received DEC Qty: ' + Object.values(generalResult[i])[1])
-                                    } else if (rewardcard === 'credits'){ 
-                                        detailer1.push(' received Credits Qty: ' + Object.values(generalResult[i])[1])
-                                    }
-                                }
-                   
-                                    for (let i = 0; i < detailer1.length; i++) {
-                                        message1 = message1 + detailer1[i] +' \n';
-                                        seasonRewards.push({['Season rewards claimed:'] : process.env.ACCUSERNAME + detailer1[i]})
-                                        forVisual.push({['Season rewards claimed:'] : detailer1[i]})
-                                    }
+                                const data = await getRewardsDetails("league_season");
+                                if (data && data.success== true){  
+                                        const generalResult = JSON.parse(data.result).rewards // general result
+                                        let detailer1 = [];
+                                        let forVisual = []
+                                        let message1 = ' Season rewards claimed: \n'
+                                        for (let i = 0; i < generalResult.length; i++) {
+                                            rewardcard = generalResult[i].type
+                                            if (rewardcard === 'reward_card'){
+                                                cardNumber = generalResult[i].card.card_detail_id
+                                                goldFoil = generalResult[i].card.gold
+                                                if (goldFoil == false ) {
+                                                    detailer1.push(` Received card: ${allCardDetails[(parseInt(cardNumber))-1].name.toString()}`)
+                                                } else {
+                                                    detailer1.push(` Received card: GoldFoil ${allCardDetails[(parseInt(cardNumber))-1].name.toString()}`)
+                                                } 
+                                            } else if (rewardcard === 'potion'){
+                                                detailer1.push(` Received ${generalResult[i].potion_type} Potion Qty: ${generalResult[i].quantity}`)
+                                            } else if (rewardcard === 'dec'){
+                                                detailer1.push(` Received DEC Qty: ${generalResult[i].quantity}`)
+                                            } else if (rewardcard === 'credits'){ 
+                                                detailer1.push(` Received Credits Qty: ${generalResult[i].quantity}`)
+                                            }
+                                        }
+                                            for (let i = 0; i < detailer1.length; i++) {
+                                                message1 = message1 + detailer1[i] +' \n';
+                                                seasonRewards.push({['Season rewards claimed:'] : process.env.ACCUSERNAME + detailer1[i]})
+                                                forVisual.push({['Season rewards claimed:'] : detailer1[i]})
+                                            }
+                                } else if (data && data.success!=true) { 
+                                    seasonRewards.push({['Season rewards claimed:'] : process.env.ACCUSERNAME + data.error})
+                                    forVisual.push({['Season rewards claimed:'] : data.error}) 
+                                } else if (!data){
+                                    throw new Error ('Error on getting rewards data.');
+                                } 
                                     clearInterval(twirlTimer);
                                     readline.cursorTo(process.stdout, 0); 
                                     logSummary.push(message1)
