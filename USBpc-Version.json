@@ -1,7 +1,7 @@
 {
-        "Version": 11.21, 
+        "Version": 11.22, 
         "Fixes": "Fixed can't login error.", 
-        "Update":"LostVoid Private API ready.", 
+        "Update":"LostVoid Private API ready. Updated codes for claiming rewards", 
         "New_feature": "Coming soon",
         "Instuction" : "No need to npm install again. Just git pull or replace the updated files"
 
