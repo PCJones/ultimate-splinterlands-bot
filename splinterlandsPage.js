@@ -20,7 +20,7 @@ async function login(page) {
                 }).then(()=>{
                         misc.writeToLog('logged in!')
                     })
-                    .catch(e=>{
+                    .catch(async()=>{
                         await page.waitForSelector('#log_in_text', {visible: true, timeout: 10000})
                         .then(()=>{
                             misc.writeToLog('logged in!')
