@@ -21,7 +21,7 @@ const nq = require('./newquests');
 const fnAllCardsDetails  = ('./data/cardsDetails.json');
 const basicCards = require('./data/basicCards');
 const battles = require('./auto-gather');
-const version = 11.22;
+const version = 11.23;
 const unitVersion = 'desktop'
 
 async function readJSONFile(fn){
@@ -497,7 +497,23 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         }, 250); })(); 
     if (useAPI) {
        try {
-            const apiResponse = await withTimeout(100000, api.getPossibleTeams(matchDetails));
+            const apiResponse = await withTimeout(100000, api.getPossibleTeams(matchDetails,process.env.API_URL)
+                        .then(async data =>{
+                            if (!JSON.stringify(data).includes('api limit reached')||JSON.stringify(data).includes("Rate limit exceeded")){
+                                return api.getPossibleTeams(matchDetails,process.env.API_URL_FALLBACK)
+                            } else {
+                                return 'api limit reached' 
+                            }
+                        })
+                        .catch(async err=>{ 
+                            console.log(err)
+                            if (err.includes('api limit reached')|| err.includes("Rate limit exceeded")){
+                                 return api.getPossibleTeams(matchDetails,process.env.API_URL_FALLBACK)
+                            } else {
+                                return 'api limit reached'
+                            }
+                            }));
+
             if (apiResponse && !JSON.stringify(apiResponse).includes('api limit reached')) {
                 readline.cursorTo(process.stdout, 0); 
                 misc.writeToLog(chalk.magenta('API Response Result: ')); 

@@ -14,8 +14,8 @@ function sleep(ms) {
     });
 }
 
-async function response (matchDetails){
-	const response = await fetch(process.env.API_URL + 'get_team/', {
+async function response (matchDetails,api){
+	const response = await fetch(api + 'get_team/', {
 		method: 'post',
 		body: JSON.stringify(matchDetails),
 		headers: {'Content-Type': 'application/json'}
@@ -23,9 +23,9 @@ async function response (matchDetails){
 	return response.text()
 }
 
-async function getPossibleTeams(matchDetails) {
+async function getPossibleTeams(matchDetails,api) {
 	try {		
-		let dataRaw = await response(matchDetails);
+		let dataRaw = await response(matchDetails,api);
 		if (process.env.DEBUG === 'true') {
 			tempLog('--------------------------------------------------------');
 			tempLog(JSON.stringify(matchDetails));	
