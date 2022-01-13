@@ -499,7 +499,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
        try {
             const apiResponse = await withTimeout(100000, api.getPossibleTeams(matchDetails,process.env.API_URL)
                         .then(async data =>{
-                            if (!JSON.stringify(data).includes('api limit reached')||JSON.stringify(data).includes("Rate limit exceeded")){
+                            if (JSON.stringify(data).includes('api limit reached')||JSON.stringify(data).includes("Rate limit exceeded")){
                                 return api.getPossibleTeams(matchDetails,process.env.API_URL_FALLBACK)
                             } else {
                                 return 'api limit reached' 
