@@ -38,7 +38,7 @@ async function getPossibleTeams(matchDetails,api) {
         	readline.cursorTo(process.stdout, 0); 
             console.log(chalk.yellow(' Waiting 30 seconds for API to calculate team...'));
             await sleep(30000);
-            dataRaw =  await response(matchDetails);
+            dataRaw =  await response(matchDetails,api);
             if (++apiResponseCounter >= 4) break;
             }
                  
