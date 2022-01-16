@@ -112,13 +112,12 @@ async function newquestUpdate (Newquest, claimQuestReward, page, logSummary, all
                 await page.waitForTimeout(100000);
 
                 await getRewardsDetails("quest").then(async data=>{
-                
+                    let detailer1 = [];
+                    let forlogVisual = [];
+                    let message1 = ' Daily rewards claimed: ';
+                    let forNLV = '';
                     if (data && data.success== true){
                         const generalResult = JSON.parse(data.result).rewards // general result
-                        let detailer1 = [];
-                        let forlogVisual = [];
-                        let message1 = ' Daily rewards claimed: ';
-                        let forNLV = '';
                             for (let i = 0; i < generalResult.length; i++) {
                                 rewardcard = generalResult[i].type
                                 if (rewardcard === 'reward_card'){
@@ -217,11 +216,11 @@ async function seasonQuest (page, logSummary, allCardDetails, seasonRewards){
 
                             try{
                                 const data = await getRewardsDetails("league_season");
+                                let detailer1 = [];
+                                let forVisual = []
+                                let message1 = ' Season rewards claimed: \n'
                                 if (data && data.success== true){  
                                         const generalResult = JSON.parse(data.result).rewards // general result
-                                        let detailer1 = [];
-                                        let forVisual = []
-                                        let message1 = ' Season rewards claimed: \n'
                                         for (let i = 0; i < generalResult.length; i++) {
                                             rewardcard = generalResult[i].type
                                             if (rewardcard === 'reward_card'){

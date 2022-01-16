@@ -21,7 +21,7 @@ const nq = require('./newquests');
 const fnAllCardsDetails  = ('./data/cardsDetails.json');
 const basicCards = require('./data/basicCards');
 const battles = require('./auto-gather');
-const version = 11.23;
+const version = 11.24;
 const unitVersion = 'desktop'
 
 async function readJSONFile(fn){
@@ -480,11 +480,13 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
         logSummary.push(' No Mana error. Skipping account.')
         throw new Error(" No mana. Game server error.");
     }
-        let priorityCards = process.env.PRIORITY_CARD;
+        var priorityCards = process.env.PRIORITY_CARD;
 		if (priorityCards) {
             priorityCards = priorityCards.split(',')
             priorityCards = priorityCards.filter(x => myCards.includes(parseInt(x.trim())))
-		}
+		} else {
+            priorityCards = 0
+        }
     misc.writeToLog(chalk.green('Battle details:'));  
     misc.writeToLog('Mana:'+  chalk.yellow(mana) + ' Rules:' + chalk.yellow(rules) + ' Splinters:' + chalk.yellow(splinters))
     misc.writeToLog(chalk.green('starting team selection'));
