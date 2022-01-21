@@ -33,7 +33,6 @@ async function readJSONFile(fn){
 
 async function checkForUpdate(teleNotif) {
     console.log(figlet.textSync('USBpc', {
-        //font: 'Ghost',
         horizontalLayout: 'default',
         verticalLayout: 'default',
         width: 80,
@@ -291,13 +290,15 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
     logSummary1[process.env.ACCUSERNAME] = newlogvisual
 
     misc.writeToLog(!myCards?'Playing only basic cards':`Deck size: ${myCards.length}`)
+    await page.waitForNavigation({timeout:10000})
     await page.waitForSelector('#play_now_btn',{visible: true, timeout: 2000}).catch(()=> misc.writeToLog('Took 2 sec to load.'));
 
     //check if maintenance 
-    const maintenance = page.url()
-    if (maintenance == 'https://splinterlands.com/?p=maintenance') {
+    const maintenance = page.url().includes('p=maintenance')
+    if (page.url().includes('/?p=maintenance')) {
         await page.reload()
-        if (maintenance == 'https://splinterlands.com/?p=maintenance'){
+        await page.waitForNavigation({timeout:10000})
+        if (page.url().includes('/?p=maintenance')){
             return misc.writeToLog('Game is currently on maintenance.')  
         }    
     } else {
@@ -311,7 +312,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                  misc.writeToLog('Login')
                 await splinterlandsPage.login(page).catch(async () => {
                    misc.writeToLog('Unable to login. Reloading page.');
-                    await page.goto(`https://splinterlands/?p=battle_history`);
+                    await page.goto(`https://splinterlands.com/?p=battle_history`);
                     await page.waitForTimeout(4000);
                     const userlogin = await getElementText(page, '.dropdown-toggle .bio__name__display', 10000);
                     if (userlogin!= process.env.ACCUSERNAME) await splinterlandsPage.login(page).catch(e => {
@@ -886,7 +887,7 @@ const sleepingTime = sleepingTimeInMinutes * 60000;
 
                 const page = (await browsers[0].pages())[1];
                  page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36');
-                 page.setViewport({ width: 1800,height: 1500,deviceScaleFactor: 1,}).then(()=> page.goto(`https://splinterlands.com`))
+                 page.setViewport({ width: 1800,height: 1500,deviceScaleFactor: 1,}).then(()=> page.goto(`https://splinterlands.io`))
 
                 //page.goto('https://splinterlands.io/');
                 misc.writeToLog('getting user cards collection from splinterlands API...')
