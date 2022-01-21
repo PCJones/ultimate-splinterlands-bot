@@ -6,8 +6,12 @@ call npm install
 call npm update
 cd node_modules/puppeteer
 if exist .local-chromium (
+  ECHO chromium already exist. Updating chromium to the latest version. 
+  rmdir /s /q .local-chromium
+  call node install
   cd ..\..\ 
 ) else (
+  ECHO Installing latest version of chromium.
   call node install
 cd ..\..\ 
 )
