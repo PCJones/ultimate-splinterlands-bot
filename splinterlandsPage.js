@@ -25,7 +25,6 @@ async function login(page) {
                         .then(()=>{
                             misc.writeToLog('logged in!')
                         }).catch(e=>{
-                            console.log(e)
                             misc.writeToLog('didnt login');
                             throw new Error('Didnt login');
                         })    
