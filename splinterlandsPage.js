@@ -4,7 +4,7 @@ require('dotenv').config()
 async function login(page) {
 
     try {
-        await page.waitForSelector('#log_in_button > button').then(() => page.click('#log_in_button > button'))
+        await page.waitForSelector('#log_in_button > button').then(async () => await page.evaluate(async()=>await SM.ShowLogin(SM.ShowAbout)))
         await page.waitForSelector('#email',{visible: true, timeout: 10000})
             .then(() => page.focus('#email'))
             .then(() => page.type('#email', process.env.ACCUSERNAME))

@@ -21,7 +21,7 @@ const nq = require('./newquests');
 const fnAllCardsDetails  = ('./data/cardsDetails.json');
 const basicCards = require('./data/basicCards');
 const battles = require('./auto-gather');
-const version = 11.24;
+const version = 11.25;
 const unitVersion = 'desktop'
 
 async function readJSONFile(fn){
@@ -196,7 +196,6 @@ async function createBrowsers(count, headless) {
                 '--no-zygote', // wtf does that mean ?
                 '--disable-dev-shm-usage', // ???
                 '--use-gl=desktop', // better cpu usage with --use-gl=desktop rather than --use-gl=swiftshader, still needs more testing.
-                //'--single-process', // <- this one doesn't works in Windows
                 '--disable-gpu',
                 '--hide-scrollbars',
                 '--mute-audio',
