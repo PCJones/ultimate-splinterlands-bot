@@ -504,7 +504,7 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
                             if (JSON.stringify(data).includes('api limit reached')||JSON.stringify(data).includes("Rate limit exceeded")){
                                 return api.getPossibleTeams(matchDetails,process.env.API_URL_FALLBACK)
                             } else {
-                                return 'api limit reached' 
+                                return data
                             }
                         })
                         .catch(async err=>{ 
