@@ -1,5 +1,21 @@
-const misc = require('./misc');
 require('dotenv').config()
+const misc = require('./misc');
+const axios = require('axios');
+const Promise = require('bluebird');
+
+
+async function makeGetRequest(path, setTimeOut) {
+    return new Promise(function (resolve, reject) {
+        axios.get(path, { timeout: setTimeOut }).then(
+            (response) => {
+                resolve(response.data);
+            },
+            (error) => {
+                reject(error);
+            }
+        );
+    });
+}
 
 async function login(page) {
 
@@ -36,47 +52,36 @@ async function login(page) {
     }
 }
 
-async function checkMana(page) {
-    var manas = await page.evaluate(() => {
-        var manaCap = document.querySelectorAll('div.mana-total > span.mana-cap')[0].innerText;
-        var manaUsed = document.querySelectorAll('div.mana-total > span.mana-used')[0].innerText;
-        var manaLeft = manaCap - manaUsed
-        return { manaCap, manaUsed, manaLeft };
-    });
-    misc.writeToLog('manaLimit', manas);
-    return manas;
-}
 
-async function checkMatchMana(page) {
-    const mana = await page.$$eval("div.col-md-12 > div.mana-cap__icon", el => el.map(x => x.getAttribute("data-original-title")));
-    let manaValue = parseInt(mana[0].split(':')[1], 10);
-    if (manaValue == 0) {
-        page.reload();
-        page.waitForTimeout(5000)
-        manaValue = parseInt(mana[0].split(':')[1], 10);
+exports.checkMatchSetup  = async function (page) {
+    let i = 0, APIurl = ['api2.splinterlands.com', 'api.splinterlands.io', 'game-api.splinterlands.io', 'api.steemmonsters.io']
+    while (true) {
+        var battleCondition = await makeGetRequest(`https://${APIurl[i]}/players/outstanding_match?username=${process.env.ACCUSERNAME}`, 10000).catch(() => { return undefined })
+        if (battleCondition != undefined || battleCondition.mana_cap != null) break;
+        if (i > (APIurl.length + 1)) break;
+        await page.reload();
+        i++;
     }
-    return manaValue;
-}
+    
+    const splinterRaw = battleCondition.inactive.split(',')
+    let inactiveElement = []
+    splinterRaw.forEach(element => {
+        result = element == 'Red' ? 'fire' : element == 'Blue' ? 'water' : element == 'White' ? 'life' : element == 'Black' ? 'death' : element == 'Green' ? 'earth' : 'dragon';
+        inactiveElement.push(result)
+    })
+    const splinterElement = ['fire', 'water', 'life', 'death', 'earth', 'dragon']
+    let availElement = []
+    splinterElement.forEach(activeElem => {
+        let elementers = inactiveElement.findIndex(o => o == activeElem);
+        if (elementers == -1) availElement.push(activeElem)
+    })
 
-async function checkMatchRules(page) {
-    const rules = await page.$$eval("div.combat__rules > div.row > div>  img", el => el.map(x => x.getAttribute("data-original-title")));
-    return rules.map(x => x.split(':')[0]).join('|')
-}
+    return {
+        mana: battleCondition.mana_cap,
+        rules: battleCondition.ruleset,
+        splinters: availElement
+    }
 
-async function checkMatchActiveSplinters(page) {
-    const splinterUrls = await page.$$eval("div.col-sm-4 > img", el => el.map(x => x.getAttribute("src")));
-    return splinterUrls.map(splinter => splinterIsActive(splinter)).filter(x => x);
-}
-
-//UNUSED ?
-const splinterIsActive = (splinterUrl) => {
-    const splinter = splinterUrl.split('/').slice(-1)[0].replace('.svg', '').replace('icon_splinter_', '');
-    return splinter.indexOf('inactive') === -1 ? splinter : '';
 }
 
 exports.login = login;
-exports.checkMana = checkMana;
-exports.checkMatchMana = checkMatchMana;
-exports.checkMatchRules = checkMatchRules;
-exports.checkMatchActiveSplinters = checkMatchActiveSplinters;
-exports.splinterIsActive = splinterIsActive;

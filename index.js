@@ -458,11 +458,8 @@ async function startBotPlayMatch(page, myCards, quest, claimQuestReward, priorit
 
     }
     await page.waitForTimeout(5000);
-    let[mana, rules, splinters] = await Promise.all([
-                splinterlandsPage.checkMatchMana(page).then((mana) => mana).catch(() => 'no mana'),
-                splinterlandsPage.checkMatchRules(page).then((rulesArray) => rulesArray).catch(() => 'no rules'),
-                splinterlandsPage.checkMatchActiveSplinters(page).then((splinters) => splinters).catch(() => 'no splinters')
-            ]);
+    const matchsetup = await splinterlandsPage.checkMatchSetup(page)
+    var [mana, rules, splinters] = [matchsetup.mana, matchsetup.rules, matchsetup.splinters]
 
     const matchDetails = {
         player: process.env.ACCUSERNAME.trim(),
